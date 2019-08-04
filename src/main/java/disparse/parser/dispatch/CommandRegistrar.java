@@ -10,10 +10,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommandRegistrar {
-    public static CommandRegistrar registrar = new CommandRegistrar();
+    private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
 
+    public static CommandRegistrar registrar = new CommandRegistrar();
     private HashMap<String, Method> commandTable = new HashMap<>();
     private HashMap<String, List<Flag>> commandToFlags = new HashMap<>();
     private List<Method> injectables = new ArrayList<>();
@@ -97,7 +100,7 @@ public class CommandRegistrar {
             Object handlerObj = ctor.newInstance();
             handler.invoke(handlerObj, objs);
         } catch (Exception exec) {
-            exec.printStackTrace();
+            logger.error("Error occured", exec);
         }
 
     }
