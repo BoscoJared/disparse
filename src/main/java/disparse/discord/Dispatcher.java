@@ -1,12 +1,12 @@
 package disparse.discord;
 
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import java.util.List;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
-import java.util.List;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class Dispatcher extends ListenerAdapter {
 
@@ -33,7 +33,7 @@ public class Dispatcher extends ListenerAdapter {
     public static JDABuilder init(JDABuilder builder, String prefix) {
         Detector.detect();
         Dispatcher dispatcher = new Dispatcher(prefix);
-        builder.addEventListener(dispatcher);
+        builder.addEventListeners(dispatcher);
         return builder;
     }
 }
