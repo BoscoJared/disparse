@@ -7,9 +7,7 @@ public class Flag {
     private final Character shortName;
     private final Types type;
 
-    public Flag(final String longName,
-                final Character shortName,
-                final Types type) {
+    public Flag(final String longName, final Character shortName, final Types type) {
         this.longName = longName;
         this.shortName = shortName;
         this.type = type;
@@ -34,11 +32,14 @@ public class Flag {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Flag flag = (Flag) o;
-        return longName.equals(flag.longName) &&
-                Objects.equals(shortName, flag.shortName);
+        return longName.equals(flag.longName) && Objects.equals(shortName, flag.shortName);
     }
 
     @Override

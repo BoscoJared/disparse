@@ -6,7 +6,6 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
-
 import java.util.List;
 
 public class Dispatcher extends ListenerAdapter {
@@ -19,10 +18,13 @@ public class Dispatcher extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
+        if (event.getAuthor().isBot()) {
+            return;
+        }
         String raw = event.getMessage().getContentRaw();
-        if (!raw.startsWith(this.prefix)) return;
-
+        if (!raw.startsWith(this.prefix)) {
+            return;
+        }
         String cleanedMessage = raw.replace(this.prefix, "");
         List<String> args = Shlex.shlex(cleanedMessage);
         CommandRegistrar.registrar.dispatch(args, event);

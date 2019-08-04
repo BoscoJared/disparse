@@ -8,9 +8,8 @@ public class ParsedOutput {
     private final List<String> arguments;
     private final Map<Flag, Object> options;
 
-    public ParsedOutput(final String command,
-                        final List<String> arguments,
-                        final Map<Flag, Object> options) {
+    public ParsedOutput(final String command, final List<String> arguments,
+            final Map<Flag, Object> options) {
         this.command = command;
         this.arguments = arguments;
         this.options = options;

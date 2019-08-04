@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Flag {
     char shortName() default ' ';
+
     String longName() default "";
 }

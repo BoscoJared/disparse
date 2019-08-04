@@ -1,7 +1,6 @@
 package disparse.parser.reflection;
 
 import disparse.parser.Types;
-
 import java.lang.reflect.Field;
 import java.util.List;
 
