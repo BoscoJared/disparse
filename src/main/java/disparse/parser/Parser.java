@@ -2,7 +2,6 @@ package disparse.parser;
 
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequiresValue;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,7 +43,7 @@ public class Parser {
             }
         }
         int i = 0;
-        for (Iterator<String> iter = args.iterator(); iter.hasNext();)  {
+        for (Iterator<String> iter = args.iterator(); iter.hasNext();) {
             if (i < skip) {
                 iter.next();
                 iter.remove();
@@ -53,7 +52,8 @@ public class Parser {
                 break;
             }
         }
-        return commandName.orElseThrow(() -> new NoCommandNameFound("A valid command was not found!"));
+        return commandName
+                .orElseThrow(() -> new NoCommandNameFound("A valid command was not found!"));
     }
 
     private void createShortAndLongOptions(String commandName) {

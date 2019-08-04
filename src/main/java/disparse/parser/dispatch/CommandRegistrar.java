@@ -6,7 +6,6 @@ import disparse.parser.Parser;
 import disparse.parser.Types;
 import disparse.parser.reflection.ParsedEntity;
 import disparse.parser.reflection.Utils;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -19,7 +18,8 @@ public class CommandRegistrar {
     private HashMap<String, List<Flag>> commandToFlags = new HashMap<>();
     private List<Method> injectables = new ArrayList<>();
 
-    private CommandRegistrar() {}
+    private CommandRegistrar() {
+    }
 
     public void register(String command, Method method) {
         this.commandToFlags.putIfAbsent(command, new ArrayList<>());
@@ -31,7 +31,9 @@ public class CommandRegistrar {
         this.commandToFlags.get(command).add(flag);
     }
 
-    public void register(Method method) { this.injectables.add(method); }
+    public void register(Method method) {
+        this.injectables.add(method);
+    }
 
     public void dispatch(List<String> args, Object... injectables) {
 
@@ -53,9 +55,11 @@ public class CommandRegistrar {
                     Object newObject = entityCtor.newInstance();
                     for (Field field : clazz.getDeclaredFields()) {
                         if (field.isAnnotationPresent(disparse.parser.reflection.Flag.class)) {
-                            disparse.parser.reflection.Flag flagAnnotation = field.getAnnotation(disparse.parser.reflection.Flag.class);
+                            disparse.parser.reflection.Flag flagAnnotation =
+                                    field.getAnnotation(disparse.parser.reflection.Flag.class);
 
-                            disparse.parser.Flag flag = Utils.createFlagFromAnnotation(field, flagAnnotation);
+                            disparse.parser.Flag flag =
+                                    Utils.createFlagFromAnnotation(field, flagAnnotation);
                             if (output.getOptions().containsKey(flag)) {
                                 field.setAccessible(true);
                                 Object val = output.getOptions().get(flag);
@@ -97,6 +101,4 @@ public class CommandRegistrar {
         }
 
     }
-
-
 }

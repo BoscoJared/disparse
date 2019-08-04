@@ -9,8 +9,8 @@ public class Shlex {
         boolean escaping = false;
         char quoteChar = ' ';
         boolean quoting = false;
-        StringBuilder current = new StringBuilder() ;
-        for (int i = 0; i<argString.length(); i++) {
+        StringBuilder current = new StringBuilder();
+        for (int i = 0; i < argString.length(); i++) {
             char c = argString.charAt(i);
             if (escaping) {
                 current.append(c);
