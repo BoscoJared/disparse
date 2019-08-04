@@ -1,17 +1,20 @@
 package disparse.parser.dispatch;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import disparse.parser.Flag;
 import disparse.parser.ParsedOutput;
 import disparse.parser.Parser;
 import disparse.parser.Types;
 import disparse.parser.reflection.ParsedEntity;
 import disparse.parser.reflection.Utils;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CommandRegistrar {
     private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
@@ -99,9 +102,9 @@ public class CommandRegistrar {
             ctor.setAccessible(true);
             Object handlerObj = ctor.newInstance();
             handler.invoke(handlerObj, objs);
-        } catch (Exception exec) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+                | NoSuchMethodException exec) {
             logger.error("Error occured", exec);
         }
-
     }
 }

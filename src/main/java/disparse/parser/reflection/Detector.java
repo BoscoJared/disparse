@@ -2,6 +2,7 @@ package disparse.parser.reflection;
 
 import eu.infomas.annotation.AnnotationDetector;
 import disparse.parser.dispatch.CommandRegistrar;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -53,7 +54,7 @@ public class Detector {
 
                             }
                         }
-                    } catch (Exception exec) {
+                    } catch (ClassNotFoundException exec) {
                         logger.error("An error occured", exec);
                     }
                 }
@@ -65,7 +66,7 @@ public class Detector {
     public static void detect() {
         try {
             handlerDetector.detect();
-        } catch (Exception exec) {
+        } catch (IOException exec) {
             logger.error("Error in detecting annotations", exec);
         }
     }
