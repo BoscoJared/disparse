@@ -5,10 +5,17 @@ import disparse.parser.dispatch.CommandRegistrar;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Detector {
+
+    private static final Logger logger = LoggerFactory.getLogger(Detector.class);
+
     private static final AnnotationDetector.MethodReporter handlerReporter =
             new AnnotationDetector.MethodReporter() {
+                private final Logger logger = LoggerFactory.getLogger(Detector.class);
+
                 @SuppressWarnings("unchecked")
                 @Override
                 public Class<? extends Annotation>[] annotations() {
@@ -47,7 +54,7 @@ public class Detector {
                             }
                         }
                     } catch (Exception exec) {
-                        System.err.println(exec);
+                        logger.error("An error occured", exec);
                     }
                 }
             };
@@ -59,7 +66,7 @@ public class Detector {
         try {
             handlerDetector.detect();
         } catch (Exception exec) {
-            System.err.println(exec);
+            logger.error("Error in detecting annotations", exec);
         }
     }
 }
