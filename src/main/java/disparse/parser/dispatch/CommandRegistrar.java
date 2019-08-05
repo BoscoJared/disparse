@@ -81,7 +81,6 @@ public class CommandRegistrar {
                 } else {
                     if (clazz.isAssignableFrom(List.class)) {
                         objs[i] = args;
-                        continue;
                     }
                     for (Object injectable : injectables) {
                         if (clazz.isAssignableFrom(injectable.getClass())) {
