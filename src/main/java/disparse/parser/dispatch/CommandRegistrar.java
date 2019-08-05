@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import disparse.parser.exceptions.OptionRequired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import disparse.parser.Flag;
@@ -74,6 +76,8 @@ public class CommandRegistrar {
                                 } else {
                                     field.set(newObject, val);
                                 }
+                            } else if (flag.isRequired()) {
+                                throw new OptionRequired(flag + " is required for command to be ran!");
                             }
                         }
                     }

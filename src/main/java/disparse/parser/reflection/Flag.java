@@ -11,4 +11,6 @@ public @interface Flag {
     char shortName() default ' ';
 
     String longName() default "";
+
+    boolean required() default false;
 }

@@ -5,12 +5,18 @@ import java.util.Objects;
 public class Flag {
     private final String longName;
     private final Character shortName;
+    private final boolean isRequired;
     private final Types type;
 
     public Flag(final String longName, final Character shortName, final Types type) {
+        this(longName, shortName, type, false);
+    }
+
+    public Flag(final String longName, final Character shortName, final Types type, final boolean isRequired) {
         this.longName = longName;
         this.shortName = shortName;
         this.type = type;
+        this.isRequired = isRequired;
     }
 
     public String getLongName() {
@@ -24,6 +30,8 @@ public class Flag {
     public Types getType() {
         return type;
     }
+
+    public boolean isRequired() { return isRequired; }
 
     @Override
     public String toString() {
