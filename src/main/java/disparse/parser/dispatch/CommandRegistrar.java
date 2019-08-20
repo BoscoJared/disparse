@@ -4,6 +4,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import disparse.parser.exceptions.OptionRequired;
 import java.util.*;
 
 import disparse.discord.Helpable;
@@ -17,7 +22,7 @@ import disparse.parser.reflection.Utils;
 public class CommandRegistrar<E> {
     private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
 
-    private static final Flag HELP_FLAG = new Flag("help", 'h', Types.BOOL, "show usage of a particular command");
+    private static final Flag HELP_FLAG = new Flag("help", 'h', Types.BOOL, false, "show usage of a particular command");
     private static final Command HELP_COMMAND = new Command("help", "show all commands or detailed help of one command");
 
     public static CommandRegistrar registrar = new CommandRegistrar();
@@ -104,6 +109,8 @@ public class CommandRegistrar<E> {
                                 } else {
                                     field.set(newObject, val);
                                 }
+                            } else if (flag.isRequired()) {
+                                throw new OptionRequired(flag + " is required for command to be ran!");
                             }
                         }
                     }

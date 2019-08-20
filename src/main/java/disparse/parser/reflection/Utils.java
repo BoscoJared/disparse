@@ -9,6 +9,7 @@ public class Utils {
     public static disparse.parser.Flag createFlagFromAnnotation(Field field, Flag annotation) {
         String longName = annotation.longName();
         Character shortName = annotation.shortName();
+        boolean required = annotation.required();
         if (shortName == ' ') {
             shortName = null;
         }
@@ -25,6 +26,6 @@ public class Utils {
 
         String description = annotation.description();
 
-        return new disparse.parser.Flag(longName, shortName, type, description);
+        return new disparse.parser.Flag(longName, shortName, type, required, description);
     }
 }
