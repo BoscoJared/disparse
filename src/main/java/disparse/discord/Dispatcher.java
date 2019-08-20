@@ -44,8 +44,8 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
         List<Flag> sortedFlags = flags.stream()
                 .sorted(
-                        Comparator.comparing(Flag::getShortName, Comparator.nullsLast(Comparator.naturalOrder()))
-                            .thenComparing(Flag::getLongName)
+                        Comparator.comparing((Flag flag) -> toLower(flag.getShortName()), Comparator.nullsLast(Comparator.naturalOrder()))
+                            .thenComparing(flag -> flag.getLongName().toLowerCase())
                 )
                 .collect(Collectors.toList());
 
@@ -75,6 +75,11 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         }
 
         event.getChannel().sendMessage(builder.build()).queue();
+    }
+
+    private static Character toLower(Character in) {
+        if (in == null) return null;
+        return Character.toLowerCase(in);
     }
 
     public static JDABuilder init(JDABuilder builder, String prefix) {
