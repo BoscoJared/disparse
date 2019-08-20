@@ -14,13 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ParserTest {
 
     private static Parser testParser;
-    private static Flag flagOne = new Flag("create", 'c', Types.LIST, "");
-    private static Flag flagTwo = new Flag("update", 'u', Types.BOOL, "");
-    private static Flag flagThree = new Flag("read-only", 'r', Types.BOOL, "");
-    private static Flag flagFour = new Flag("delete", 'd', Types.BOOL, "");
-    private static Flag flagFive = new Flag("user", ' ', Types.STR, "");
-    private static Flag flagSix = new Flag("minutes", 'm', Types.INT, "");
-    private static Flag flagSeven = new Flag("random", ' ', Types.LIST, "");
+    private static Flag flagOne = new Flag("create", 'c', Types.LIST, false, "");
+    private static Flag flagTwo = new Flag("update", 'u', Types.BOOL, false, "");
+    private static Flag flagThree = new Flag("read-only", 'r', Types.BOOL, false, "");
+    private static Flag flagFour = new Flag("delete", 'd', Types.BOOL, false, "");
+    private static Flag flagFive = new Flag("user", ' ', Types.STR, false, "");
+    private static Flag flagSix = new Flag("minutes", 'm', Types.INT, false, "");
+    private static Flag flagSeven = new Flag("random", ' ', Types.LIST, false, "");
 
     @BeforeAll
     static void initializeTestParser() {

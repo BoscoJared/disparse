@@ -37,13 +37,13 @@ public class CommandRegistrar<E> {
 
     public void register(Command command, Method method) {
         this.commandToFlags.putIfAbsent(command, new HashSet<>());
+        this.commandToFlags.get(command).add(HELP_FLAG);
         this.commandTable.put(command, method);
     }
 
     public void register(Command command, Flag flag) {
         this.commandToFlags.putIfAbsent(command, new HashSet<>());
         this.commandToFlags.get(command).add(flag);
-        this.commandToFlags.get(command).add(HELP_FLAG);
     }
 
     public void register(Method method) {
