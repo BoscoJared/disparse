@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface CommandHandler {
     public String commandName();
+    public String description() default "no description available";
 }

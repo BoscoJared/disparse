@@ -6,11 +6,13 @@ public class Flag {
     private final String longName;
     private final Character shortName;
     private final Types type;
+    private final String description;
 
-    public Flag(final String longName, final Character shortName, final Types type) {
+    public Flag(final String longName, final Character shortName, final Types type, final String description) {
         this.longName = longName;
         this.shortName = shortName;
         this.type = type;
+        this.description = description;
     }
 
     public String getLongName() {
@@ -24,6 +26,8 @@ public class Flag {
     public Types getType() {
         return type;
     }
+
+    public String getDescription() { return description; }
 
     @Override
     public String toString() {

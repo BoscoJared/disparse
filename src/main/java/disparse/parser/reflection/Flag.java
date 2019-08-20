@@ -11,4 +11,6 @@ public @interface Flag {
     char shortName() default ' ';
 
     String longName() default "";
+
+    String description() default "no description available";
 }

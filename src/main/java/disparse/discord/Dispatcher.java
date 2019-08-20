@@ -1,14 +1,21 @@
 package disparse.discord;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import disparse.parser.Command;
+import disparse.parser.Flag;
+import disparse.parser.Types;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class Dispatcher extends ListenerAdapter {
+public class Dispatcher extends ListenerAdapter implements Helpable<MessageReceivedEvent> {
 
     private String prefix;
 
@@ -27,7 +34,47 @@ public class Dispatcher extends ListenerAdapter {
         }
         String cleanedMessage = raw.replace(this.prefix, "");
         List<String> args = Shlex.shlex(cleanedMessage);
-        CommandRegistrar.registrar.dispatch(args, event);
+        CommandRegistrar.registrar.dispatch(args, this, event);
+    }
+
+    public void help(MessageReceivedEvent event, Command command, Collection<Flag> flags) {
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))
+                .setDescription(String.format("Usage of command:  %s.  [+] may be repeated.", command.getCommandName()));
+
+        List<Flag> sortedFlags = flags.stream()
+                .sorted(
+                        Comparator.comparing(Flag::getShortName, Comparator.nullsLast(Comparator.naturalOrder()))
+                            .thenComparing(Flag::getLongName)
+                )
+                .collect(Collectors.toList());
+
+        for (Flag flag : sortedFlags) {
+            String flagName;
+            if (flag.getShortName() == null) {
+                flagName = String.format("--%s", flag.getLongName());
+            } else {
+                flagName = String.format("-%s | --%s", flag.getShortName(), flag.getLongName());
+            }
+
+            if (flag.getType() == Types.LIST) {
+                flagName = flagName + " [+]";
+            }
+            builder.addField(flagName, flag.getDescription(), false);
+        }
+        event.getChannel().sendMessage(builder.build()).queue();
+    }
+
+    public void allCommands(MessageReceivedEvent event, Collection<Command> commands) {
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle("All Commands")
+                .setDescription("All registered commands");
+
+        for (Command command : commands) {
+            builder.addField(command.getCommandName(), command.getDescription(), false);
+        }
+
+        event.getChannel().sendMessage(builder.build()).queue();
     }
 
     public static JDABuilder init(JDABuilder builder, String prefix) {

@@ -6,16 +6,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Parser {
-    private Map<String, List<Flag>> commandToFlags = new HashMap<>();
+    private Map<Command, ? extends Collection<Flag>> commandToFlags;
     private Map<String, Flag> longOptionMap = new HashMap<>();
     private Map<Character, Flag> shortOptionMap = new HashMap<>();
 
-    public Parser(final Map<String, List<Flag>> commandToFlags) {
+    public Parser(final Map<Command, ? extends Collection<Flag>> commandToFlags) {
         this.commandToFlags = commandToFlags;
     }
 
     public ParsedOutput parse(List<String> args) {
-        final String commandName = this.findCommand(args);
+        final Command commandName = this.findCommand(args);
 
         this.createShortAndLongOptions(commandName);
 
@@ -28,12 +28,12 @@ public class Parser {
         return new ParsedOutput(commandName, args, mergedOptions);
     }
 
-    private String findCommand(List<String> args) {
+    private Command findCommand(List<String> args) {
         List<String> currArgs = new ArrayList<>(args);
-        Optional<String> commandName = Optional.empty();
+        Optional<Command> commandName = Optional.empty();
         int skip = 0;
         while (currArgs.size() > 0) {
-            String possibleCommand = currArgs.stream().collect(Collectors.joining("."));
+            Command possibleCommand = new Command(currArgs.stream().collect(Collectors.joining(".")), "");
             if (this.commandToFlags.containsKey(possibleCommand)) {
                 commandName = Optional.of(possibleCommand);
                 skip = currArgs.size();
@@ -56,7 +56,7 @@ public class Parser {
                 .orElseThrow(() -> new NoCommandNameFound("A valid command was not found!"));
     }
 
-    private void createShortAndLongOptions(String commandName) {
+    private void createShortAndLongOptions(Command commandName) {
         this.shortOptionMap = new HashMap<>();
         this.longOptionMap = new HashMap<>();
         for (Flag flag : this.commandToFlags.get(commandName)) {

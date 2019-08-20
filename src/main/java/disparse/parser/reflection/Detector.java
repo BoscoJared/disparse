@@ -1,11 +1,16 @@
 package disparse.parser.reflection;
 
+import disparse.parser.Command;
 import eu.infomas.annotation.AnnotationDetector;
 import disparse.parser.dispatch.CommandRegistrar;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,21 +38,22 @@ public class Detector {
                                 if (method.isAnnotationPresent(CommandHandler.class)) {
                                     CommandHandler handler =
                                             method.getAnnotation(CommandHandler.class);
-                                    String commandName = handler.commandName();
+                                    Command command = new Command(handler.commandName(), handler.description());
                                     for (Class<?> paramClazz : method.getParameterTypes()) {
                                         if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
-                                            for (Field field : paramClazz.getDeclaredFields()) {
+                                            Field[] fields = allImplicitFields(paramClazz);
+                                            for (Field field : fields) {
                                                 if (field.isAnnotationPresent(Flag.class)) {
                                                     disparse.parser.Flag parseableFlag = Utils
                                                             .createFlagFromAnnotation(field, field
                                                                     .getAnnotation(Flag.class));
-                                                    CommandRegistrar.registrar.register(commandName,
+                                                    CommandRegistrar.registrar.register(command,
                                                             parseableFlag);
                                                 }
                                             }
                                         }
                                     }
-                                    CommandRegistrar.registrar.register(commandName, method);
+                                    CommandRegistrar.registrar.register(command, method);
                                 } else if (method.isAnnotationPresent(Injectable.class)) {
                                     CommandRegistrar.registrar.register(method);
                                 }
@@ -55,7 +61,7 @@ public class Detector {
                             }
                         }
                     } catch (ClassNotFoundException exec) {
-                        logger.error("An error occured", exec);
+                        logger.error("An error occurred", exec);
                     }
                 }
             };
@@ -69,5 +75,20 @@ public class Detector {
         } catch (IOException exec) {
             logger.error("Error in detecting annotations", exec);
         }
+    }
+
+    public static Field[] allImplicitFields(Class<?> clazz) {
+        List<Field> fields;
+        if (clazz == null) {
+            return new Field[0];
+        } else {
+            fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
+        }
+        while (clazz.getSuperclass() != null) {
+            clazz = clazz.getSuperclass();
+            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+        }
+
+        return fields.toArray(Field[]::new);
     }
 }
