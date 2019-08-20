@@ -7,16 +7,14 @@ public class Flag {
     private final Character shortName;
     private final boolean isRequired;
     private final Types type;
+    private final String description;
 
-    public Flag(final String longName, final Character shortName, final Types type) {
-        this(longName, shortName, type, false);
-    }
-
-    public Flag(final String longName, final Character shortName, final Types type, final boolean isRequired) {
+    public Flag(final String longName, final Character shortName, final Types type, final boolean isRequired, final String description) {
         this.longName = longName;
         this.shortName = shortName;
         this.type = type;
         this.isRequired = isRequired;
+        this.description = description;
     }
 
     public String getLongName() {
@@ -32,6 +30,8 @@ public class Flag {
     }
 
     public boolean isRequired() { return isRequired; }
+
+    public String getDescription() { return description; }
 
     @Override
     public String toString() {

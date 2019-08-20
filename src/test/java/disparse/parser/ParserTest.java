@@ -14,24 +14,24 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ParserTest {
 
     private static Parser testParser;
-    private static Flag flagOne = new Flag("create", 'c', Types.LIST);
-    private static Flag flagTwo = new Flag("update", 'u', Types.BOOL);
-    private static Flag flagThree = new Flag("read-only", 'r', Types.BOOL);
-    private static Flag flagFour = new Flag("delete", 'd', Types.BOOL);
-    private static Flag flagFive = new Flag("user", ' ', Types.STR);
-    private static Flag flagSix = new Flag("minutes", 'm', Types.INT);
-    private static Flag flagSeven = new Flag("random", ' ', Types.LIST);
+    private static Flag flagOne = new Flag("create", 'c', Types.LIST, "");
+    private static Flag flagTwo = new Flag("update", 'u', Types.BOOL, "");
+    private static Flag flagThree = new Flag("read-only", 'r', Types.BOOL, "");
+    private static Flag flagFour = new Flag("delete", 'd', Types.BOOL, "");
+    private static Flag flagFive = new Flag("user", ' ', Types.STR, "");
+    private static Flag flagSix = new Flag("minutes", 'm', Types.INT, "");
+    private static Flag flagSeven = new Flag("random", ' ', Types.LIST, "");
 
     @BeforeAll
     static void initializeTestParser() {
 
-        Map<String, List<Flag>> commandToFlags  = Map.of(
-                "init", List.of(flagOne, flagTwo),
-                "make", List.of(flagThree, flagFour),
-                "sync", List.of(flagFive, flagSix),
-                "log", List.of(flagSeven, flagOne),
-                "up", List.of(flagTwo, flagThree),
-                "histedit", List.of(flagFour, flagFive)
+        Map<Command, List<Flag>> commandToFlags  = Map.of(
+                new Command("init", ""), List.of(flagOne, flagTwo),
+                new Command("make", ""), List.of(flagThree, flagFour),
+                new Command("sync", ""), List.of(flagFive, flagSix),
+                new Command("log", ""), List.of(flagSeven, flagOne),
+                new Command("up", ""), List.of(flagTwo, flagThree),
+                new Command("histedit", ""), List.of(flagFour, flagFive)
         );
         testParser = new Parser(commandToFlags);
     }

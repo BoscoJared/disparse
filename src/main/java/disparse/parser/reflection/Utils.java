@@ -24,6 +24,8 @@ public class Utils {
             type = Types.BOOL;
         }
 
-        return new disparse.parser.Flag(longName, shortName, type, required);
+        String description = annotation.description();
+
+        return new disparse.parser.Flag(longName, shortName, type, required, description);
     }
 }

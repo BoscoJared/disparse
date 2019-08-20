@@ -13,4 +13,6 @@ public @interface Flag {
     String longName() default "";
 
     boolean required() default false;
+
+    String description() default "no description available";
 }
