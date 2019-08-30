@@ -6,15 +6,23 @@ public class Command {
 
     private final String name;
     private final String description;
+    private final String[] roles;
 
     public Command(final String name, final String description) {
+        this(name, description, new String[0]);
+    }
+    
+    public Command(final String name, final String description, final String[] roles) {
         this.name = name;
         this.description = description;
+        this.roles = roles;
     }
 
     public String getCommandName() { return this.name; }
 
     public String getDescription() { return this.description; }
+    
+    public String[] getRoles() { return this.roles; }
 
     @Override
     public boolean equals(Object o) {

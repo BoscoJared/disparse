@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +37,8 @@ public class Detector {
                                 if (method.isAnnotationPresent(CommandHandler.class)) {
                                     CommandHandler handler =
                                             method.getAnnotation(CommandHandler.class);
-                                    Command command = new Command(handler.commandName(), handler.description());
+                                    Command command = new Command(handler.commandName(),
+                                            handler.description(), handler.roles());
                                     for (Class<?> paramClazz : method.getParameterTypes()) {
                                         if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
                                             Field[] fields = allImplicitFields(paramClazz);
