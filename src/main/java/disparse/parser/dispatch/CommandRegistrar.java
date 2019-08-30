@@ -7,10 +7,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import disparse.parser.exceptions.OptionRequired;
 import java.util.*;
-
 import disparse.discord.Helpable;
 import disparse.parser.*;
 import disparse.parser.reflection.Detector;
@@ -18,12 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import disparse.parser.reflection.ParsedEntity;
 import disparse.parser.reflection.Utils;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class CommandRegistrar<E> {
     private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
 
-    private static final Flag HELP_FLAG = new Flag("help", 'h', Types.BOOL, false, "show usage of a particular command");
-    private static final Command HELP_COMMAND = new Command("help", "show all commands or detailed help of one command");
+    private static final Flag HELP_FLAG =
+            new Flag("help", 'h', Types.BOOL, false, "show usage of a particular command");
+    private static final Command HELP_COMMAND =
+            new Command("help", "show all commands or detailed help of one command");
 
     public static CommandRegistrar registrar = new CommandRegistrar();
     private HashMap<Command, Method> commandTable = new HashMap<>();
@@ -63,6 +65,10 @@ public class CommandRegistrar<E> {
             if (c.equals(command)) {
                 command = c;
             }
+        }
+
+        if (commandRolesNotMet(command, event)) {
+            return;
         }
 
         boolean help = (boolean) output.getOptions().getOrDefault(HELP_FLAG, false);
@@ -110,7 +116,8 @@ public class CommandRegistrar<E> {
                                     field.set(newObject, val);
                                 }
                             } else if (flag.isRequired()) {
-                                throw new OptionRequired(flag + " is required for command to be ran!");
+                                throw new OptionRequired(
+                                        flag + " is required for command to be ran!");
                             }
                         }
                     }
@@ -145,5 +152,32 @@ public class CommandRegistrar<E> {
                 | NoSuchMethodException exec) {
             logger.error("Error occured", exec);
         }
+    }
+
+    /**
+     * Checks the specified roles of a command against the roles of the user attempting to call the
+     * command
+     * 
+     * @param command the command that has been parsed
+     * @param event   the event from the message listener
+     * @return true if the user does not have sufficient privilege
+     */
+    private boolean commandRolesNotMet(Command command, E event) {
+        if (command.getRoles().length == 0) {
+            return false;
+        }
+        if (event instanceof MessageReceivedEvent) {
+            MessageReceivedEvent e = (MessageReceivedEvent) event;
+            for (Role role : e.getMember().getRoles()) {
+                for (String commandRole : command.getRoles()) {
+                    if (role.getName().equalsIgnoreCase(commandRole)) {
+                        return false;
+                    }
+                }
+            }
+            e.getChannel().sendMessage("You don't have the required role!").queue();
+            return true;
+        }
+        return false;
     }
 }

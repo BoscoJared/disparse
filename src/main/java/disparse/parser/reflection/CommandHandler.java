@@ -10,4 +10,6 @@ import java.lang.annotation.Target;
 public @interface CommandHandler {
     public String commandName();
     public String description() default "no description available";
+    
+    public String[] roles() default {};
 }
