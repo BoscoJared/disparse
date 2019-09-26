@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequired;
 import java.util.*;
 import disparse.discord.Helpable;
@@ -55,7 +57,13 @@ public class CommandRegistrar<E> {
     public void dispatch(List<String> args, Helpable<E> helper, E event, Object... injectables) {
 
         Parser parser = new Parser(this.commandToFlags);
-        ParsedOutput output = parser.parse(args);
+        ParsedOutput output;
+        try {
+            output = parser.parse(args);
+        } catch (NoCommandNameFound exec) {
+            helper.commandNotFound(event, args.get(0), commandTable.keySet());
+            return;
+        }
         Command command = output.getCommand();
         if (!commandTable.containsKey(command)) {
             return;

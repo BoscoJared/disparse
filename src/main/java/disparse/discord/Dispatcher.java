@@ -36,6 +36,11 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         CommandRegistrar.registrar.dispatch(args, this, event);
     }
 
+    public void commandNotFound(MessageReceivedEvent event, String userInput, Collection<Command> commands) {
+        event.getChannel().sendMessage("`" + userInput + "` is not a valid command!").queue();
+        event.getChannel().sendMessage("Use !help to get a list of all available commands.").queue();
+    }
+
     public void help(MessageReceivedEvent event, Command command, Collection<Flag> flags) {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))
