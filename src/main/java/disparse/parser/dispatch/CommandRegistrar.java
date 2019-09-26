@@ -61,7 +61,7 @@ public class CommandRegistrar<E> {
         try {
             output = parser.parse(args);
         } catch (NoCommandNameFound exec) {
-            helper.commandNotFound(event, args.get(0), commandTable.keySet());
+            helper.commandNotFound(event, args.get(0));
             return;
         }
         Command command = output.getCommand();
@@ -76,6 +76,7 @@ public class CommandRegistrar<E> {
         }
 
         if (commandRolesNotMet(command, event)) {
+            helper.roleNotMet(event, command);
             return;
         }
 
@@ -186,7 +187,6 @@ public class CommandRegistrar<E> {
                     }
                 }
             }
-            e.getChannel().sendMessage("You don't have the required role!").queue();
             return true;
         }
         return false;

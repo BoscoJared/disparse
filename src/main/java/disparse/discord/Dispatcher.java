@@ -36,9 +36,15 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         CommandRegistrar.registrar.dispatch(args, this, event);
     }
 
-    public void commandNotFound(MessageReceivedEvent event, String userInput, Collection<Command> commands) {
+    public void commandNotFound(MessageReceivedEvent event, String userInput) {
         event.getChannel().sendMessage("`" + userInput + "` is not a valid command!").queue();
         event.getChannel().sendMessage("Use !help to get a list of all available commands.").queue();
+    }
+
+    public void roleNotMet(MessageReceivedEvent event, Command command) {
+        event.getChannel()
+                .sendMessage("You do not have the correct permissions to run:  `" + command.getCommandName() + "`")
+                .queue();
     }
 
     public void help(MessageReceivedEvent event, Command command, Collection<Flag> flags) {
