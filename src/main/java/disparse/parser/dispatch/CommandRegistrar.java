@@ -126,7 +126,7 @@ public class CommandRegistrar<E> {
                                 }
                             } else if (flag.isRequired()) {
                                 throw new OptionRequired(
-                                        flag + " is required for command to be ran!");
+                                        "The flag `--" + flag + "` is required for `" + command.getCommandName() + "` to be ran!");
                             }
                         }
                     }
@@ -163,6 +163,8 @@ public class CommandRegistrar<E> {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException
                 | NoSuchMethodException exec) {
             logger.error("Error occured", exec);
+        } catch (OptionRequired exec) {
+            helper.optionRequired(event, exec.getMessage());
         }
     }
 

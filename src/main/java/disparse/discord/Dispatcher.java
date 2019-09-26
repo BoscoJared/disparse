@@ -47,6 +47,10 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
                 .queue();
     }
 
+    public void optionRequired(MessageReceivedEvent event, String message) {
+        event.getChannel().sendMessage(message).queue();
+    }
+
     public void help(MessageReceivedEvent event, Command command, Collection<Flag> flags) {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))

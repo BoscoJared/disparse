@@ -11,4 +11,5 @@ public interface Helpable<E> {
     void setPrefix(String prefix);
     void commandNotFound(E event, String userInput);
     void roleNotMet(E event, Command command);
+    void optionRequired(E event, String message);
 }
