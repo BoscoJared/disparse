@@ -129,6 +129,9 @@ public class CommandRegistrar<E> {
                     if (clazz.isAssignableFrom(event.getClass())) {
                         objs[i] = event;
                     }
+                    if (clazz.isAssignableFrom(helper.getClass())) {
+                        objs[i] = helper;
+                    }
                     for (Object injectable : injectables) {
                         if (clazz.isAssignableFrom(injectable.getClass())) {
                             objs[i] = injectable;

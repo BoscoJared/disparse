@@ -11,7 +11,6 @@ import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
@@ -80,6 +79,10 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     private static Character toLower(Character in) {
         if (in == null) return null;
         return Character.toLowerCase(in);
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
     }
 
     public static JDABuilder init(JDABuilder builder, String prefix) {

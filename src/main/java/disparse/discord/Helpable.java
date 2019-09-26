@@ -8,4 +8,5 @@ import java.util.Collection;
 public interface Helpable<E> {
     void help(E event, Command command, Collection<Flag> flags);
     void allCommands(E event, Collection<Command> commands);
+    void setPrefix(String prefix);
 }
