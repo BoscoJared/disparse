@@ -6,7 +6,7 @@ import disparse.parser.Flag;
 import java.util.Collection;
 
 public interface Helpable<E> {
-    void help(E event, Command command, Collection<Flag> flags);
+    void help(E event, Command command, Collection<Flag> flags, Collection<Command> commands);
     void allCommands(E event, Collection<Command> commands);
     void setPrefix(String prefix);
     void commandNotFound(E event, String userInput);

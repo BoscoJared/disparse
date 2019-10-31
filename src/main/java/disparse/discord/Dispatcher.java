@@ -51,7 +51,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         event.getChannel().sendMessage(message).queue();
     }
 
-    public void help(MessageReceivedEvent event, Command command, Collection<Flag> flags) {
+    public void help(MessageReceivedEvent event, Command command, Collection<Flag> flags, Collection<Command> commands) {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))
                 .setDescription(String.format("Usage of command:  %s.  [+] may be repeated.", command.getCommandName()));
@@ -62,6 +62,25 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
                             .thenComparing(flag -> flag.getLongName().toLowerCase())
                 )
                 .collect(Collectors.toList());
+
+        List<Command> subcommands = commands.stream()
+                .filter(c -> c.getCommandName().startsWith(command.getCommandName()) && c != command)
+                .sorted(
+                        Comparator.comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder())
+                )
+                .collect(Collectors.toList());
+
+        if (subcommands.size() > 0) {
+            builder.addField("SUBCOMMANDS", "---------------------", false);
+        }
+
+        for (Command subcommand: subcommands) {
+            builder.addField(subcommand.getCommandName(), subcommand.getDescription(), false);
+        }
+
+        if (sortedFlags.size() > 0) {
+            builder.addField("FLAGS", "--------", false);
+        }
 
         for (Flag flag : sortedFlags) {
             String flagName;
@@ -84,7 +103,11 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         builder.setTitle("All Commands")
                 .setDescription("All registered commands");
 
-        for (Command command : commands) {
+        List<Command> sortedCommands = commands.stream()
+                .sorted(Comparator.comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
+                .collect(Collectors.toList());
+
+        for (Command command : sortedCommands) {
             builder.addField(command.getCommandName(), command.getDescription(), false);
         }
 

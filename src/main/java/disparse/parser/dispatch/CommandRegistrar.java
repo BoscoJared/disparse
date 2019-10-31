@@ -96,7 +96,7 @@ public class CommandRegistrar<E> {
             }
         }
         if (help) {
-            helper.help(event, command, commandToFlags.get(command));
+            helper.help(event, command, commandToFlags.get(command), commandTable.keySet());
             return;
         }
         try {
