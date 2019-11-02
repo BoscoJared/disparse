@@ -9,7 +9,10 @@ import com.github.boscojared.disparse.utils.Shlex;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.management.ConstructorParameters;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -80,12 +83,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
         List<CommandFlag> sortedFlags = flags.stream().sorted(helpCommandFlagComparator).collect(Collectors.toList());
 
-        List<Command> subCommands = commands.stream()
-                .filter(c -> c.getCommandName().startsWith(command.getCommandName()) && c != command)
-                .sorted(
-                        Comparator.comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder())
-                )
-                .collect(Collectors.toList());
+        List<Command> subCommands = getHelpSubCommands(command, commands);
 
         if (subCommands.size() > 0) {
             builder.addField("SUB-COMMANDS", "---------------------", false);
@@ -113,6 +111,20 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
             builder.addField(flagName, flag.getDescription(), false);
         }
         event.getChannel().sendMessage(builder.build()).queue();
+    }
+
+    private List<Command> getHelpSubCommands(final Command command, Collection<Command> commands) {
+        Predicate<Command> predicate =
+            c -> c.getCommandName()
+                  .startsWith(command.getCommandName()) && c != command;
+
+        Comparator<Command> comparator = Comparator.comparing(
+                cmd -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder());
+
+        return commands.stream()
+                       .filter(predicate)
+                       .sorted(comparator)
+                       .collect(Collectors.toList());
     }
 
     public void allCommands(MessageReceivedEvent event, Collection<Command> commands) {
