@@ -24,38 +24,45 @@ public class Parser {
 
   private static void accept(Map<CommandFlag, Object> optionMap,
                              CommandFlag flag, Iterator<String> iter) {
+
     if (flag.getType() == Types.BOOL) {
       optionMap.put(flag, true);
-    } else if (flag.getType() == Types.LIST) {
-      optionMap.putIfAbsent(flag, new ArrayList<String>());
-      if (iter.hasNext()) {
-        ((ArrayList<String>) optionMap.get(flag)).add(iter.next());
-        iter.remove();
-      } else {
-        throw new OptionRequiresValue("Option requires value");
-      }
-    } else {
-      if (iter.hasNext()) {
-        optionMap.put(flag, iter.next());
-        iter.remove();
-      } else {
-        throw new OptionRequiresValue("Option requires value");
-      }
+      return;
     }
+    
+    if (!iter.hasNext()) {
+      throw new OptionRequiresValue("Option requires value.");
+    }
+
+    if (flag.getType() == Types.LIST) {
+     
+      optionMap.putIfAbsent(flag, new ArrayList<String>());
+      
+      ((ArrayList<String>) optionMap.get(flag)).add(iter.next());
+      iter.remove();
+     
+      return;
+    } 
+
+    optionMap.put(flag, iter.next());
+    iter.remove();
   }
 
   private static Object mergeOptions(Object obj1, Object obj2) {
-    if (obj1 instanceof List) {
-      List list = (List) obj1;
-      if (obj2 instanceof List) {
-        list.addAll((List) obj2);
-      } else {
-        list.add(obj2);
-      }
-      return list;
-    } else {
+
+    if (!(obj1 instanceof List)) {
       return obj1;
+    } 
+
+    List list = (List) obj1;
+    
+    if (obj2 instanceof List) {
+        list.addAll((List) obj2);
+    } else {
+        list.add(obj2);
     }
+
+    return list;
   }
 
   public ParsedOutput parse(List<String> args) {
