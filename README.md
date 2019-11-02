@@ -3,14 +3,14 @@ An ergonomic, simple, and easy-to-use command parsing and dispatching library fo
 
 
 # Features
- - [Easy command creation](basic-command)
- - [Command flags](flags)
-    - [Flag types](flag-types)
-    - [Repeatable flags](flag-types)
- - [Role based access](roles)
- - [Help command generation](help-commands)
- - [Subcommands](subcommands)
- - [Injectable command entities](injectables)
+ - [Easy command creation](#basic-command)
+ - [Command flags](#flags)
+    - [Flag types](#flag-types)
+    - [Repeatable flags](#flag-types)
+ - [Role based access](#roles)
+ - [Help command generation](#help-commands)
+ - [Subcommands](#subcommands)
+ - [Injectable command entities](#injectables)
 
 # Guide
 
