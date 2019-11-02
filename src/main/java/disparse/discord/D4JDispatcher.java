@@ -1,13 +1,5 @@
 package disparse.discord;
 
-import discord4j.core.DiscordClient;
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import disparse.parser.dispatch.CommandRegistrar;
-import disparse.parser.reflection.Detector;
-import disparse.utils.Shlex;
-
-import java.util.List;
-
 public class D4JDispatcher {
 
     /*public static DiscordClient init(DiscordClient client, final String prefix){

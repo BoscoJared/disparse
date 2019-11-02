@@ -8,8 +8,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface CommandHandler {
-    public String commandName();
-    public String description() default "no description available";
-    
-    public String[] roles() default {};
+
+  String commandName();
+
+  String description() default "no description available";
+
+  String[] roles() default {};
 }

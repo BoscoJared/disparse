@@ -1,31 +1,33 @@
 package disparse.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequiresValue;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+@SuppressWarnings("CanBeFinal")
 public class ParserTest {
 
     private static Parser testParser;
-    private static Flag flagOne = new Flag("create", 'c', Types.LIST, false, "");
-    private static Flag flagTwo = new Flag("update", 'u', Types.BOOL, false, "");
-    private static Flag flagThree = new Flag("read-only", 'r', Types.BOOL, false, "");
-    private static Flag flagFour = new Flag("delete", 'd', Types.BOOL, false, "");
-    private static Flag flagFive = new Flag("user", ' ', Types.STR, false, "");
-    private static Flag flagSix = new Flag("minutes", 'm', Types.INT, false, "");
-    private static Flag flagSeven = new Flag("random", ' ', Types.LIST, false, "");
+    private static CommandFlag flagOne = new CommandFlag("create", 'c', Types.LIST, false, "");
+    private static CommandFlag flagTwo = new CommandFlag("update", 'u', Types.BOOL, false, "");
+    private static CommandFlag flagThree = new CommandFlag("read-only", 'r', Types.BOOL, false, "");
+    private static CommandFlag flagFour = new CommandFlag("delete", 'd', Types.BOOL, false, "");
+    private static CommandFlag flagFive = new CommandFlag("user", ' ', Types.STR, false, "");
+    private static CommandFlag flagSix = new CommandFlag("minutes", 'm', Types.INT, false, "");
+    private static CommandFlag flagSeven = new CommandFlag("random", ' ', Types.LIST, false, "");
 
     @BeforeAll
     static void initializeTestParser() {
 
-        Map<Command, List<Flag>> commandToFlags  = Map.of(
+        Map<Command, List<CommandFlag>> commandToFlags  = Map.of(
                 new Command("init", ""), List.of(flagOne, flagTwo),
                 new Command("make", ""), List.of(flagThree, flagFour),
                 new Command("sync", ""), List.of(flagFive, flagSix),

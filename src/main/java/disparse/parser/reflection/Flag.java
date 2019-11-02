@@ -8,11 +8,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Flag {
-    char shortName() default ' ';
 
-    String longName() default "";
+  char shortName() default ' ';
 
-    boolean required() default false;
+  String longName() default "";
 
-    String description() default "no description available";
+  boolean required() default false;
+
+  String description() default "no description available";
 }
