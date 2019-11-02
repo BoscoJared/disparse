@@ -2,7 +2,11 @@
   xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.github.boscojared</groupId>
   <artifactId>disparse</artifactId>
+  <version>master-SNAPSHOT</version>
+
   <dependencies>
     <dependency>
       <artifactId>JDA</artifactId>
@@ -30,10 +34,7 @@
       <groupId>org.slf4j</groupId>
       <version>1.7.25</version>
     </dependency>
-
   </dependencies>
-  <groupId>com.github.boscojared</groupId>
-  <modelVersion>4.0.0</modelVersion>
 
   <properties>
     <maven.compiler.source>11</maven.compiler.source>
@@ -47,7 +48,4 @@
       <url>http://jcenter.bintray.com</url>
     </repository>
   </repositories>
-
-  <version>master-SNAPSHOT</version>
-
 </project>
