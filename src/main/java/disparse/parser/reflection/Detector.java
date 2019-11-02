@@ -88,9 +88,10 @@ public class Detector {
     List<Field> fields;
     if (clazz == null) {
       return new Field[0];
-    } else {
-      fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
-    }
+    } 
+
+    fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
+    
     while (clazz.getSuperclass() != null) {
       clazz = clazz.getSuperclass();
       fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
