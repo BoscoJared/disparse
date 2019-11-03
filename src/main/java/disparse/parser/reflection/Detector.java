@@ -30,41 +30,32 @@ public class Detector {
 
         @Override
         public void reportMethodAnnotation(
-            Class<? extends Annotation> annotation,
-            String className, String methodName) {
+            Class<? extends Annotation> annotation, String className, String methodName) {
           try {
             Class<?> clazz = Class.forName(className);
             for (Method method : clazz.getMethods()) {
               if (method.getName().equals(methodName)) {
                 if (method.isAnnotationPresent(CommandHandler.class)) {
-                  CommandHandler handler =
-                      method.getAnnotation(CommandHandler.class);
-                  Command command = new Command(handler.commandName(),
-                                                handler.description(),
-                                                handler.roles());
+                  CommandHandler handler = method.getAnnotation(CommandHandler.class);
+                  Command command =
+                      new Command(handler.commandName(), handler.description(), handler.roles());
                   for (Class<?> paramClazz : method.getParameterTypes()) {
                     if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
                       Field[] fields = allImplicitFields(paramClazz);
                       for (Field field : fields) {
                         if (field.isAnnotationPresent(Flag.class)) {
-                          CommandFlag flag = Utils
-                                                 .createFlagFromAnnotation(
-                                                     field, field
-                                                                .getAnnotation(
-                                                                    Flag.class));
-                          CommandRegistrar.REGISTRAR
-                              .register(command,
-                                        flag);
+                          CommandFlag flag =
+                              Utils.createFlagFromAnnotation(
+                                  field, field.getAnnotation(Flag.class));
+                          CommandRegistrar.REGISTRAR.register(command, flag);
                         }
                       }
                     }
                   }
-                  CommandRegistrar.REGISTRAR
-                      .register(command, method);
+                  CommandRegistrar.REGISTRAR.register(command, method);
                 } else if (method.isAnnotationPresent(Injectable.class)) {
                   CommandRegistrar.REGISTRAR.register(method);
                 }
-
               }
             }
           } catch (ClassNotFoundException exec) {
@@ -73,8 +64,7 @@ public class Detector {
         }
       };
 
-  private static final AnnotationDetector handlerDetector =
-      new AnnotationDetector(handlerReporter);
+  private static final AnnotationDetector handlerDetector = new AnnotationDetector(handlerReporter);
 
   public static void detect() {
     try {

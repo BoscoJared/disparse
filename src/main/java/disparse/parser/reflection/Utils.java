@@ -7,8 +7,7 @@ import java.util.List;
 
 public class Utils {
 
-  public static CommandFlag createFlagFromAnnotation(Field field,
-                                                     Flag annotation) {
+  public static CommandFlag createFlagFromAnnotation(Field field, Flag annotation) {
     String longName = annotation.longName();
     Character shortName = annotation.shortName();
     boolean required = annotation.required();

@@ -30,25 +30,23 @@ import org.slf4j.LoggerFactory;
 public class CommandRegistrar<E> {
 
   public static final CommandRegistrar REGISTRAR = new CommandRegistrar();
-  private static final Logger logger = LoggerFactory
-                                           .getLogger(CommandRegistrar.class);
-  private static final CommandFlag HELP_FLAG =
-      new CommandFlag("help", 'h', Types.BOOL, false,
-                      "show usage of a particular command");
-  private static final Command HELP_COMMAND =
+  private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
+  private final CommandFlag helpFlag =
+      new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command");
+  private final Command helpCommand =
       new Command("help", "show all commands or detailed help of one command");
   private final HashMap<Command, Method> commandTable = new HashMap<>();
   private final HashMap<Command, Set<CommandFlag>> commandToFlags = new HashMap<>();
   private final List<Method> injectables = new ArrayList<>();
 
   private CommandRegistrar() {
-    this.commandToFlags.put(HELP_COMMAND, Set.of());
-    this.commandTable.put(HELP_COMMAND, null);
+    this.commandToFlags.put(helpCommand, Set.of());
+    this.commandTable.put(helpCommand, null);
   }
 
   public void register(Command command, Method method) {
     this.commandToFlags.putIfAbsent(command, new HashSet<>());
-    this.commandToFlags.get(command).add(HELP_FLAG);
+    this.commandToFlags.get(command).add(helpFlag);
     this.commandTable.put(command, method);
   }
 
@@ -61,8 +59,7 @@ public class CommandRegistrar<E> {
     this.injectables.add(method);
   }
 
-  public void dispatch(List<String> args, Helpable<E> helper, E event,
-                       Object... injectables) {
+  public void dispatch(List<String> args, Helpable<E> helper, E event, Object... injectables) {
 
     Parser parser = new Parser(this.commandToFlags);
     ParsedOutput output;
@@ -88,7 +85,7 @@ public class CommandRegistrar<E> {
       return;
     }
 
-    boolean help = (boolean) output.getOptions().getOrDefault(HELP_FLAG, false);
+    boolean help = (boolean) output.getOptions().getOrDefault(helpFlag, false);
     if (command.getCommandName().equals("help")) {
       if (args.size() > 0) {
         String name = args.get(0);
@@ -104,8 +101,7 @@ public class CommandRegistrar<E> {
       }
     }
     if (help) {
-      helper.help(event, command, commandToFlags.get(command),
-                  commandTable.keySet());
+      helper.help(event, command, commandToFlags.get(command), commandTable.keySet());
       return;
     }
     try {
@@ -123,8 +119,7 @@ public class CommandRegistrar<E> {
             if (field.isAnnotationPresent(Flag.class)) {
               Flag flagAnnotation = field.getAnnotation(Flag.class);
 
-              CommandFlag flag = Utils.createFlagFromAnnotation(field,
-                                                                flagAnnotation);
+              CommandFlag flag = Utils.createFlagFromAnnotation(field, flagAnnotation);
               if (output.getOptions().containsKey(flag)) {
                 Object val = output.getOptions().get(flag);
                 field.setAccessible(true);
@@ -136,8 +131,10 @@ public class CommandRegistrar<E> {
                 }
               } else if (flag.isRequired()) {
                 throw new OptionRequired(
-                    "The flag `--" + flag + "` is required for `" + command
-                                                                        .getCommandName()
+                    "The flag `--"
+                        + flag
+                        + "` is required for `"
+                        + command.getCommandName()
                         + "` to be ran!");
               }
             }
@@ -168,13 +165,14 @@ public class CommandRegistrar<E> {
         i++;
       }
       handler.setAccessible(true);
-      Constructor<?> constructor = handler.getDeclaringClass()
-                                          .getDeclaredConstructor();
+      Constructor<?> constructor = handler.getDeclaringClass().getDeclaredConstructor();
       constructor.setAccessible(true);
       Object handlerObj = constructor.newInstance();
       handler.invoke(handlerObj, objects);
-    } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                 | NoSuchMethodException exec) {
+    } catch (InstantiationException
+        | IllegalAccessException
+        | InvocationTargetException
+        | NoSuchMethodException exec) {
       logger.error("Error occurred", exec);
     } catch (OptionRequired exec) {
       helper.optionRequired(event, exec.getMessage());
@@ -182,8 +180,8 @@ public class CommandRegistrar<E> {
   }
 
   /**
-   * Checks the specified roles of a command against the roles of the user
-   * attempting to call the command
+   * Checks the specified roles of a command against the roles of the user attempting to call the
+   * command
    *
    * @param command the command that has been parsed
    * @param event the event from the message listener

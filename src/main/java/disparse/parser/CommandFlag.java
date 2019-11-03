@@ -10,9 +10,12 @@ public class CommandFlag {
   private final Types type;
   private final String description;
 
-  public CommandFlag(final String longName, final Character shortName,
-                     final Types type, final boolean isRequired,
-                     final String description) {
+  public CommandFlag(
+      final String longName,
+      final Character shortName,
+      final Types type,
+      final boolean isRequired,
+      final String description) {
     this.longName = longName;
     this.shortName = shortName;
     this.type = type;
@@ -32,9 +35,13 @@ public class CommandFlag {
     return type;
   }
 
-  public boolean isRequired() { return isRequired; }
+  public boolean isRequired() {
+    return isRequired;
+  }
 
-  public String getDescription() { return description; }
+  public String getDescription() {
+    return description;
+  }
 
   @Override
   public String toString() {
@@ -50,8 +57,7 @@ public class CommandFlag {
       return false;
     }
     CommandFlag flag = (CommandFlag) o;
-    return longName.equals(flag.longName) && Objects.equals(shortName,
-                                                            flag.shortName);
+    return longName.equals(flag.longName) && Objects.equals(shortName, flag.shortName);
   }
 
   @Override

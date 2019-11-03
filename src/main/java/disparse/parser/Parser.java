@@ -10,21 +10,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-
 public class Parser {
 
   private final Map<Command, ? extends Collection<CommandFlag>> commandToFlags;
   private final Map<String, CommandFlag> longOptionMap = new HashMap<>();
   private final Map<Character, CommandFlag> shortOptionMap = new HashMap<>();
 
-  public Parser(
-      final Map<Command, ? extends Collection<CommandFlag>> commandToFlags) {
+  public Parser(final Map<Command, ? extends Collection<CommandFlag>> commandToFlags) {
     this.commandToFlags = commandToFlags;
   }
 
-  private static void accept(Map<CommandFlag, Object> optionMap,
-                             CommandFlag flag, Iterator<String> iter) {
-
+  private static void accept(
+      Map<CommandFlag, Object> optionMap, CommandFlag flag, Iterator<String> iter) {
     if (flag.getType() == Types.BOOL) {
       optionMap.put(flag, true);
       return;
@@ -74,8 +71,7 @@ public class Parser {
     final Map<CommandFlag, Object> shortOptions = this.findShortOptions(args);
 
     final Map<CommandFlag, Object> mergedOptions = new HashMap<>(longOptions);
-    shortOptions
-        .forEach((k, v) -> mergedOptions.merge(k, v, Parser::mergeOptions));
+    shortOptions.forEach((k, v) -> mergedOptions.merge(k, v, Parser::mergeOptions));
 
     return new ParsedOutput(commandName, args, mergedOptions);
   }
@@ -104,9 +100,7 @@ public class Parser {
         break;
       }
     }
-    return commandName
-               .orElseThrow(() -> new NoCommandNameFound(
-                   "A valid command was not found!"));
+    return commandName.orElseThrow(() -> new NoCommandNameFound("A valid command was not found!"));
   }
 
   private void fillShortAndLongOptions(Command commandName) {
