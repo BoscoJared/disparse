@@ -82,7 +82,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   public void help(MessageReceivedEvent event, Command command, Collection<CommandFlag> flags,
       Collection<Command> commands) {
-    if (CommandRegistrar.commandRolesNotMet(command, event)) {
+    if (CommandRegistrar.commandRolesNotMet(event, command)) {
       return;
     }
     EmbedBuilder builder = new EmbedBuilder();
@@ -151,7 +151,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   private EmbedBuilder addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
       MessageReceivedEvent event) {
     for (Command command : commands) {
-      if (CommandRegistrar.commandRolesNotMet(command, event)) {
+      if (CommandRegistrar.commandRolesNotMet(event, command)) {
         continue;
       }
       builder.addField(command.getCommandName(), command.getDescription(), false);

@@ -129,12 +129,8 @@ public class CommandRegistrar<E> {
                   field.set(newObject, val);
                 }
               } else if (flag.isRequired()) {
-                throw new OptionRequired(
-                    "The flag `--"
-                        + flag
-                        + "` is required for `"
-                        + command.getCommandName()
-                        + "` to be ran!");
+                throw new OptionRequired("The flag `--" + flag + "` is required for `"
+                    + command.getCommandName() + "` to be ran!");
               }
             }
           }
@@ -180,14 +176,20 @@ public class CommandRegistrar<E> {
    * command
    *
    * @param command the command that has been parsed
-   * @param event the event from the message listener
+   * @param event   the event from the message listener
    * @return true if the user does not have sufficient privilege
    */
   private boolean commandRolesNotMet(Command command, E event) {
+    if (event instanceof MessageReceivedEvent) {
+      return CommandRegistrar.commandRolesNotMet((MessageReceivedEvent) event, command);
+    }
+    return false;
+  }
+
+  public static boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;
     }
-
     if (event instanceof MessageReceivedEvent) {
       MessageReceivedEvent e = (MessageReceivedEvent) event;
       Member member = e.getMember();
@@ -206,9 +208,5 @@ public class CommandRegistrar<E> {
       return true;
     }
     return false;
-  }
-  
-  public static boolean commandRolesNotMet(Command command, MessageReceivedEvent event) {
-    return CommandRegistrar.commandRolesNotMet(command, event);
   }
 }
