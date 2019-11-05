@@ -80,7 +80,7 @@ There are currently four flag types:
  - List - can be used for repeatable flags. The List can be of the types `Integer`, `Boolean`, or `String`. e.g. `!test -n 5 -n 6 -n 7 -n 8`
  
  
- Usage: `!test --age 5 --content "This is some content" -u -n 5 -n 6 -n 7 -n 8
+ Usage: `!test --age 5 --content "This is some content" -u -n 5 -n 6 -n 7 -n 8`
 ```java
 public class FlagExample {
     @ParsedEntity
