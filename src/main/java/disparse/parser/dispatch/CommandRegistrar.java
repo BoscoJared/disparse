@@ -181,12 +181,12 @@ public class CommandRegistrar<E> {
    */
   private boolean commandRolesNotMet(Command command, E event) {
     if (event instanceof MessageReceivedEvent) {
-      return CommandRegistrar.commandRolesNotMet((MessageReceivedEvent) event, command);
+      return commandRolesNotMet((MessageReceivedEvent) event, command);
     }
     return false;
   }
 
-  public static boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
+  public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;
     }
