@@ -192,8 +192,11 @@ public class CommandRegistrar<E> {
       MessageReceivedEvent e = (MessageReceivedEvent) event;
       Member member = e.getMember();
       if (member != null) {
-        for (Role role : member.getRoles()) {
-          for (String commandRole : command.getRoles()) {
+        for (String commandRole : command.getRoles()) {
+          if (commandRole.equalsIgnoreCase("owner") && e.getMember().isOwner()) {
+            return false;
+          }
+          for (Role role : member.getRoles()) {
             if (role.getName().equalsIgnoreCase(commandRole)) {
               return false;
             }
