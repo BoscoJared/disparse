@@ -207,4 +207,8 @@ public class CommandRegistrar<E> {
     }
     return false;
   }
+  
+  public static boolean commandRolesNotMet(Command command, MessageReceivedEvent event) {
+    return CommandRegistrar.commandRolesNotMet(command, event);
+  }
 }

@@ -18,27 +18,25 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class Dispatcher extends ListenerAdapter implements Helpable<MessageReceivedEvent> {
 
-  private static final Comparator<CommandFlag> helpCommandFlagComparator =
-      new Comparator<>() {
-        private Comparator<CommandFlag> comparator =
-            Comparator.comparing(
-                this::shortNameKeyExtractor, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(this::longNameKeyExtractor);
+  private static final Comparator<CommandFlag> helpCommandFlagComparator = new Comparator<>() {
+    private Comparator<CommandFlag> comparator = Comparator
+        .comparing(this::shortNameKeyExtractor, Comparator.nullsLast(Comparator.naturalOrder()))
+        .thenComparing(this::longNameKeyExtractor);
 
-        private Character shortNameKeyExtractor(CommandFlag flag) {
-          Character ch = flag.getShortName();
-          return ch == null ? null : Character.toLowerCase(ch);
-        }
+    private Character shortNameKeyExtractor(CommandFlag flag) {
+      Character ch = flag.getShortName();
+      return ch == null ? null : Character.toLowerCase(ch);
+    }
 
-        private String longNameKeyExtractor(CommandFlag flag) {
-          return flag.getLongName().toLowerCase();
-        }
+    private String longNameKeyExtractor(CommandFlag flag) {
+      return flag.getLongName().toLowerCase();
+    }
 
-        @Override
-        public int compare(CommandFlag o1, CommandFlag o2) {
-          return comparator.compare(o1, o2);
-        }
-      };
+    @Override
+    public int compare(CommandFlag o1, CommandFlag o2) {
+      return comparator.compare(o1, o2);
+    }
+  };
   private String prefix;
 
   public Dispatcher(String prefix) {
@@ -72,8 +70,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   }
 
   public void roleNotMet(MessageReceivedEvent event, Command command) {
-    event
-        .getChannel()
+    event.getChannel()
         .sendMessage(
             "You do not have the correct permissions to run:  `" + command.getCommandName() + "`")
         .queue();
@@ -83,17 +80,15 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     event.getChannel().sendMessage(message).queue();
   }
 
-  public void help(
-      MessageReceivedEvent event,
-      Command command,
-      Collection<CommandFlag> flags,
+  public void help(MessageReceivedEvent event, Command command, Collection<CommandFlag> flags,
       Collection<Command> commands) {
+    if (CommandRegistrar.commandRolesNotMet(command, event)) {
+      return;
+    }
     EmbedBuilder builder = new EmbedBuilder();
-    builder
-        .setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))
-        .setDescription(
-            String.format(
-                "Usage of command:  %s.  [+] may be repeated.", command.getCommandName()));
+    builder.setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))
+        .setDescription(String.format("Usage of command:  %s.  [+] may be repeated.",
+            command.getCommandName()));
 
     List<CommandFlag> sortedFlags =
         flags.stream().sorted(helpCommandFlagComparator).collect(Collectors.toList());
@@ -104,9 +99,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
       builder.addField("SUBCOMMANDS", "---------------------", false);
     }
 
-    for (Command subCommand : subcommands) {
-      builder.addField(subCommand.getCommandName(), subCommand.getDescription(), false);
-    }
+    builder = addCommandsToEmbed(builder, subcommands, event);
 
     if (sortedFlags.size() > 0) {
       builder.addField("FLAGS", "--------", false);
@@ -142,21 +135,27 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     EmbedBuilder builder = new EmbedBuilder();
     builder.setTitle("All Commands").setDescription("All registered commands");
 
-    List<Command> sortedCommands =
-        commands.stream()
-            .sorted(
-                Comparator.comparing(
-                    (Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
-            .collect(Collectors.toList());
+    List<Command> sortedCommands = commands.stream().sorted(Comparator
+        .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
+        .collect(Collectors.toList());
 
-    for (Command command : sortedCommands) {
-      builder.addField(command.getCommandName(), command.getDescription(), false);
-    }
+    builder = addCommandsToEmbed(builder, sortedCommands, event);
 
     event.getChannel().sendMessage(builder.build()).queue();
   }
 
   public void setPrefix(String prefix) {
     this.prefix = prefix;
+  }
+
+  private EmbedBuilder addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
+      MessageReceivedEvent event) {
+    for (Command command : commands) {
+      if (CommandRegistrar.commandRolesNotMet(command, event)) {
+        continue;
+      }
+      builder.addField(command.getCommandName(), command.getDescription(), false);
+    }
+    return builder;
   }
 }
