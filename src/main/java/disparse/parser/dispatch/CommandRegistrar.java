@@ -14,7 +14,6 @@ import disparse.parser.reflection.ParsedEntity;
 import disparse.parser.reflection.Utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -169,10 +168,7 @@ public class CommandRegistrar<E> {
       constructor.setAccessible(true);
       Object handlerObj = constructor.newInstance();
       handler.invoke(handlerObj, objects);
-    } catch (InstantiationException
-        | IllegalAccessException
-        | InvocationTargetException
-        | NoSuchMethodException exec) {
+    } catch (ReflectiveOperationException exec) {
       logger.error("Error occurred", exec);
     } catch (OptionRequired exec) {
       helper.optionRequired(event, exec.getMessage());
@@ -195,15 +191,12 @@ public class CommandRegistrar<E> {
     if (event instanceof MessageReceivedEvent) {
       MessageReceivedEvent e = (MessageReceivedEvent) event;
       Member member = e.getMember();
-
-      if (member == null) {
-        return true;
-      }
-
-      for (Role role : member.getRoles()) {
-        for (String commandRole : command.getRoles()) {
-          if (role.getName().equalsIgnoreCase(commandRole)) {
-            return false;
+      if (member != null) {
+        for (Role role : member.getRoles()) {
+          for (String commandRole : command.getRoles()) {
+            if (role.getName().equalsIgnoreCase(commandRole)) {
+              return false;
+            }
           }
         }
       }
