@@ -14,7 +14,6 @@ import disparse.parser.reflection.ParsedEntity;
 import disparse.parser.reflection.Utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,12 +129,8 @@ public class CommandRegistrar<E> {
                   field.set(newObject, val);
                 }
               } else if (flag.isRequired()) {
-                throw new OptionRequired(
-                    "The flag `--"
-                        + flag
-                        + "` is required for `"
-                        + command.getCommandName()
-                        + "` to be ran!");
+                throw new OptionRequired("The flag `--" + flag + "` is required for `"
+                    + command.getCommandName() + "` to be ran!");
               }
             }
           }
@@ -169,10 +164,7 @@ public class CommandRegistrar<E> {
       constructor.setAccessible(true);
       Object handlerObj = constructor.newInstance();
       handler.invoke(handlerObj, objects);
-    } catch (InstantiationException
-        | IllegalAccessException
-        | InvocationTargetException
-        | NoSuchMethodException exec) {
+    } catch (ReflectiveOperationException exec) {
       logger.error("Error occurred", exec);
     } catch (OptionRequired exec) {
       helper.optionRequired(event, exec.getMessage());
@@ -184,26 +176,32 @@ public class CommandRegistrar<E> {
    * command
    *
    * @param command the command that has been parsed
-   * @param event the event from the message listener
+   * @param event   the event from the message listener
    * @return true if the user does not have sufficient privilege
    */
   private boolean commandRolesNotMet(Command command, E event) {
+    if (event instanceof MessageReceivedEvent) {
+      return commandRolesNotMet((MessageReceivedEvent) event, command);
+    }
+    return false;
+  }
+
+  public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;
     }
-
     if (event instanceof MessageReceivedEvent) {
       MessageReceivedEvent e = (MessageReceivedEvent) event;
       Member member = e.getMember();
-
-      if (member == null) {
-        return true;
-      }
-
-      for (Role role : member.getRoles()) {
+      if (member != null) {
         for (String commandRole : command.getRoles()) {
-          if (role.getName().equalsIgnoreCase(commandRole)) {
+          if (commandRole.equalsIgnoreCase("owner") && e.getMember().isOwner()) {
             return false;
+          }
+          for (Role role : member.getRoles()) {
+            if (role.getName().equalsIgnoreCase(commandRole)) {
+              return false;
+            }
           }
         }
       }
