@@ -160,12 +160,18 @@ public class CommandRegistrar<E> {
         i++;
       }
       handler.setAccessible(true);
-      Constructor<?> constructor = handler.getDeclaringClass().getDeclaredConstructor();
-      constructor.setAccessible(true);
-      Object handlerObj = constructor.newInstance();
+      Object handlerObj = null; // null can work for static methods invocation
+      try {
+        Constructor<?> constructor = handler.getDeclaringClass().getDeclaredConstructor();
+        constructor.setAccessible(true);
+        handlerObj = constructor.newInstance();
+      } catch (NoSuchMethodException noSuchMethodExec) {
+        logger.debug("There was no no-args constructor found in {}, only static methods will be supported", handler.getDeclaringClass());
+      }
       handler.invoke(handlerObj, objects);
     } catch (ReflectiveOperationException exec) {
       logger.error("Error occurred", exec);
+      System.out.println(exec);
     } catch (OptionRequired exec) {
       helper.optionRequired(event, exec.getMessage());
     }
