@@ -25,11 +25,6 @@
       <version>5.1.0</version>
     </dependency>
     <dependency>
-      <artifactId>discord4j-core</artifactId>
-      <groupId>com.discord4j</groupId>
-      <version>3.0.8</version>
-    </dependency>
-    <dependency>
       <artifactId>slf4j-api</artifactId>
       <groupId>org.slf4j</groupId>
       <version>1.7.25</version>
