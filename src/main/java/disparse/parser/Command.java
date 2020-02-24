@@ -7,15 +7,21 @@ public class Command {
   private final String name;
   private final String description;
   private final String[] roles;
+  private final boolean canBeDisabled;
 
   public Command(final String name, final String description) {
-    this(name, description, new String[0]);
+    this(name, description, new String[0], true);
+  }
+  
+  public Command(final String name, final String description, final boolean canBeDisabled) {
+      this(name, description, new String[0], canBeDisabled);
   }
 
-  public Command(final String name, final String description, final String[] roles) {
+  public Command(final String name, final String description, final String[] roles, final boolean canBeDisabled) {
     this.name = name;
     this.description = description;
     this.roles = roles;
+    this.canBeDisabled = canBeDisabled;
   }
 
   public String getCommandName() {
@@ -28,6 +34,10 @@ public class Command {
 
   public String[] getRoles() {
     return this.roles;
+  }
+  
+  public boolean canBeDisabled() {
+      return this.canBeDisabled;
   }
 
   @Override
