@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -33,10 +35,11 @@ public class CommandRegistrar<E> {
   private final CommandFlag helpFlag =
       new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command");
   private final Command helpCommand =
-      new Command("help", "show all commands or detailed help of one command");
+      new Command("help", "show all commands or detailed help of one command", false);
   private final HashMap<Command, Method> commandTable = new HashMap<>();
   private final HashMap<Command, Set<CommandFlag>> commandToFlags = new HashMap<>();
   private final List<Method> injectables = new ArrayList<>();
+  private final Map<Command, CommandContainer> disabledCommands = new HashMap<>();
 
   private CommandRegistrar() {
     this.commandToFlags.put(helpCommand, Set.of());
@@ -166,7 +169,9 @@ public class CommandRegistrar<E> {
         constructor.setAccessible(true);
         handlerObj = constructor.newInstance();
       } catch (NoSuchMethodException noSuchMethodExec) {
-        logger.debug("There was no no-args constructor found in {}, only static methods will be supported", handler.getDeclaringClass());
+        logger.debug(
+            "There was no no-args constructor found in {}, only static methods will be supported",
+            handler.getDeclaringClass());
       }
       handler.invoke(handlerObj, objects);
     } catch (ReflectiveOperationException exec) {
@@ -214,5 +219,53 @@ public class CommandRegistrar<E> {
       return true;
     }
     return false;
+  }
+
+  public void disableCommand(String commandName) throws IllegalArgumentException {
+    Command command = findCommand(commandTable.keySet(), commandName)
+        .orElseThrow(() -> new IllegalArgumentException("Command could not be found"));
+    if (!command.canBeDisabled()) {
+      throw new IllegalArgumentException("Command cannot be disabled");
+    }
+    Method method = commandTable.get(command);
+    Set<CommandFlag> flags = commandToFlags.get(command);
+    disabledCommands.put(command, new CommandContainer(method, flags));
+    commandTable.remove(command);
+    commandToFlags.remove(command);
+  }
+
+  public void enableCommand(String commandName) throws IllegalArgumentException {
+    Command command = findCommand(disabledCommands.keySet(), commandName)
+        .orElseThrow(() -> new IllegalArgumentException("Command could not be found"));
+    CommandContainer fullCommand = disabledCommands.get(command);
+    if (fullCommand == null) {
+      throw new IllegalArgumentException("Command is not disabled");
+    }
+    commandTable.put(command, fullCommand.getMethod());
+    commandToFlags.put(command, fullCommand.getFlags());
+    disabledCommands.remove(command);
+  }
+
+  private Optional<Command> findCommand(Set<Command> commands, String commandName) {
+    return commands.stream().filter(command -> command.getCommandName().equals(commandName))
+        .findFirst();
+  }
+
+  class CommandContainer {
+    private Method method;
+    private Set<CommandFlag> flags;
+
+    CommandContainer(Method method, Set<CommandFlag> flags) {
+      this.method = method;
+      this.flags = flags;
+    }
+
+    public Method getMethod() {
+      return method;
+    }
+
+    public Set<CommandFlag> getFlags() {
+      return flags;
+    }
   }
 }

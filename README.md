@@ -11,6 +11,7 @@ An ergonomic, simple, and easy-to-use command parsing and dispatching library fo
  - [Help command generation](#help-commands)
  - [Subcommands](#subcommands)
  - [Injectable command entities](#injectables)
+ - [Toggling commands](#toggling-commands)
 
 # Guide
 
@@ -184,3 +185,7 @@ public static void warn(DBContext ctx, MessageReceivedEvent e) {
     ctx.logWarningInDatabase(e.getMessage().getMentionedMembers());
 }
 ```
+
+## Toggling Commands
+
+`CommandRegistrar` provides and interface to enable and disable commands. Disabling a command will remove it from the Command Table. It will not be executable, nor be displayed in the help message. Commands have a `canBeDisabled` property which is true by default. 

@@ -14,4 +14,6 @@ public @interface CommandHandler {
   String description() default "no description available";
 
   String[] roles() default {};
+  
+  boolean canBeDisabled() default true;
 }

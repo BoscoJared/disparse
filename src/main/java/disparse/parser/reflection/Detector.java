@@ -38,7 +38,7 @@ public class Detector {
                 if (method.isAnnotationPresent(CommandHandler.class)) {
                   CommandHandler handler = method.getAnnotation(CommandHandler.class);
                   Command command =
-                      new Command(handler.commandName(), handler.description(), handler.roles());
+                      new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled());
                   for (Class<?> paramClazz : method.getParameterTypes()) {
                     if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
                       Field[] fields = allImplicitFields(paramClazz);
