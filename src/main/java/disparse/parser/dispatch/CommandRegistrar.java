@@ -36,13 +36,15 @@ public class CommandRegistrar<E> {
       new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command");
   private final Command helpCommand =
       new Command("help", "show all commands or detailed help of one command", false);
+  private final CommandFlag helpPageFlag =
+          new CommandFlag("page", 'p', Types.INT, false, "select a specific page to showcase");
   private final HashMap<Command, Method> commandTable = new HashMap<>();
   private final HashMap<Command, Set<CommandFlag>> commandToFlags = new HashMap<>();
   private final List<Method> injectables = new ArrayList<>();
   private final Map<Command, CommandContainer> disabledCommands = new HashMap<>();
 
   private CommandRegistrar() {
-    this.commandToFlags.put(helpCommand, Set.of());
+    this.commandToFlags.put(helpCommand, Set.of(helpPageFlag));
     this.commandTable.put(helpCommand, null);
   }
 
@@ -63,6 +65,7 @@ public class CommandRegistrar<E> {
 
   public void dispatch(List<String> args, Helpable<E> helper, E event, Object... injectables) {
 
+    List<String> originalArgs = new ArrayList<>(args);
     Parser parser = new Parser(this.commandToFlags);
     ParsedOutput output;
     try {
@@ -91,6 +94,7 @@ public class CommandRegistrar<E> {
     if (command.getCommandName().equals("help")) {
       if (args.size() > 0) {
         String name = args.get(0);
+        name = String.join(".", name.split(" "));
         for (Command c : commandTable.keySet()) {
           if (c.getCommandName().equals(name)) {
             command = c;
@@ -98,12 +102,21 @@ public class CommandRegistrar<E> {
         }
         help = true;
       } else {
-        helper.allCommands(event, commandTable.keySet());
+        // This should only fail due to programmer error, so the cast *should* be safe... famous last words
+        int pageLimit = Integer.parseInt((String) output.getOptions().getOrDefault(helpPageFlag, "1"));
+        helper.allCommands(event, commandTable.keySet(), pageLimit);
         return;
       }
     }
     if (help) {
-      helper.help(event, command, commandToFlags.get(command), commandTable.keySet());
+      List<String> translatedArgs = new ArrayList<>();
+      translatedArgs.add("help");
+      translatedArgs.add(command.getCommandName());
+      translatedArgs.addAll(originalArgs);
+      output = parser.parse(translatedArgs);
+      // This should only fail due to programmer error, so the cast *should* be safe... famous last words
+      int pageLimit = Integer.parseInt((String) output.getOptions().getOrDefault(helpPageFlag, "1"));
+      helper.help(event, command, commandToFlags.get(command), commandTable.keySet(), pageLimit);
       return;
     }
     try {

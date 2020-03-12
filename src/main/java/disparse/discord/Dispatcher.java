@@ -38,14 +38,24 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     }
   };
   private String prefix;
+  private int pageLimit;
 
   public Dispatcher(String prefix) {
+    this(prefix, 5);
+  }
+
+  public Dispatcher(String prefix, int pageLimit) {
     this.prefix = prefix;
+    this.pageLimit = pageLimit;
   }
 
   public static JDABuilder init(JDABuilder builder, String prefix) {
+    return init(builder, prefix, 5);
+  }
+
+  public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit) {
     Detector.detect();
-    Dispatcher dispatcher = new Dispatcher(prefix);
+    Dispatcher dispatcher = new Dispatcher(prefix, pageLimit);
     builder.addEventListeners(dispatcher);
     return builder;
   }
@@ -81,7 +91,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   }
 
   public void help(MessageReceivedEvent event, Command command, Collection<CommandFlag> flags,
-      Collection<Command> commands) {
+      Collection<Command> commands, int pageNumber) {
     if (CommandRegistrar.REGISTRAR.commandRolesNotMet(event, command)) {
       return;
     }
@@ -90,10 +100,39 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         .setDescription(String.format("Usage of command:  %s.  [+] may be repeated.",
             command.getCommandName()));
 
-    List<CommandFlag> sortedFlags =
-        flags.stream().sorted(helpCommandFlagComparator).collect(Collectors.toList());
-
     List<Command> subcommands = getHelpSubCommands(command, commands);
+
+    List<CommandFlag> sortedFlags =
+            flags.stream().sorted(helpCommandFlagComparator).collect(Collectors.toList());
+
+    int totalEntities = subcommands.size() + sortedFlags.size();
+    int pages = (int) Math.ceil(((double) totalEntities) / this.pageLimit);
+    int lowerBound = (pageNumber - 1) * this.pageLimit;
+    int upperBound = (lowerBound + this.pageLimit);
+
+    if (lowerBound >= subcommands.size()) {
+      if ((lowerBound - subcommands.size()) > flags.size()) {
+        String err = String.format("The specified page number **%d** is not within the range of valid pages.  The valid pages " +
+                "are between **1** and **%d**.", pageNumber, pages);
+        event.getMessage().getChannel().sendMessage(err).queue();
+        return;
+      } else {
+        if ((upperBound - subcommands.size()) >= sortedFlags.size()) {
+          upperBound = sortedFlags.size();
+        } else {
+          upperBound = upperBound - subcommands.size();
+        }
+        sortedFlags = sortedFlags.subList((lowerBound - subcommands.size()), upperBound);
+        subcommands = List.of();
+      }
+    } else if (upperBound > subcommands.size()){
+      subcommands = subcommands.subList(lowerBound, subcommands.size());
+      int rest = this.pageLimit - subcommands.size();
+      sortedFlags = sortedFlags.subList(0, rest);
+    } else {
+      subcommands = subcommands.subList(lowerBound, upperBound);
+      sortedFlags = List.of();
+    }
 
     if (subcommands.size() > 0) {
       builder.addField("SUBCOMMANDS", "---------------------", false);
@@ -102,7 +141,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     builder = addCommandsToEmbed(builder, subcommands, event);
 
     if (sortedFlags.size() > 0) {
-      builder.addField("FLAGS", "--------", false);
+      builder.addField("FLAGS", "--------", true);
     }
 
     for (CommandFlag flag : sortedFlags) {
@@ -118,6 +157,9 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
       }
       builder.addField(flagName, flag.getDescription(), false);
     }
+
+    String pageOutput = String.format("Currently viewing page %d of %d", pageNumber, pages);
+    builder.addField(pageOutput, "Use --page to specify a page number", false);
     event.getChannel().sendMessage(builder.build()).queue();
   }
 
@@ -131,7 +173,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     return commands.stream().filter(predicate).sorted(comparator).collect(Collectors.toList());
   }
 
-  public void allCommands(MessageReceivedEvent event, Collection<Command> commands) {
+  public void allCommands(MessageReceivedEvent event, Collection<Command> commands, int pageNumber) {
     EmbedBuilder builder = new EmbedBuilder();
     builder.setTitle("All Commands").setDescription("All registered commands");
 
@@ -146,6 +188,14 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   public void setPrefix(String prefix) {
     this.prefix = prefix;
+  }
+
+  public void setPageLimit(int pageLimit) {
+    this.pageLimit = pageLimit;
+  }
+
+  public int getPageLimit() {
+    return this.pageLimit;
   }
 
   private EmbedBuilder addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
