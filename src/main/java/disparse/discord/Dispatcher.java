@@ -181,7 +181,27 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
         .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
         .collect(Collectors.toList());
 
+    int pages = (int) Math.ceil(((double) (sortedCommands.size())) / this.pageLimit);
+    int lowerBound = (pageNumber - 1) * this.pageLimit;
+    int upperBound = (lowerBound + this.pageLimit);
+
+    if (pageNumber > pages) {
+      String err = String.format("The specified page number **%d** is not within the range of valid pages.  The valid pages " +
+              "are between **1** and **%d**.", pageNumber, pages);
+      event.getMessage().getChannel().sendMessage(err).queue();
+      return;
+    }
+
+    if (upperBound > sortedCommands.size()) {
+      upperBound = sortedCommands.size();
+    }
+
+    sortedCommands = sortedCommands.subList(lowerBound, upperBound);
+
     builder = addCommandsToEmbed(builder, sortedCommands, event);
+
+    String pageOutput = String.format("Currently viewing page %d of %d", pageNumber, pages);
+    builder.addField(pageOutput, "Use --page to specify a page number", false);
 
     event.getChannel().sendMessage(builder.build()).queue();
   }
