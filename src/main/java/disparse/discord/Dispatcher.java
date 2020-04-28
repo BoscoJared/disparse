@@ -173,6 +173,19 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     return commands.stream().filter(predicate).sorted(comparator).collect(Collectors.toList());
   }
 
+  public void helpSubcommands(MessageReceivedEvent event, String foundPrefix, Collection<Command> commands) {
+    EmbedBuilder builder = new EmbedBuilder();
+    builder.setTitle(foundPrefix + " | Subcommands").setDescription("All registered subcommands for " + foundPrefix);
+
+    List<Command> sortedCommands = commands.stream().sorted(Comparator
+            .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
+            .collect(Collectors.toList());
+
+    builder = addCommandsToEmbed(builder, sortedCommands, event);
+
+    event.getChannel().sendMessage(builder.build()).queue();
+  }
+
   public void allCommands(MessageReceivedEvent event, Collection<Command> commands, int pageNumber) {
     EmbedBuilder builder = new EmbedBuilder();
     builder.setTitle("All Commands").setDescription("All registered commands");

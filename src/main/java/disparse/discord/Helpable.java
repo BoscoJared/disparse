@@ -14,6 +14,8 @@ public interface Helpable<E> {
 
   void commandNotFound(E event, String userInput);
 
+  void helpSubcommands(E event, String foundPrefix, Collection<Command> commands);
+
   void roleNotMet(E event, Command command);
 
   void optionRequired(E event, String message);

@@ -73,11 +73,15 @@ public class CommandRegistrar<E> {
     try {
       output = parser.parse(args);
     } catch (NoCommandNameFound exec) {
-      List<Command> prefixes = findCommandPrefixes(commandTable.keySet(), args);
+      PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
+      List<Command> prefixes = prefixContainer.getPrefixes();
+      String foundPrefix = prefixContainer.getFoundPrefix();
       if (prefixes.size() == 0) {
         helper.commandNotFound(event, args.get(0));
       } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)){
         helper.help(event, prefixes.get(0), commandToFlags.get(prefixes.get(0)), commandTable.keySet(), 1);
+      } else {
+        helper.helpSubcommands(event, foundPrefix, prefixes);
       }
       return;
     }
@@ -109,11 +113,16 @@ public class CommandRegistrar<E> {
         }
 
         if (command.getCommandName().equals("help")) {
-          List<Command> prefixes = findCommandPrefixes(commandTable.keySet(), args);
+          PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
+          List<Command> prefixes = prefixContainer.getPrefixes();
+          String foundPrefix = prefixContainer.getFoundPrefix();
           if (prefixes.size() == 0) {
             helper.commandNotFound(event, name.replace(".", " "));
           } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)){
             command = prefixes.get(0);
+          } else {
+            helper.helpSubcommands(event, foundPrefix, prefixes);
+            return;
           }
         }
         help = true;
@@ -280,7 +289,7 @@ public class CommandRegistrar<E> {
         .findFirst();
   }
 
-  private List<Command> findCommandPrefixes(Set<Command> commands, List<String> args) {
+  private PrefixContainer findCommandPrefixes(Set<Command> commands, List<String> args) {
 
     List<Command> prefixes = new ArrayList<>();
 
@@ -293,11 +302,11 @@ public class CommandRegistrar<E> {
               .collect(Collectors.toList());
 
       if (prefixes.size() > 0) {
-        return prefixes;
+        return new PrefixContainer(possibleCommandName, prefixes);
       }
     }
 
-    return prefixes;
+    return new PrefixContainer("", prefixes);
   }
 
   class CommandContainer {
@@ -316,5 +325,19 @@ public class CommandRegistrar<E> {
     public Set<CommandFlag> getFlags() {
       return flags;
     }
+  }
+
+  class PrefixContainer {
+    private String foundPrefix;
+    private List<Command> prefixes;
+
+    PrefixContainer(String foundPrefix, List<Command> prefixes) {
+      this.foundPrefix = foundPrefix;
+      this.prefixes = prefixes;
+    }
+
+    public String getFoundPrefix() { return this.foundPrefix; }
+
+    public List<Command> getPrefixes() { return this.prefixes; }
   }
 }
