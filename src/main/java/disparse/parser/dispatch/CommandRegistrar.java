@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -71,7 +73,12 @@ public class CommandRegistrar<E> {
     try {
       output = parser.parse(args);
     } catch (NoCommandNameFound exec) {
-      helper.commandNotFound(event, args.get(0));
+      List<Command> prefixes = findCommandPrefixes(commandTable.keySet(), args);
+      if (prefixes.size() == 0) {
+        helper.commandNotFound(event, args.get(0));
+      } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)){
+        helper.help(event, prefixes.get(0), commandToFlags.get(prefixes.get(0)), commandTable.keySet(), 1);
+      }
       return;
     }
     Command command = output.getCommand();
@@ -98,6 +105,15 @@ public class CommandRegistrar<E> {
         for (Command c : commandTable.keySet()) {
           if (c.getCommandName().equals(name)) {
             command = c;
+          }
+        }
+
+        if (command.getCommandName().equals("help")) {
+          List<Command> prefixes = findCommandPrefixes(commandTable.keySet(), args);
+          if (prefixes.size() == 0) {
+            helper.commandNotFound(event, name.replace(".", " "));
+          } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)){
+            command = prefixes.get(0);
           }
         }
         help = true;
@@ -262,6 +278,26 @@ public class CommandRegistrar<E> {
   private Optional<Command> findCommand(Set<Command> commands, String commandName) {
     return commands.stream().filter(command -> command.getCommandName().equals(commandName))
         .findFirst();
+  }
+
+  private List<Command> findCommandPrefixes(Set<Command> commands, List<String> args) {
+
+    List<Command> prefixes = new ArrayList<>();
+
+    for (int i = args.size(); i >= 0; i--) {
+      List<String> trimmed = args.subList(0, i);
+      String possibleCommandName = String.join(".", trimmed);
+
+      prefixes = commands.stream()
+              .filter(command -> command.getCommandName().startsWith(possibleCommandName))
+              .collect(Collectors.toList());
+
+      if (prefixes.size() > 0) {
+        return prefixes;
+      }
+    }
+
+    return prefixes;
   }
 
   class CommandContainer {
