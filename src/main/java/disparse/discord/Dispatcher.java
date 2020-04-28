@@ -179,6 +179,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
     List<Command> sortedCommands = commands.stream().sorted(Comparator
             .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
+            .filter((Command cmd) -> !CommandRegistrar.commandRolesNotMet(event, cmd))
             .collect(Collectors.toList());
 
     builder = addCommandsToEmbed(builder, sortedCommands, event);

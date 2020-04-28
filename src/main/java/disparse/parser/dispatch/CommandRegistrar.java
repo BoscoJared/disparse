@@ -235,7 +235,7 @@ public class CommandRegistrar<E> {
     return false;
   }
 
-  public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
+  public static boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;
     }
