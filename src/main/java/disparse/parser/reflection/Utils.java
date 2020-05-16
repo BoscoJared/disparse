@@ -14,6 +14,11 @@ public class Utils {
     if (shortName == ' ') {
       shortName = null;
     }
+
+    if (longName.isEmpty()) {
+      longName = null;
+    }
+
     Types type = null;
     if (field.getType().isAssignableFrom(Integer.class)) {
       type = Types.INT;

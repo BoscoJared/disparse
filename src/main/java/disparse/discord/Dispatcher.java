@@ -24,8 +24,39 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   private static final Comparator<CommandFlag> helpCommandFlagComparator = new Comparator<>() {
     private Comparator<CommandFlag> comparator = Comparator
-        .comparing(this::shortNameKeyExtractor, Comparator.nullsLast(Comparator.naturalOrder()))
-        .thenComparing(this::longNameKeyExtractor);
+            .comparing(this::identity, (left, right) -> {
+              String leftLong = left.getLongName();
+              String rightLong = right.getLongName();
+              Character leftShort = left.getShortName();
+              Character rightShort = right.getShortName();
+
+              boolean leftShortOnly = leftShort != null && leftLong == null;
+              boolean leftLongOnly = leftShort == null && leftLong != null;
+              boolean leftBoth = leftShort != null && leftLong != null;
+
+              boolean rightShortOnly = rightShort != null && rightLong == null;
+              boolean rightLongOnly = rightShort == null && rightLong != null;
+              boolean rightBoth = rightShort != null && rightLong != null;
+
+              if (leftShortOnly && rightShortOnly) {
+                return leftShort.compareTo(rightShort);
+              } else if (leftShortOnly && !rightShortOnly) {
+                return -1;
+              } else if (!leftShortOnly && rightShortOnly) {
+                return 1;
+              } else if (leftBoth && rightBoth) {
+                return leftLong.compareTo(rightLong);
+              } else if (leftBoth && !rightBoth) {
+                return -1;
+              } else if (!leftBoth && rightBoth) {
+                return 1;
+              } else if (leftLongOnly && rightLongOnly){
+                return leftLong.compareTo(rightLong);
+              } else {
+                return 0;
+              }
+            });
+
 
     private Character shortNameKeyExtractor(CommandFlag flag) {
       Character ch = flag.getShortName();
@@ -33,7 +64,11 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     }
 
     private String longNameKeyExtractor(CommandFlag flag) {
-      return flag.getLongName().toLowerCase();
+      return flag.getLongName() == null ? null : flag.getLongName().toLowerCase();
+    }
+
+    private CommandFlag identity(CommandFlag flag) {
+      return flag;
     }
 
     @Override
@@ -159,6 +194,8 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
       String flagName;
       if (flag.getShortName() == null) {
         flagName = String.format("--%s", flag.getLongName());
+      } else if (flag.getLongName() == null) {
+        flagName = String.format("-%s", flag.getShortName());
       } else {
         flagName = String.format("-%s | --%s", flag.getShortName(), flag.getLongName());
       }

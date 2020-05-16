@@ -16,6 +16,7 @@ public class CommandFlag {
       final Types type,
       final boolean isRequired,
       final String description) {
+
     this.longName = longName;
     this.shortName = shortName;
     this.type = type;
