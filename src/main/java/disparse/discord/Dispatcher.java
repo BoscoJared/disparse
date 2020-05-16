@@ -15,8 +15,12 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Dispatcher extends ListenerAdapter implements Helpable<MessageReceivedEvent> {
+
+  private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
   private static final Comparator<CommandFlag> helpCommandFlagComparator = new Comparator<>() {
     private Comparator<CommandFlag> comparator = Comparator
@@ -69,7 +73,14 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     if (!raw.startsWith(this.prefix)) {
       return;
     }
-    String cleanedMessage = raw.replace(this.prefix, "");
+
+    String cleanedMessage = raw.substring(this.prefix.length());
+
+    if (cleanedMessage.isEmpty()) {
+      logger.info("After removing the prefix, the message was empty.  Not continuing.");
+      return;
+    }
+
     List<String> args = Shlex.shlex(cleanedMessage);
     CommandRegistrar.REGISTRAR.dispatch(args, this, event);
   }

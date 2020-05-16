@@ -293,7 +293,7 @@ public class CommandRegistrar<E> {
 
     List<Command> prefixes = new ArrayList<>();
 
-    for (int i = args.size(); i >= 0; i--) {
+    for (int i = args.size(); i > 0; i--) {
       List<String> trimmed = args.subList(0, i);
       String possibleCommandName = String.join(".", trimmed);
 
