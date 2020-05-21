@@ -174,6 +174,9 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     } else if (upperBound > subcommands.size()){
       subcommands = subcommands.subList(lowerBound, subcommands.size());
       int rest = this.pageLimit - subcommands.size();
+      if (rest > sortedFlags.size()) {
+        rest = sortedFlags.size();
+      }
       sortedFlags = sortedFlags.subList(0, rest);
     } else {
       subcommands = subcommands.subList(lowerBound, upperBound);
@@ -213,7 +216,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   private List<Command> getHelpSubCommands(final Command command, Collection<Command> commands) {
     Predicate<Command> predicate =
-        c -> c.getCommandName().startsWith(command.getCommandName()) && c != command;
+        c -> c.getCommandName().startsWith(command.getCommandName()) && !c.getCommandName().equals(command.getCommandName());
 
     Comparator<Command> comparator =
         Comparator.comparing(cmd -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder());
