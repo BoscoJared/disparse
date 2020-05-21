@@ -59,8 +59,192 @@ public class CommandRegistrar<E> {
     this.injectables.add(method);
   }
 
-  public void dispatch2(List<String> args, Helpable<E> helper, E event) {
+  public void dispatch(List<String> args, Helpable<E> helper, E event) {
     ParsedOutput parsedOutput = this.parse(new ArrayList<>(args), helper, event);
+    if (parsedOutput == null) return;
+
+    Command command = parsedOutput.getCommand();
+    if (!commandTable.containsKey(command)) return;
+
+    if (commandRolesNotMet(command, event)) {
+      helper.roleNotMet(event, command);
+      return;
+    }
+
+    if (this.help(args, helper, event, parsedOutput, command)) return;
+
+    try {
+      this.emitCommand(args, helper, event, parsedOutput, command);
+    } catch (ReflectiveOperationException exec) {
+      logger.error("Error occurred", exec);
+    } catch (OptionRequired exec) {
+      helper.optionRequired(event, exec.getMessage());
+    }
+  }
+
+  private boolean help(List<String> args, Helpable<E> helper, E event, ParsedOutput parsedOutput, Command command) {
+    if (command.getCommandName().equalsIgnoreCase("help")) {
+      this.helpCommand(args, helper, event, parsedOutput);
+      return true;
+    } else if ((boolean) parsedOutput.getOptions().getOrDefault(helpFlag, false)){
+      this.emitHelp(args, helper ,event, command);
+      return true;
+    }
+
+    return false;
+  }
+
+  private void helpCommand(List<String> args, Helpable<E> helper, E event, ParsedOutput parsedOutput) {
+    args = new ArrayList<>(args);
+
+    if (args.size() <= 1) {
+      int pageLimit = Integer.parseInt((String) parsedOutput.getOptions().getOrDefault(helpPageFlag, "1"));
+      helper.allCommands(event, commandTable.keySet(), pageLimit);
+      return;
+    }
+
+    Command foundCommand = null;
+    args.remove(0); // remove "help" command name
+    String name = args.get(0);
+    name = String.join(".", name.split(" "));
+
+    for (Command c : commandTable.keySet()) {
+      if (c.getCommandName().equals(name)) {
+        foundCommand = c;
+      }
+    }
+
+    if (foundCommand == null) {
+      foundCommand = this.prefixHelp(args, helper, event, name);
+    }
+
+    if (foundCommand == null) return;
+
+    this.emitHelp(args, helper, event, foundCommand);
+  }
+
+  private Command prefixHelp(List<String> args, Helpable<E> helper, E event, String prefix) {
+    PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
+    List<Command> prefixes = prefixContainer.getPrefixes();
+    String foundPrefix = prefixContainer.getFoundPrefix();
+    if (prefixes.size() == 0) {
+      helper.commandNotFound(event, prefix.replace(".", " "));
+    } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)) {
+      return prefixes.get(0);
+    } else {
+      helper.helpSubcommands(event, foundPrefix, prefixes);
+    }
+    return null;
+  }
+
+  private void emitHelp(List<String> args, Helpable<E> helper, E event, Command command) {
+    List<String> translatedArgs = new ArrayList<>();
+    Parser parser = new Parser(this.commandToFlags);
+    translatedArgs.add("help");
+    translatedArgs.addAll(args);
+    ParsedOutput parsedOutput = parser.parse(translatedArgs);
+    // This should only fail due to programmer error, so the cast *should* be safe... famous last words
+    int pageLimit = Integer.parseInt((String) parsedOutput.getOptions().getOrDefault(helpPageFlag, "1"));
+    helper.help(event, command, commandToFlags.get(command), commandTable.keySet(), pageLimit);
+  }
+
+  private void emitCommand(List<String> args, Helpable<E> helper, E event, ParsedOutput parsedOutput, Command foundCommand)
+    throws ReflectiveOperationException, OptionRequired {
+      Method commandHandler = commandTable.get(foundCommand);
+      Object[] objects = new Object[commandHandler.getParameterTypes().length];
+
+      int i = 0;
+      for (Class<?> clazz : commandHandler.getParameterTypes()) {
+        if (clazz.isAnnotationPresent(ParsedEntity.class)) {
+          Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+          constructor.setAccessible(true);
+          Object newObject = constructor.newInstance();
+
+          for (Field field : Detector.allImplicitFields(clazz)) {
+            if (field.isAnnotationPresent(Flag.class)) {
+              Flag flagAnnotation = field.getAnnotation(Flag.class);
+
+              CommandFlag flag = Utils.createFlagFromAnnotation(field, flagAnnotation);
+              if (parsedOutput.getOptions().containsKey(flag)) {
+                Object val = parsedOutput.getOptions().get(flag);
+                field.setAccessible(true);
+
+                if (flag.getType().equals(Types.INT)) {
+                  field.set(newObject, Integer.parseInt((String) val));
+                } else {
+                  field.set(newObject, val);
+                }
+              } else if (flag.isRequired()) {
+                throw new OptionRequired("The flag `--" + flag + "` is required for `"
+                        + foundCommand.getCommandName() + "` to be ran!");
+              }
+            }
+          }
+          objects[i] = newObject;
+        } else {
+          this.fillObjectArr(objects, i, clazz, args, event, helper);
+        }
+        i++;
+      }
+      commandHandler.setAccessible(true);
+      Object handlerObj = null; // null can work for static methods invocation
+      Constructor<?>[] ctors = commandHandler.getDeclaringClass().getDeclaredConstructors();
+      Arrays.sort(ctors, Comparator.comparing(Constructor::getParameterCount, Comparator.reverseOrder()));
+
+      Object[] bestCtorParams = null;
+      Constructor<?> bestCtor = null;
+      int bestNonNull = Integer.MAX_VALUE;
+
+      for (Constructor<?> ctor : ctors) {
+        Object[] ctorParams = new Object[ctor.getParameterCount()];
+        int idx = 0;
+
+        for (Class<?> clazz : ctor.getParameterTypes()) {
+          this.fillObjectArr(ctorParams, idx, clazz, args, event, helper);
+          idx++;
+        }
+
+        boolean noneNull = Arrays.stream(ctorParams).noneMatch(Objects::isNull);
+
+        if (noneNull) {
+          bestCtor = ctor;
+          bestCtorParams = ctorParams;
+          break;
+        } else {
+          int amountNotNull = (int) Arrays.stream(ctorParams).filter(Objects::isNull).count();
+          if (ctor.getParameterCount() > 0 && amountNotNull < bestNonNull) {
+            bestCtor = ctor;
+            bestCtorParams = ctorParams;
+          }
+        }
+      }
+
+      if (bestCtor != null) {
+        handlerObj = bestCtor.newInstance(bestCtorParams);
+      }
+
+      commandHandler.invoke(handlerObj, objects);
+  }
+
+  private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, Helpable<E> helper)
+          throws ReflectiveOperationException {
+    if (clazz.isAssignableFrom(List.class)) {
+      objects[index] = args;
+    }
+
+    if (clazz.isAssignableFrom(event.getClass())) {
+      objects[index] = event;
+    }
+
+    if (clazz.isAssignableFrom(helper.getClass())) {
+      objects[index] = helper;
+    }
+
+    for (Method injectable : this.injectables) {
+      if (clazz.isAssignableFrom(injectable.getReturnType())) {
+        objects[index] = injectable.invoke(null);
+      }
+    }
   }
 
   private ParsedOutput parse(List<String> args, Helpable<E> helper, E event) {
@@ -89,206 +273,6 @@ public class CommandRegistrar<E> {
       helper.help(event, matchedCommand, commandToFlags.get(matchedCommand), commandTable.keySet(), 1);
     } else {
       helper.helpSubcommands(event, foundPrefix, prefixMatchedCommands);
-    }
-  }
-
-  public void dispatch(List<String> args, Helpable<E> helper, E event, Object... injectables) {
-
-    List<String> originalArgs = new ArrayList<>(args);
-    Parser parser = new Parser(this.commandToFlags);
-    ParsedOutput output;
-    try {
-      output = parser.parse(args);
-    } catch (NoCommandNameFound exec) {
-      PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
-      List<Command> prefixes = prefixContainer.getPrefixes();
-      String foundPrefix = prefixContainer.getFoundPrefix();
-      if (prefixes.size() == 0) {
-        helper.commandNotFound(event, args.get(0));
-      } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)){
-        helper.help(event, prefixes.get(0), commandToFlags.get(prefixes.get(0)), commandTable.keySet(), 1);
-      } else {
-        helper.helpSubcommands(event, foundPrefix, prefixes);
-      }
-      return;
-    }
-    Command command = output.getCommand();
-    if (!commandTable.containsKey(command)) {
-      return;
-    }
-
-    for (Command c : commandTable.keySet()) {
-      if (c.equals(command)) {
-        command = c;
-      }
-    }
-
-    if (commandRolesNotMet(command, event)) {
-      helper.roleNotMet(event, command);
-      return;
-    }
-
-    boolean help = (boolean) output.getOptions().getOrDefault(helpFlag, false);
-    if (command.getCommandName().equals("help")) {
-      if (args.size() > 0) {
-        String name = args.get(0);
-        name = String.join(".", name.split(" "));
-        for (Command c : commandTable.keySet()) {
-          if (c.getCommandName().equals(name)) {
-            command = c;
-          }
-        }
-
-        if (command.getCommandName().equals("help")) {
-          PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
-          List<Command> prefixes = prefixContainer.getPrefixes();
-          String foundPrefix = prefixContainer.getFoundPrefix();
-          if (prefixes.size() == 0) {
-            helper.commandNotFound(event, name.replace(".", " "));
-          } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)){
-            command = prefixes.get(0);
-          } else {
-            helper.helpSubcommands(event, foundPrefix, prefixes);
-            return;
-          }
-        }
-        help = true;
-      } else {
-        // This should only fail due to programmer error, so the cast *should* be safe... famous last words
-        int pageLimit = Integer.parseInt((String) output.getOptions().getOrDefault(helpPageFlag, "1"));
-        helper.allCommands(event, commandTable.keySet(), pageLimit);
-        return;
-      }
-    }
-    if (help) {
-      List<String> translatedArgs = new ArrayList<>();
-      translatedArgs.add("help");
-      translatedArgs.add(command.getCommandName());
-      translatedArgs.addAll(originalArgs);
-      output = parser.parse(translatedArgs);
-      // This should only fail due to programmer error, so the cast *should* be safe... famous last words
-      int pageLimit = Integer.parseInt((String) output.getOptions().getOrDefault(helpPageFlag, "1"));
-      helper.help(event, command, commandToFlags.get(command), commandTable.keySet(), pageLimit);
-      return;
-    }
-    try {
-      Method handler = commandTable.get(command);
-      Object[] objects = new Object[handler.getParameterTypes().length];
-
-      int i = 0;
-      for (Class<?> clazz : handler.getParameterTypes()) {
-        if (clazz.isAnnotationPresent(ParsedEntity.class)) {
-          Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-          constructor.setAccessible(true);
-          Object newObject = constructor.newInstance();
-
-          for (Field field : Detector.allImplicitFields(clazz)) {
-            if (field.isAnnotationPresent(Flag.class)) {
-              Flag flagAnnotation = field.getAnnotation(Flag.class);
-
-              CommandFlag flag = Utils.createFlagFromAnnotation(field, flagAnnotation);
-              if (output.getOptions().containsKey(flag)) {
-                Object val = output.getOptions().get(flag);
-                field.setAccessible(true);
-
-                if (flag.getType().equals(Types.INT)) {
-                  field.set(newObject, Integer.parseInt((String) val));
-                } else {
-                  field.set(newObject, val);
-                }
-              } else if (flag.isRequired()) {
-                throw new OptionRequired("The flag `--" + flag + "` is required for `"
-                    + command.getCommandName() + "` to be ran!");
-              }
-            }
-          }
-          objects[i] = newObject;
-        } else {
-          if (clazz.isAssignableFrom(List.class)) {
-            objects[i] = args;
-          }
-          if (clazz.isAssignableFrom(event.getClass())) {
-            objects[i] = event;
-          }
-          if (clazz.isAssignableFrom(helper.getClass())) {
-            objects[i] = helper;
-          }
-          for (Object injectable : injectables) {
-            if (clazz.isAssignableFrom(injectable.getClass())) {
-              objects[i] = injectable;
-            }
-          }
-
-          for (Method injectable : this.injectables) {
-            if (clazz.isAssignableFrom(injectable.getReturnType())) {
-              objects[i] = injectable.invoke(null);
-            }
-          }
-        }
-        i++;
-      }
-      handler.setAccessible(true);
-      Object handlerObj = null; // null can work for static methods invocation
-      Constructor<?>[] ctors = handler.getDeclaringClass().getDeclaredConstructors();
-      Arrays.sort(ctors, Comparator.comparing(Constructor::getParameterCount, Comparator.reverseOrder()));
-
-      Object[] bestCtorParams = null;
-      Constructor<?> bestCtor = null;
-      int bestNonNull = Integer.MAX_VALUE;
-
-      for (Constructor<?> ctor : ctors) {
-        Object[] ctorParams = new Object[ctor.getParameterCount()];
-        int idx = 0;
-
-        for (Class<?> clazz : ctor.getParameterTypes()) {
-          if (clazz.isAssignableFrom(List.class)) {
-            ctorParams[idx] = args;
-          }
-          if (clazz.isAssignableFrom(event.getClass())) {
-            ctorParams[idx] = event;
-          }
-          if (clazz.isAssignableFrom(helper.getClass())) {
-            ctorParams[idx] = helper;
-          }
-          for (Object injectable : injectables) {
-            if (clazz.isAssignableFrom(injectable.getClass())) {
-              ctorParams[idx] = injectable;
-            }
-          }
-
-          for (Method injectable : this.injectables) {
-            if (clazz.isAssignableFrom(injectable.getReturnType())) {
-              ctorParams[idx] = injectable.invoke(null);
-            }
-          }
-          idx++;
-        }
-
-        boolean noneNull = Arrays.stream(ctorParams).noneMatch(Objects::isNull);
-
-        if (noneNull) {
-          bestCtor = ctor;
-          bestCtorParams = ctorParams;
-          break;
-        } else {
-          int amountNotNull = (int) Arrays.stream(ctorParams).filter(Objects::isNull).count();
-          if (ctor.getParameterCount() > 0 && amountNotNull < bestNonNull) {
-            bestCtor = ctor;
-            bestCtorParams = ctorParams;
-          }
-        }
-      }
-
-      if (bestCtor != null && bestCtorParams != null) {
-        handlerObj = bestCtor.newInstance(bestCtorParams);
-      }
-
-      handler.invoke(handlerObj, objects);
-    } catch (ReflectiveOperationException exec) {
-      logger.error("Error occurred", exec);
-      System.out.println(exec);
-    } catch (OptionRequired exec) {
-      helper.optionRequired(event, exec.getMessage());
     }
   }
 
