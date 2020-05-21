@@ -15,13 +15,7 @@ import disparse.parser.reflection.Utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import net.dv8tion.jda.api.entities.Member;
@@ -202,15 +196,60 @@ public class CommandRegistrar<E> {
       }
       handler.setAccessible(true);
       Object handlerObj = null; // null can work for static methods invocation
-      try {
-        Constructor<?> constructor = handler.getDeclaringClass().getDeclaredConstructor();
-        constructor.setAccessible(true);
-        handlerObj = constructor.newInstance();
-      } catch (NoSuchMethodException noSuchMethodExec) {
-        logger.debug(
-            "There was no no-args constructor found in {}, only static methods will be supported",
-            handler.getDeclaringClass());
+      Constructor<?>[] ctors = handler.getDeclaringClass().getDeclaredConstructors();
+      Arrays.sort(ctors, Comparator.comparing(Constructor::getParameterCount, Comparator.reverseOrder()));
+
+      Object[] bestCtorParams = null;
+      Constructor<?> bestCtor = null;
+      int bestNonNull = Integer.MAX_VALUE;
+
+      for (Constructor<?> ctor : ctors) {
+        Object[] ctorParams = new Object[ctor.getParameterCount()];
+        int idx = 0;
+
+        for (Class<?> clazz : ctor.getParameterTypes()) {
+          if (clazz.isAssignableFrom(List.class)) {
+            ctorParams[idx] = args;
+          }
+          if (clazz.isAssignableFrom(event.getClass())) {
+            ctorParams[idx] = event;
+          }
+          if (clazz.isAssignableFrom(helper.getClass())) {
+            ctorParams[idx] = helper;
+          }
+          for (Object injectable : injectables) {
+            if (clazz.isAssignableFrom(injectable.getClass())) {
+              ctorParams[idx] = injectable;
+            }
+          }
+
+          for (Method injectable : this.injectables) {
+            if (clazz.isAssignableFrom(injectable.getReturnType())) {
+              ctorParams[idx] = injectable.invoke(null);
+            }
+          }
+          idx++;
+        }
+
+        boolean noneNull = Arrays.stream(ctorParams).noneMatch(Objects::isNull);
+
+        if (noneNull) {
+          bestCtor = ctor;
+          bestCtorParams = ctorParams;
+          break;
+        } else {
+          int amountNotNull = (int) Arrays.stream(ctorParams).filter(Objects::isNull).count();
+          if (ctor.getParameterCount() > 0 && amountNotNull < bestNonNull) {
+            bestCtor = ctor;
+            bestCtorParams = ctorParams;
+          }
+        }
       }
+
+      if (bestCtor != null && bestCtorParams != null) {
+        handlerObj = bestCtor.newInstance(bestCtorParams);
+      }
+
       handler.invoke(handlerObj, objects);
     } catch (ReflectiveOperationException exec) {
       logger.error("Error occurred", exec);
