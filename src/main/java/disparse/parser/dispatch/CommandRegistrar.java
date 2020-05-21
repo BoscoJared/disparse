@@ -59,6 +59,39 @@ public class CommandRegistrar<E> {
     this.injectables.add(method);
   }
 
+  public void dispatch2(List<String> args, Helpable<E> helper, E event) {
+    ParsedOutput parsedOutput = this.parse(new ArrayList<>(args), helper, event);
+  }
+
+  private ParsedOutput parse(List<String> args, Helpable<E> helper, E event) {
+    Parser parser = new Parser(this.commandToFlags);
+
+    try {
+      return parser.parse(args);
+    } catch (NoCommandNameFound noCommandNameFound) {
+      noCommandNameFound(args, helper, event);
+    }
+
+    return null;
+  }
+
+  private void noCommandNameFound(List<String> args, Helpable<E> helper, E event) {
+    PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
+    List<Command> prefixMatchedCommands = prefixContainer.getPrefixes();
+    String foundPrefix = prefixContainer.getFoundPrefix();
+
+    if (prefixMatchedCommands.size() == 0) {
+      // no prefixes matched means no valid command was found
+      helper.commandNotFound(event, args.get(0));
+    } else if (prefixMatchedCommands.size() == 1) {
+      // one prefix matched means we can directly help for this command
+      Command matchedCommand = prefixMatchedCommands.get(0);
+      helper.help(event, matchedCommand, commandToFlags.get(matchedCommand), commandTable.keySet(), 1);
+    } else {
+      helper.helpSubcommands(event, foundPrefix, prefixMatchedCommands);
+    }
+  }
+
   public void dispatch(List<String> args, Helpable<E> helper, E event, Object... injectables) {
 
     List<String> originalArgs = new ArrayList<>(args);
