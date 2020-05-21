@@ -59,28 +59,28 @@ public class CommandRegistrar<E> {
     this.injectables.add(method);
   }
 
-  public void dispatch(List<String> args, Helpable<E> helper, E event) {
-    ParsedOutput parsedOutput = this.parse(new ArrayList<>(args), helper, event);
-    if (parsedOutput == null) return;
+public void dispatch(List<String> args, Helpable<E> helper, E event) {
+  ParsedOutput parsedOutput = this.parse(new ArrayList<>(args), helper, event);
+  if (parsedOutput == null) return;
 
-    Command command = parsedOutput.getCommand();
-    if (!commandTable.containsKey(command)) return;
+  Command command = parsedOutput.getCommand();
+  if (!commandTable.containsKey(command)) return;
 
-    if (commandRolesNotMet(command, event)) {
-      helper.roleNotMet(event, command);
-      return;
-    }
-
-    if (this.help(args, helper, event, parsedOutput, command)) return;
-
-    try {
-      this.emitCommand(args, helper, event, parsedOutput, command);
-    } catch (ReflectiveOperationException exec) {
-      logger.error("Error occurred", exec);
-    } catch (OptionRequired exec) {
-      helper.optionRequired(event, exec.getMessage());
-    }
+  if (commandRolesNotMet(command, event)) {
+    helper.roleNotMet(event, command);
+    return;
   }
+
+  if (this.help(args, helper, event, parsedOutput, command)) return;
+
+  try {
+    this.emitCommand(args, helper, event, parsedOutput, command);
+  } catch (ReflectiveOperationException exec) {
+    logger.error("Error occurred", exec);
+  } catch (OptionRequired exec) {
+    helper.optionRequired(event, exec.getMessage());
+  }
+}
 
   private boolean help(List<String> args, Helpable<E> helper, E event, ParsedOutput parsedOutput, Command command) {
     if (command.getCommandName().equalsIgnoreCase("help")) {
