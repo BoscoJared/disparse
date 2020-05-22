@@ -114,11 +114,11 @@ public void dispatch(List<String> args, Helpable<E> helper, E event) {
       }
     }
 
-    if (foundCommand == null) {
+    if (foundCommand == null) { // foundCommand is null so we need to prefix match to see if we can provide more help
       foundCommand = this.prefixHelp(args, helper, event, name);
     }
 
-    if (foundCommand == null) return;
+    if (foundCommand == null) return; // no prefix was matched so we can't really help
 
     this.emitHelp(args, helper, event, foundCommand);
   }
