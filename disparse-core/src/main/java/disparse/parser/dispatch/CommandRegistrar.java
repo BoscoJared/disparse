@@ -18,15 +18,12 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CommandRegistrar<E> {
 
-  public static final CommandRegistrar REGISTRAR = new CommandRegistrar();
+  public static final CommandRegistrar REGISTRAR = new CommandRegistrar<>();
   private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
   private final CommandFlag helpFlag =
       new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command");
@@ -59,34 +56,33 @@ public class CommandRegistrar<E> {
     this.injectables.add(method);
   }
 
-public void dispatch(List<String> args, Helpable<E> helper, E event) {
-  List<String> originalArgs = new ArrayList<>(args);
-  ParsedOutput parsedOutput = this.parse(args, helper, event);
-  if (parsedOutput == null) return;
+  public void dispatch(List<String> args, Helpable<E> helper, E event) {
+    List<String> originalArgs = new ArrayList<>(args);
+    ParsedOutput parsedOutput = this.parse(args, helper, event);
+    if (parsedOutput == null) return;
 
-  String commandName = parsedOutput.getCommand().getCommandName();
-  Command command = this.commandTable.keySet()
+    String commandName = parsedOutput.getCommand().getCommandName();
+    Command command = this.commandTable.keySet()
           .stream()
           .filter(c -> c.getCommandName().equals(commandName))
           .findFirst()
           .orElse(null);
-  if (!commandTable.containsKey(command)) return;
+    if (!commandTable.containsKey(command)) return;
+    if (helper.commandRolesNotMet(event, command)) {
+      helper.roleNotMet(event, command);
+      return;
+    }
 
-  if (commandRolesNotMet(command, event)) {
-    helper.roleNotMet(event, command);
-    return;
+    if (this.help(originalArgs, helper, event, parsedOutput, command)) return;
+
+    try {
+      this.emitCommand(args, helper, event, parsedOutput, command);
+    } catch (ReflectiveOperationException exec) {
+      logger.error("Error occurred", exec);
+    } catch (OptionRequired exec) {
+      helper.optionRequired(event, exec.getMessage());
+    }
   }
-
-  if (this.help(originalArgs, helper, event, parsedOutput, command)) return;
-
-  try {
-    this.emitCommand(args, helper, event, parsedOutput, command);
-  } catch (ReflectiveOperationException exec) {
-    logger.error("Error occurred", exec);
-  } catch (OptionRequired exec) {
-    helper.optionRequired(event, exec.getMessage());
-  }
-}
 
   private boolean help(List<String> args, Helpable<E> helper, E event, ParsedOutput parsedOutput, Command command) {
     if (command.getCommandName().equalsIgnoreCase("help")) {
@@ -135,7 +131,7 @@ public void dispatch(List<String> args, Helpable<E> helper, E event) {
     String foundPrefix = prefixContainer.getFoundPrefix();
     if (prefixes.size() == 0) {
       helper.commandNotFound(event, prefix.replace(".", " "));
-    } else if (prefixes.size() == 1 && !commandRolesNotMet(prefixes.get(0), event)) {
+    } else if (prefixes.size() == 1 && !helper.commandRolesNotMet(event, prefixes.get(0))) {
       return prefixes.get(0);
     } else {
       helper.helpSubcommands(event, foundPrefix, prefixes);
@@ -280,45 +276,6 @@ public void dispatch(List<String> args, Helpable<E> helper, E event) {
     } else {
       helper.helpSubcommands(event, foundPrefix, prefixMatchedCommands);
     }
-  }
-
-  /**
-   * Checks the specified roles of a command against the roles of the user attempting to call the
-   * command
-   *
-   * @param command the command that has been parsed
-   * @param event   the event from the message listener
-   * @return true if the user does not have sufficient privilege
-   */
-  private boolean commandRolesNotMet(Command command, E event) {
-    if (event instanceof MessageReceivedEvent) {
-      return commandRolesNotMet((MessageReceivedEvent) event, command);
-    }
-    return false;
-  }
-
-  public static boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
-    if (command.getRoles().length == 0) {
-      return false;
-    }
-    if (event instanceof MessageReceivedEvent) {
-      MessageReceivedEvent e = (MessageReceivedEvent) event;
-      Member member = e.getMember();
-      if (member != null) {
-        for (String commandRole : command.getRoles()) {
-          if (commandRole.equalsIgnoreCase("owner") && e.getMember().isOwner()) {
-            return false;
-          }
-          for (Role role : member.getRoles()) {
-            if (role.getName().equalsIgnoreCase(commandRole)) {
-              return false;
-            }
-          }
-        }
-      }
-      return true;
-    }
-    return false;
   }
 
   public void disableCommand(String commandName) throws IllegalArgumentException {

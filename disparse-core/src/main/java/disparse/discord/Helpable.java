@@ -19,4 +19,6 @@ public interface Helpable<E> {
   void roleNotMet(E event, Command command);
 
   void optionRequired(E event, String message);
+
+  boolean commandRolesNotMet(E event, Command command);
 }

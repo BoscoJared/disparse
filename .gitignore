@@ -27,7 +27,7 @@ target/
 hs_err_pid*
 
 # Example path to have a local running test bot
-src/main/java/disparse/example/**
+disparse-example**
 
 .settings
 .classpath

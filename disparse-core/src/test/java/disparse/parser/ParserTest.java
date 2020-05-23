@@ -9,6 +9,8 @@ import disparse.parser.exceptions.OptionRequiresValue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -41,42 +43,42 @@ public class ParserTest {
   @Test
   void testEmptyArgumentsIsEmpty() {
     ParsedOutput output = testParser.parse(new ArrayList<>(List.of("log")));
-    assertEquals(output.getOptions().size(), 0);
-    assertEquals(output.getArguments().size(), 0);
+    Assertions.assertEquals(output.getOptions().size(), 0);
+    Assertions.assertEquals(output.getArguments().size(), 0);
     // assertEquals(output.getCommand(), "log");
   }
 
   @Test
   void testOneArgument() {
     ParsedOutput output = testParser.parse(new ArrayList<>(List.of("log", "foo")));
-    assertEquals(output.getOptions().size(), 0);
-    assertEquals(output.getArguments().size(), 1);
-    assertEquals(output.getArguments().get(0), "foo");
+    Assertions.assertEquals(output.getOptions().size(), 0);
+    Assertions.assertEquals(output.getArguments().size(), 1);
+    Assertions.assertEquals(output.getArguments().get(0), "foo");
     // assertEquals(output.getCommand(), "log");
   }
 
   @Test
   void testOneBoolOpt() {
     ParsedOutput output = testParser.parse(new ArrayList<>(List.of("up", "--update")));
-    assertEquals(output.getOptions().size(), 1);
-    assertEquals(output.getArguments().size(), 0);
-    assertEquals(output.getOptions().get(flagTwo), true);
+    Assertions.assertEquals(output.getOptions().size(), 1);
+    Assertions.assertEquals(output.getArguments().size(), 0);
+    Assertions.assertEquals(output.getOptions().get(flagTwo), true);
   }
 
   @Test
   void testOneStrOpt() {
     ParsedOutput output = testParser.parse(new ArrayList<>(List.of("sync", "--user", "disparse")));
-    assertEquals(output.getOptions().size(), 1);
-    assertEquals(output.getArguments().size(), 0);
-    assertEquals(output.getOptions().get(flagFive), "disparse");
+    Assertions.assertEquals(output.getOptions().size(), 1);
+    Assertions.assertEquals(output.getArguments().size(), 0);
+    Assertions.assertEquals(output.getOptions().get(flagFive), "disparse");
   }
 
   @Test
   void testNoFlagForCommand() {
     ParsedOutput output = testParser.parse(new ArrayList<>(List.of("init", "--read-only")));
-    assertEquals(output.getOptions().size(), 0);
-    assertEquals(output.getArguments().size(), 1);
-    assertEquals(output.getArguments().get(0), "--read-only");
+    Assertions.assertEquals(output.getOptions().size(), 0);
+    Assertions.assertEquals(output.getArguments().size(), 1);
+    Assertions.assertEquals(output.getArguments().get(0), "--read-only");
   }
 
   @Test
@@ -103,9 +105,9 @@ public class ParserTest {
         testParser.parse(
             new ArrayList<>(
                 List.of("init", "--create", "foo", "--create", "bar", "--create", "baz")));
-    assertEquals(output.getOptions().size(), 1);
-    assertEquals(output.getArguments().size(), 0);
-    assertEquals(output.getOptions().get(flagOne), List.of("foo", "bar", "baz"));
+    Assertions.assertEquals(output.getOptions().size(), 1);
+    Assertions.assertEquals(output.getArguments().size(), 0);
+    Assertions.assertEquals(output.getOptions().get(flagOne), List.of("foo", "bar", "baz"));
   }
 
   @Test
@@ -113,8 +115,8 @@ public class ParserTest {
     ParsedOutput output =
         testParser.parse(
             new ArrayList<>(List.of("init", "-c", "foo", "--create", "bar", "-c", "baz")));
-    assertEquals(output.getOptions().size(), 1);
-    assertEquals(output.getArguments().size(), 0);
+    Assertions.assertEquals(output.getOptions().size(), 1);
+    Assertions.assertEquals(output.getArguments().size(), 0);
     assertTrue(
         ((List<String>) output.getOptions().get(flagOne))
             .containsAll(List.of("foo", "bar", "baz")));

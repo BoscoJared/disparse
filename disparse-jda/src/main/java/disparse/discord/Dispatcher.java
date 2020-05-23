@@ -6,6 +6,7 @@ import disparse.parser.Types;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
@@ -138,7 +141,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   public void help(MessageReceivedEvent event, Command command, Collection<CommandFlag> flags,
       Collection<Command> commands, int pageNumber) {
-    if (CommandRegistrar.REGISTRAR.commandRolesNotMet(event, command)) {
+    if (this.commandRolesNotMet(event, command)) {
       return;
     }
     EmbedBuilder builder = new EmbedBuilder();
@@ -230,7 +233,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
     List<Command> sortedCommands = commands.stream().sorted(Comparator
             .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
-            .filter((Command cmd) -> !CommandRegistrar.commandRolesNotMet(event, cmd))
+            .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd))
             .collect(Collectors.toList());
 
     builder = addCommandsToEmbed(builder, sortedCommands, event);
@@ -286,11 +289,31 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   private EmbedBuilder addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
       MessageReceivedEvent event) {
     for (Command command : commands) {
-      if (CommandRegistrar.REGISTRAR.commandRolesNotMet(event, command)) {
+      if (this.commandRolesNotMet(event, command)) {
         continue;
       }
       builder.addField(command.getCommandName(), command.getDescription(), false);
     }
     return builder;
+  }
+
+  public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
+    if (command.getRoles().length == 0) {
+      return false;
+    }
+    Member member = event.getMember();
+    if (member != null) {
+      for (String commandRole : command.getRoles()) {
+        if (commandRole.equalsIgnoreCase("owner") && event.getMember().isOwner()) {
+          return false;
+        }
+        for (Role role : member.getRoles()) {
+          if (role.getName().equalsIgnoreCase(commandRole)) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 }

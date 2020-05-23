@@ -5,31 +5,15 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.boscojared</groupId>
   <artifactId>disparse</artifactId>
-  <version>master-SNAPSHOT</version>
-
-  <dependencies>
-    <dependency>
-      <artifactId>JDA</artifactId>
-      <groupId>net.dv8tion</groupId>
-      <version>4.BETA.0_32</version>
-    </dependency>
-    <dependency>
-      <artifactId>annotation-detector</artifactId>
-      <groupId>eu.infomas</groupId>
-      <version>3.0.5</version>
-    </dependency>
-    <dependency>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <groupId>org.junit.jupiter</groupId>
-      <scope>test</scope>
-      <version>5.1.0</version>
-    </dependency>
-    <dependency>
-      <artifactId>slf4j-api</artifactId>
-      <groupId>org.slf4j</groupId>
-      <version>1.7.25</version>
-    </dependency>
-  </dependencies>
+    <packaging>pom</packaging>
+    <version>master-SNAPSHOT</version>
+    <modules>
+      <module>disparse-core</module>
+      <module>disparse-jda</module>
+      <module>disparse-d4j</module>
+      <module>disparse-smalld</module>
+      <module>disparse-example</module>
+    </modules>
 
   <properties>
     <maven.compiler.source>11</maven.compiler.source>
