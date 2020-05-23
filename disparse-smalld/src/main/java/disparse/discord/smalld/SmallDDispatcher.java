@@ -1,7 +1,9 @@
 package disparse.discord.smalld;
 
+import com.eclipsesource.json.Json;
 import com.github.princesslana.smalld.SmallD;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import disparse.discord.Helpable;
@@ -12,11 +14,15 @@ import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
 import disparse.utils.help.Help;
+import disparse.utils.help.PageNumberOutOfBounds;
+import disparse.utils.help.PaginatedEntities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static disparse.discord.smalld.SmallDUtils.*;
 
@@ -67,12 +73,92 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
 
     @Override
     public void help(SmallDEvent event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
+        if (this.commandRolesNotMet(event, command)) return;
 
+        JsonObject embed = new JsonObject();
+        embed.addProperty("title", Help.getTitle(command));
+        embed.addProperty("type", "rich");
+        embed.addProperty("description", Help.getDescriptionUsage(command));
+
+        List<Command> subcommands = Help.findSubcommands(command, commands);
+        String currentlyViewing;
+        try {
+            PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, pageLimit);
+            subcommands = paginatedEntities.getCommands();
+            flags = paginatedEntities.getFlags();
+            currentlyViewing = paginatedEntities.getCurrentlyViewing();
+        } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
+            sendMessage(event, pageNumberOutOfBounds.getMessage());
+            return;
+        }
+
+        List<CommandFlag> sortedFlags = Help.sortFlags(flags);
+
+        JsonArray fields = new JsonArray();
+        if (subcommands.size() > 0) {
+            JsonObject field = new JsonObject();
+            field.addProperty("name", "SUBCOMMANDS");
+            field.addProperty("value", "---------------------");
+            field.addProperty("inline", false);
+            fields.add(field);
+        }
+
+        addCommandsToEmbed(fields, subcommands, event);
+
+        if (sortedFlags.size() > 0) {
+            JsonObject field = new JsonObject();
+            field.addProperty("name", "FLAGS");
+            field.addProperty("value", "--------");
+            field.addProperty("inline", true);
+            fields.add(field);
+        }
+
+        for (CommandFlag flag : sortedFlags) {
+            String flagName = Help.flagToUserFriendlyString(flag);
+            JsonObject field = new JsonObject();
+            field.addProperty("name", flagName);
+            field.addProperty("value", flag.getDescription());
+            field.addProperty("inline", false);
+            fields.add(field);
+        }
+
+        JsonObject field = new JsonObject();
+        field.addProperty("name", currentlyViewing);
+        field.addProperty("value", "Use --page to specify a page number");
+        field.addProperty("inline", false);
+        fields.add(field);
+        embed.add("fields", fields);
+        sendEmbed(event, embed);
     }
 
     @Override
     public void allCommands(SmallDEvent event, Collection<Command> commands, int pageNumber) {
+        JsonObject embed = new JsonObject();
+        embed.addProperty("title", "All Commands");
+        embed.addProperty("description", "All registered commands");
+        embed.addProperty("type", "rich");
 
+        String currentlyViewing;
+        try {
+            PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, pageLimit);
+            commands = paginatedEntities.getCommands();
+            currentlyViewing = paginatedEntities.getCurrentlyViewing();
+        } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
+            sendMessage(event, pageNumberOutOfBounds.getMessage());
+            return;
+        }
+
+        List<Command> sortedCommands = Help.sortCommands(commands);
+        JsonArray fields = new JsonArray();
+        addCommandsToEmbed(fields, sortedCommands, event);
+        JsonObject field = new JsonObject();
+        field.addProperty("name", currentlyViewing);
+        field.addProperty("value", "Use --page to specify a page number");
+        field.addProperty("inline", false);
+        fields.add(field);
+        embed.add("fields", fields);
+
+        sendEmbed(event, embed);
     }
 
     @Override
@@ -87,7 +173,21 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
 
     @Override
     public void helpSubcommands(SmallDEvent event, String foundPrefix, Collection<Command> commands) {
+        JsonObject embed = new JsonObject();
+        embed.addProperty("title", foundPrefix + " | Subcommands");
+        embed.addProperty("description", "All registered subcommands for " + foundPrefix);
+        embed.addProperty("type", "rich");
 
+        List<Command> sortedCommands = commands.stream().sorted(Comparator
+                .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
+                .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd))
+                .collect(Collectors.toList());
+
+        JsonArray fields = new JsonArray();
+        addCommandsToEmbed(fields, sortedCommands, event);
+        embed.add("fields", fields);
+
+        sendEmbed(event, embed);
     }
 
     @Override
@@ -97,7 +197,7 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
 
     @Override
     public void optionRequired(SmallDEvent event, String message) {
-
+        sendMessage(event, message);
     }
 
     @Override
@@ -118,6 +218,19 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
 
                     return false;
                 });
+    }
+
+    private void addCommandsToEmbed(JsonArray fields, List<Command> commands, SmallDEvent event) {
+        for (Command command : commands) {
+            if (this.commandRolesNotMet(event, command)) {
+                continue;
+            }
+            JsonObject field = new JsonObject();
+            field.addProperty("name", command.getCommandName());
+            field.addProperty("value", command.getDescription());
+            field.addProperty("inline", false);
+            fields.add(field);
+        }
     }
 
 }

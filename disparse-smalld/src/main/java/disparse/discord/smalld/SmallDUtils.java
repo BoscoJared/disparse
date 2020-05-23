@@ -23,6 +23,17 @@ public class SmallDUtils {
         smalld.post("/channels/" + channelId + "/messages", output.toString());
     }
 
+    public static void sendEmbed(SmallDEvent event, JsonObject embed) {
+        SmallD smalld = event.getSmalld();
+        JsonObject json = event.getJson();
+        String channelId = getChannelId(json);
+
+        JsonObject output = new JsonObject();
+        output.add("embed", embed);
+
+        smalld.post("/channels/" + channelId + "/messages", output.toString());
+    }
+
     public static String getChannelId(JsonObject json) {
         return json.get("d").getAsJsonObject().get("channel_id").getAsString();
     }
