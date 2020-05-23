@@ -60,7 +60,8 @@ public class CommandRegistrar<E> {
   }
 
 public void dispatch(List<String> args, Helpable<E> helper, E event) {
-  ParsedOutput parsedOutput = this.parse(new ArrayList<>(args), helper, event);
+  List<String> originalArgs = new ArrayList<>(args);
+  ParsedOutput parsedOutput = this.parse(args, helper, event);
   if (parsedOutput == null) return;
 
   Command command = parsedOutput.getCommand();
@@ -71,7 +72,7 @@ public void dispatch(List<String> args, Helpable<E> helper, E event) {
     return;
   }
 
-  if (this.help(args, helper, event, parsedOutput, command)) return;
+  if (this.help(originalArgs, helper, event, parsedOutput, command)) return;
 
   try {
     this.emitCommand(args, helper, event, parsedOutput, command);
