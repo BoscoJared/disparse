@@ -1,5 +1,6 @@
-package disparse.discord;
+package disparse.discord.jda;
 
+import disparse.discord.Helpable;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.CommandRegistrar;
@@ -71,20 +72,24 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     CommandRegistrar.REGISTRAR.dispatch(args, this, event);
   }
 
+  @Override
   public void commandNotFound(MessageReceivedEvent event, String userInput) {
     Help.commandNotFound(userInput).forEach(line -> event.getChannel().sendMessage(line).queue());
   }
 
+  @Override
   public void roleNotMet(MessageReceivedEvent event, Command command) {
     event.getChannel()
         .sendMessage(Help.roleNotMet(command))
         .queue();
   }
 
+  @Override
   public void optionRequired(MessageReceivedEvent event, String message) {
     event.getChannel().sendMessage(message).queue();
   }
 
+  @Override
   public void help(MessageReceivedEvent event, Command command, Collection<CommandFlag> flags,
       Collection<Command> commands, int pageNumber) {
     if (this.commandRolesNotMet(event, command)) {
@@ -127,6 +132,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     event.getChannel().sendMessage(builder.build()).queue();
   }
 
+  @Override
   public void helpSubcommands(MessageReceivedEvent event, String foundPrefix, Collection<Command> commands) {
     EmbedBuilder builder = new EmbedBuilder();
     builder.setTitle(foundPrefix + " | Subcommands").setDescription("All registered subcommands for " + foundPrefix);
@@ -141,6 +147,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     event.getChannel().sendMessage(builder.build()).queue();
   }
 
+  @Override
   public void allCommands(MessageReceivedEvent event, Collection<Command> commands, int pageNumber) {
     EmbedBuilder builder = new EmbedBuilder();
     builder.setTitle("All Commands").setDescription("All registered commands");
@@ -163,6 +170,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     event.getChannel().sendMessage(builder.build()).queue();
   }
 
+  @Override
   public void setPrefix(String prefix) {
     this.prefix = prefix;
   }
@@ -185,6 +193,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     }
   }
 
+  @Override
   public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;
