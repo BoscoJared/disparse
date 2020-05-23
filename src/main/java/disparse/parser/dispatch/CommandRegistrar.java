@@ -64,7 +64,12 @@ public void dispatch(List<String> args, Helpable<E> helper, E event) {
   ParsedOutput parsedOutput = this.parse(args, helper, event);
   if (parsedOutput == null) return;
 
-  Command command = parsedOutput.getCommand();
+  String commandName = parsedOutput.getCommand().getCommandName();
+  Command command = this.commandTable.keySet()
+          .stream()
+          .filter(c -> c.getCommandName().equals(commandName))
+          .findFirst()
+          .orElse(null);
   if (!commandTable.containsKey(command)) return;
 
   if (commandRolesNotMet(command, event)) {
