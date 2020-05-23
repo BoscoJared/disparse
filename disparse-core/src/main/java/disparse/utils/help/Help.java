@@ -32,15 +32,15 @@ public class Help {
 
                     if (leftShortOnly && rightShortOnly) {
                         return leftShort.compareTo(rightShort);
-                    } else if (leftShortOnly && !rightShortOnly) {
+                    } else if (leftShortOnly) {
                         return -1;
-                    } else if (!leftShortOnly && rightShortOnly) {
+                    } else if (rightShortOnly) {
                         return 1;
                     } else if (leftBoth && rightBoth) {
                         return leftLong.compareTo(rightLong);
-                    } else if (leftBoth && !rightBoth) {
+                    } else if (leftBoth) {
                         return -1;
-                    } else if (!leftBoth && rightBoth) {
+                    } else if (rightBoth) {
                         return 1;
                     } else if (leftLongOnly && rightLongOnly){
                         return leftLong.compareTo(rightLong);
