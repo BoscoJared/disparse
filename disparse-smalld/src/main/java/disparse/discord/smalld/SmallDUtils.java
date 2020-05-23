@@ -89,11 +89,4 @@ public class SmallDUtils {
         JsonObject author = getAuthor(event.getJson());
         return author.get("id").getAsString();
     }
-
-    public static void getRoles(SmallDEvent event, String userId) {
-
-        JsonElement element = JsonParser.parseString(event.getSmalld().get("/users/" + userId + "/roles"));
-        JsonObject object = element.getAsJsonObject();
-
-    }
 }
