@@ -143,7 +143,7 @@ To use Jitpack you must also add a repository:
 
 ```
 dependencies {
-        implementation 'com.github.BoscoJared.disparse:disparse-jda:$LATEST'
+    implementation 'com.github.BoscoJared.disparse:disparse-jda:$LATEST'
 }
 ```
 
