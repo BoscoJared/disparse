@@ -2,16 +2,18 @@ package disparse.discord;
 
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
-import disparse.parser.Types;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
+import disparse.utils.help.Help;
 import disparse.utils.Shlex;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import disparse.utils.help.PageNumberOutOfBounds;
+import disparse.utils.help.PaginatedEntities;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -25,60 +27,6 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
-  private static final Comparator<CommandFlag> helpCommandFlagComparator = new Comparator<>() {
-    private Comparator<CommandFlag> comparator = Comparator
-            .comparing(this::identity, (left, right) -> {
-              String leftLong = left.getLongName();
-              String rightLong = right.getLongName();
-              Character leftShort = left.getShortName();
-              Character rightShort = right.getShortName();
-
-              boolean leftShortOnly = leftShort != null && leftLong == null;
-              boolean leftLongOnly = leftShort == null && leftLong != null;
-              boolean leftBoth = leftShort != null && leftLong != null;
-
-              boolean rightShortOnly = rightShort != null && rightLong == null;
-              boolean rightLongOnly = rightShort == null && rightLong != null;
-              boolean rightBoth = rightShort != null && rightLong != null;
-
-              if (leftShortOnly && rightShortOnly) {
-                return leftShort.compareTo(rightShort);
-              } else if (leftShortOnly && !rightShortOnly) {
-                return -1;
-              } else if (!leftShortOnly && rightShortOnly) {
-                return 1;
-              } else if (leftBoth && rightBoth) {
-                return leftLong.compareTo(rightLong);
-              } else if (leftBoth && !rightBoth) {
-                return -1;
-              } else if (!leftBoth && rightBoth) {
-                return 1;
-              } else if (leftLongOnly && rightLongOnly){
-                return leftLong.compareTo(rightLong);
-              } else {
-                return 0;
-              }
-            });
-
-
-    private Character shortNameKeyExtractor(CommandFlag flag) {
-      Character ch = flag.getShortName();
-      return ch == null ? null : Character.toLowerCase(ch);
-    }
-
-    private String longNameKeyExtractor(CommandFlag flag) {
-      return flag.getLongName() == null ? null : flag.getLongName().toLowerCase();
-    }
-
-    private CommandFlag identity(CommandFlag flag) {
-      return flag;
-    }
-
-    @Override
-    public int compare(CommandFlag o1, CommandFlag o2) {
-      return comparator.compare(o1, o2);
-    }
-  };
   private String prefix;
   private int pageLimit;
 
@@ -124,14 +72,12 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   }
 
   public void commandNotFound(MessageReceivedEvent event, String userInput) {
-    event.getChannel().sendMessage("`" + userInput + "` is not a valid command!").queue();
-    event.getChannel().sendMessage("Use !help to get a list of all available commands.").queue();
+    Help.commandNotFound(userInput).forEach(line -> event.getChannel().sendMessage(line).queue());
   }
 
   public void roleNotMet(MessageReceivedEvent event, Command command) {
     event.getChannel()
-        .sendMessage(
-            "You do not have the correct permissions to run:  `" + command.getCommandName() + "`")
+        .sendMessage(Help.roleNotMet(command))
         .queue();
   }
 
@@ -145,86 +91,40 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
       return;
     }
     EmbedBuilder builder = new EmbedBuilder();
-    builder.setTitle(String.format("%s:  %s", command.getCommandName(), command.getDescription()))
-        .setDescription(String.format("Usage of command:  %s.  [+] may be repeated.",
-            command.getCommandName()));
+    builder.setTitle(Help.getTitle(command))
+        .setDescription(Help.getDescriptionUsage(command));
 
-    List<Command> subcommands = getHelpSubCommands(command, commands);
-
-    List<CommandFlag> sortedFlags =
-            flags.stream().sorted(helpCommandFlagComparator).collect(Collectors.toList());
-
-    int totalEntities = subcommands.size() + sortedFlags.size();
-    int pages = (int) Math.ceil(((double) totalEntities) / this.pageLimit);
-    int lowerBound = (pageNumber - 1) * this.pageLimit;
-    int upperBound = (lowerBound + this.pageLimit);
-
-    if (lowerBound >= subcommands.size()) {
-      if ((lowerBound - subcommands.size()) > flags.size()) {
-        String err = String.format("The specified page number **%d** is not within the range of valid pages.  The valid pages " +
-                "are between **1** and **%d**.", pageNumber, pages);
-        event.getMessage().getChannel().sendMessage(err).queue();
-        return;
-      } else {
-        if ((upperBound - subcommands.size()) >= sortedFlags.size()) {
-          upperBound = sortedFlags.size();
-        } else {
-          upperBound = upperBound - subcommands.size();
-        }
-        sortedFlags = sortedFlags.subList((lowerBound - subcommands.size()), upperBound);
-        subcommands = List.of();
-      }
-    } else if (upperBound > subcommands.size()){
-      subcommands = subcommands.subList(lowerBound, subcommands.size());
-      int rest = this.pageLimit - subcommands.size();
-      if (rest > sortedFlags.size()) {
-        rest = sortedFlags.size();
-      }
-      sortedFlags = sortedFlags.subList(0, rest);
-    } else {
-      subcommands = subcommands.subList(lowerBound, upperBound);
-      sortedFlags = List.of();
+    List<Command> subcommands = Help.findSubcommands(command, commands);
+    String currentlyViewing;
+    try {
+      PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, pageLimit);
+      subcommands = paginatedEntities.getCommands();
+      flags = paginatedEntities.getFlags();
+      currentlyViewing = paginatedEntities.getCurrentlyViewing();
+    } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
+      event.getChannel().sendMessage(pageNumberOutOfBounds.getMessage()).queue();
+      return;
     }
+
+    List<CommandFlag> sortedFlags = Help.sortFlags(flags);
 
     if (subcommands.size() > 0) {
       builder.addField("SUBCOMMANDS", "---------------------", false);
     }
 
-    builder = addCommandsToEmbed(builder, subcommands, event);
+    addCommandsToEmbed(builder, subcommands, event);
 
     if (sortedFlags.size() > 0) {
       builder.addField("FLAGS", "--------", true);
     }
 
     for (CommandFlag flag : sortedFlags) {
-      String flagName;
-      if (flag.getShortName() == null) {
-        flagName = String.format("--%s", flag.getLongName());
-      } else if (flag.getLongName() == null) {
-        flagName = String.format("-%s", flag.getShortName());
-      } else {
-        flagName = String.format("-%s | --%s", flag.getShortName(), flag.getLongName());
-      }
-
-      if (flag.getType() == Types.LIST) {
-        flagName = flagName + " [+]";
-      }
+      String flagName = Help.flagToUserFriendlyString(flag);
       builder.addField(flagName, flag.getDescription(), false);
     }
 
-    String pageOutput = String.format("Currently viewing page %d of %d", pageNumber, pages);
-    builder.addField(pageOutput, "Use --page to specify a page number", false);
+    builder.addField(currentlyViewing, "Use --page to specify a page number", false);
     event.getChannel().sendMessage(builder.build()).queue();
-  }
-
-  private List<Command> getHelpSubCommands(final Command command, Collection<Command> commands) {
-    Predicate<Command> predicate =
-        c -> c.getCommandName().startsWith(command.getCommandName()) && !c.getCommandName().equals(command.getCommandName());
-
-    Comparator<Command> comparator =
-        Comparator.comparing(cmd -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder());
-
-    return commands.stream().filter(predicate).sorted(comparator).collect(Collectors.toList());
   }
 
   public void helpSubcommands(MessageReceivedEvent event, String foundPrefix, Collection<Command> commands) {
@@ -236,7 +136,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
             .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd))
             .collect(Collectors.toList());
 
-    builder = addCommandsToEmbed(builder, sortedCommands, event);
+    addCommandsToEmbed(builder, sortedCommands, event);
 
     event.getChannel().sendMessage(builder.build()).queue();
   }
@@ -245,31 +145,20 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     EmbedBuilder builder = new EmbedBuilder();
     builder.setTitle("All Commands").setDescription("All registered commands");
 
-    List<Command> sortedCommands = commands.stream().sorted(Comparator
-        .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
-        .collect(Collectors.toList());
-
-    int pages = (int) Math.ceil(((double) (sortedCommands.size())) / this.pageLimit);
-    int lowerBound = (pageNumber - 1) * this.pageLimit;
-    int upperBound = (lowerBound + this.pageLimit);
-
-    if (pageNumber > pages) {
-      String err = String.format("The specified page number **%d** is not within the range of valid pages.  The valid pages " +
-              "are between **1** and **%d**.", pageNumber, pages);
-      event.getMessage().getChannel().sendMessage(err).queue();
+    String currentlyViewing;
+    try {
+      PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, pageLimit);
+      commands = paginatedEntities.getCommands();
+      currentlyViewing = paginatedEntities.getCurrentlyViewing();
+    } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
+      event.getChannel().sendMessage(pageNumberOutOfBounds.getMessage()).queue();
       return;
     }
 
-    if (upperBound > sortedCommands.size()) {
-      upperBound = sortedCommands.size();
-    }
+    List<Command> sortedCommands = Help.sortCommands(commands);
 
-    sortedCommands = sortedCommands.subList(lowerBound, upperBound);
-
-    builder = addCommandsToEmbed(builder, sortedCommands, event);
-
-    String pageOutput = String.format("Currently viewing page %d of %d", pageNumber, pages);
-    builder.addField(pageOutput, "Use --page to specify a page number", false);
+    addCommandsToEmbed(builder, sortedCommands, event);
+    builder.addField(currentlyViewing, "Use --page to specify a page number", false);
 
     event.getChannel().sendMessage(builder.build()).queue();
   }
@@ -286,7 +175,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     return this.pageLimit;
   }
 
-  private EmbedBuilder addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
+  private void addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
       MessageReceivedEvent event) {
     for (Command command : commands) {
       if (this.commandRolesNotMet(event, command)) {
@@ -294,7 +183,6 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
       }
       builder.addField(command.getCommandName(), command.getDescription(), false);
     }
-    return builder;
   }
 
   public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
