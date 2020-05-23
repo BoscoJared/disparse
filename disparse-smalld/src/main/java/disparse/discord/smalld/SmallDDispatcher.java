@@ -82,7 +82,7 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
 
     @Override
     public void commandNotFound(SmallDEvent event, String userInput) {
-
+        Help.commandNotFound(userInput, this.prefix).forEach(line -> sendMessage(event, line));
     }
 
     @Override

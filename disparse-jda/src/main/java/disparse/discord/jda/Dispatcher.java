@@ -74,7 +74,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   @Override
   public void commandNotFound(MessageReceivedEvent event, String userInput) {
-    Help.commandNotFound(userInput).forEach(line -> event.getChannel().sendMessage(line).queue());
+    Help.commandNotFound(userInput, this.prefix).forEach(line -> event.getChannel().sendMessage(line).queue());
   }
 
   @Override

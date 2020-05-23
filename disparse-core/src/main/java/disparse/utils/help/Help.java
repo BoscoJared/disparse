@@ -70,9 +70,9 @@ public class Help {
     };
 
 
-    public static List<String> commandNotFound(String input) {
+    public static List<String> commandNotFound(String input, String prefix) {
         String first = "`" + input + "` is not a valid command!";
-        String second = "Use !help to get a list of all available commands.";
+        String second = "Use " + prefix + "help to get a list of all available commands.";
 
         return List.of(first, second);
     }
