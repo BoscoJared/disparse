@@ -4,6 +4,7 @@ An ergonomic, simple, and easy-to-use command parsing and dispatching library fo
 
 # Features
  - [Easy command creation](#basic-command)
+ - [Command arguments](#arguments)
  - [Command flags](#flags)
     - [Flag types](#flag-types)
     - [Repeatable flags](#flag-types)
@@ -44,6 +45,22 @@ public class PingCommand {
     }
 }
 ```
+## Arguments
+
+Arguments are anything passed to a command that is not part of the command name itself or attached to any [flag](#flags).
+
+These arguments are passed in-order, and therefore could be used as positional arguments.
+
+To accept arguments in your command handler, simply have a parameter of `List<String>`:
+
+```java
+@CommandHandler(commandName = "ping")
+public static void ping(List<String> args) {
+    args.forEach(System.out::println);
+}
+```
+
+Now using `!ping 1 2 3 4 5` will get us to call the `ping` method with arguments `["1", "2", "3", "4", "5"]`.  Note that the arguments are always strings, even if we only passed integer types.  Disparse does nothing but collect up the arguments for your command handler to then use as it pleases.
 
 ## Flags
 
