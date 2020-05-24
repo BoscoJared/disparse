@@ -83,24 +83,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   }
 
   @Override
-  public void commandNotFound(MessageReceivedEvent event, String userInput) {
-    Help.commandNotFound(userInput, this.prefix).forEach(line -> event.getChannel().sendMessage(line).queue());
-  }
-
-  @Override
-  public void roleNotMet(MessageReceivedEvent event, Command command) {
-    event.getChannel()
-        .sendMessage(Help.roleNotMet(command))
-        .queue();
-  }
-
-  @Override
-  public void optionRequired(MessageReceivedEvent event, String message) {
-    event.getChannel().sendMessage(message).queue();
-  }
-
-  @Override
-  public void incorrectOption(MessageReceivedEvent event, String message) {
+  public void sendMessage(MessageReceivedEvent event, String message) {
     event.getChannel().sendMessage(message).queue();
   }
 
@@ -165,7 +148,11 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   @Override
   public void allCommands(MessageReceivedEvent event, Collection<Command> commands, int pageNumber) {
     EmbedBuilder builder = new EmbedBuilder();
-    builder.setTitle(this.description).setDescription("All registered commands");
+    String title = this.description;
+    if (title == null || title.equals("")) {
+      title = "All Commands";
+    }
+    builder.setTitle(title).setDescription("All registered commands");
 
     String currentlyViewing;
     try {
@@ -189,6 +176,9 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   public void setPrefix(String prefix) {
     this.prefix = prefix;
   }
+
+  @Override
+  public String getPrefix() { return this.prefix; }
 
   public void setPageLimit(int pageLimit) {
     this.pageLimit = pageLimit;

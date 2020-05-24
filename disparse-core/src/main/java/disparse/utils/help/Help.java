@@ -77,6 +77,27 @@ public class Help {
         return List.of(first, second);
     }
 
+    public static String optionRequired(Command command, CommandFlag flag) {
+        return "The flag `--" + flag + "` is required for `" + command.getCommandName() + "` to be ran!";
+    }
+
+    public static String optionRequiresValue(CommandFlag flag) {
+        String flagName;
+        if (!flag.getLongName().equals("")) {
+            flagName = "--" + flag.getLongName();
+        } else {
+            flagName = "-" + flag.getShortName();
+        }
+        return "The flag `" + flagName + "` was not provided a value!";
+    }
+
+    public static List<String> incorrectOption(String userChoice, String flagName, String options) {
+        String first = "`" + userChoice + "` is not a valid option for the enum flag:  `" + flagName + "`";
+        String second = "Pick from:  " + options;
+
+        return List.of(first, second);
+    }
+
     public static String roleNotMet(Command command) {
         String base = "You do not have the correct permissions.";
         if (command == null) {

@@ -51,12 +51,14 @@ public class Dispatcher implements Helpable<Event> {
     }
 
     public static void init(SmallD smalld, String prefix) {
-        init(smalld, prefix, "");
+        init(smalld, prefix, 5, "");
     }
 
-    public static void init(SmallD smalld, String prefix, String description) {
+    public static void init(SmallD smalld, String prefix, int pageLimit) { init(smalld, prefix, pageLimit, ""); }
+
+    public static void init(SmallD smalld, String prefix, int pageLimit, String description) {
         Detector.detect();
-        Dispatcher dispatcher = new Dispatcher(prefix, smalld);
+        Dispatcher dispatcher = new Dispatcher(prefix, smalld, pageLimit, description);
         smalld.onGatewayPayload(dispatcher::onMessageReceived);
     }
 
@@ -78,6 +80,11 @@ public class Dispatcher implements Helpable<Event> {
         List<String> args = Shlex.shlex(cleanedMessage);
         Event event = new Event(this.smalld, json);
         CommandRegistrar.REGISTRAR.dispatch(args, this, event);
+    }
+
+    @Override
+    public void sendMessage(Event event, String message) {
+        Utils.sendMessage(event, message);
     }
 
     @Override
@@ -143,7 +150,11 @@ public class Dispatcher implements Helpable<Event> {
     @Override
     public void allCommands(Event event, Collection<Command> commands, int pageNumber) {
         JsonObject embed = new JsonObject();
-        embed.addProperty("title", this.description);
+        String title = this.description;
+        if (title == null || title.equals("")) {
+            title = "All Commands";
+        }
+        embed.addProperty("title", title);
         embed.addProperty("description", "All registered commands");
         embed.addProperty("type", "rich");
 
@@ -176,9 +187,7 @@ public class Dispatcher implements Helpable<Event> {
     }
 
     @Override
-    public void commandNotFound(Event event, String userInput) {
-        Help.commandNotFound(userInput, this.prefix).forEach(line -> sendMessage(event, line));
-    }
+    public String getPrefix() { return this.prefix; }
 
     @Override
     public void helpSubcommands(Event event, String foundPrefix, Collection<Command> commands) {
@@ -202,16 +211,6 @@ public class Dispatcher implements Helpable<Event> {
     @Override
     public void roleNotMet(Event event, Command command) {
         sendMessage(event, Help.roleNotMet(command));
-    }
-
-    @Override
-    public void optionRequired(Event event, String message) {
-        sendMessage(event, message);
-    }
-
-    @Override
-    public void incorrectOption(Event event, String message) {
-        sendMessage(event, message);
     }
 
     @Override

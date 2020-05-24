@@ -8,6 +8,7 @@ import disparse.parser.Parser;
 import disparse.parser.Types;
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequired;
+import disparse.parser.exceptions.OptionRequiresValue;
 import disparse.parser.reflection.Detector;
 import disparse.parser.reflection.Flag;
 import disparse.parser.reflection.ParsedEntity;
@@ -80,7 +81,7 @@ public class CommandRegistrar<E> {
     } catch (ReflectiveOperationException exec) {
       logger.error("Error occurred", exec);
     } catch (OptionRequired exec) {
-      helper.optionRequired(event, exec.getMessage());
+      helper.optionRequired(event, exec.getCommand(), exec.getFlag());
     }
   }
 
@@ -184,8 +185,7 @@ public class CommandRegistrar<E> {
                       name = String.valueOf(flagAnnotation.shortName());
                     }
                     String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
-                    helper.incorrectOption(event, "`" + val + "` is not a valid option for the enum flag:  `" + name + "`");
-                    helper.incorrectOption(event, "Pick from:  " + options);
+                    helper.incorrectOption(event, (String) val, name, options);
                     return;
                   }
                 } else {
@@ -193,7 +193,7 @@ public class CommandRegistrar<E> {
                 }
               } else if (flag.isRequired()) {
                 throw new OptionRequired("The flag `--" + flag + "` is required for `"
-                        + foundCommand.getCommandName() + "` to be ran!");
+                        + foundCommand.getCommandName() + "` to be ran!", foundCommand, flag);
               }
             }
           }
@@ -271,6 +271,8 @@ public class CommandRegistrar<E> {
       return parser.parse(args);
     } catch (NoCommandNameFound noCommandNameFound) {
       noCommandNameFound(args, helper, event);
+    } catch (OptionRequiresValue optionRequiresValue) {
+      helper.optionRequiresValue(event, optionRequiresValue.getFlag());
     }
 
     return null;

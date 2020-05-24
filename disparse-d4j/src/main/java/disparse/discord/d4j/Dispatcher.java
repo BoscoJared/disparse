@@ -76,6 +76,11 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     }
 
     @Override
+    public void sendMessage(MessageCreateEvent event, String message) {
+        event.getMessage().getChannel().block().createMessage(message).block();
+    }
+
+    @Override
     public void help(MessageCreateEvent event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
         if (this.commandRolesNotMet(event, command)) return;
 
@@ -120,7 +125,11 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     @Override
     public void allCommands(MessageCreateEvent event, Collection<Command> commands, int pageNumber) {
         EmbedCreateSpec builder = new EmbedCreateSpec();
-        builder.setTitle(this.description).setDescription("All registered commands");
+        String title = this.description;
+        if (title == null || title.equals("")) {
+            title = "All Commands";
+        }
+        builder.setTitle(title).setDescription("All registered commands");
 
         String currentlyViewing;
         try {
@@ -146,10 +155,7 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     }
 
     @Override
-    public void commandNotFound(MessageCreateEvent event, String userInput) {
-        Help.commandNotFound(userInput, this.prefix)
-                .forEach(line -> event.getMessage().getChannel().block().createMessage(line).block());
-    }
+    public String getPrefix() { return this.prefix; }
 
     @Override
     public void helpSubcommands(MessageCreateEvent event, String foundPrefix, Collection<Command> commands) {
@@ -167,24 +173,6 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
         sendEmbed(event, builder);
     }
 
-    @Override
-    public void roleNotMet(MessageCreateEvent event, Command command) {
-        event.getMessage()
-                .getChannel()
-                .block()
-                .createMessage(Help.roleNotMet(command))
-                .block();
-    }
-
-    @Override
-    public void optionRequired(MessageCreateEvent event, String message) {
-        event.getMessage().getChannel().block().createMessage(message).block();
-    }
-
-    @Override
-    public void incorrectOption(MessageCreateEvent event, String message) {
-        event.getMessage().getChannel().block().createMessage(message).block();
-    }
 
     @Override
     public boolean commandRolesNotMet(MessageCreateEvent event, Command command) {

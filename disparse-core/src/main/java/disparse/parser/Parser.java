@@ -30,14 +30,14 @@ public class Parser {
         ((ArrayList<String>) optionMap.get(flag)).add(iter.next());
         iter.remove();
       } else {
-        throw new OptionRequiresValue("Option requires value");
+        throw new OptionRequiresValue("Option requires value", flag);
       }
     } else {
       if (iter.hasNext()) {
         optionMap.put(flag, iter.next());
         iter.remove();
       } else {
-        throw new OptionRequiresValue("Option requires value");
+        throw new OptionRequiresValue("Option requires value", flag);
       }
     }
   }
