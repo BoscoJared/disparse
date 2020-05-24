@@ -237,6 +237,7 @@ public class CommandRegistrar<E> {
       }
 
       if (bestCtor != null) {
+        bestCtor.setAccessible(true);
         handlerObj = bestCtor.newInstance(bestCtorParams);
       }
 
