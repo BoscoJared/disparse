@@ -135,7 +135,7 @@ public class FlagExample {
         }
         e.getChannel().sendMessage("Your content is: " + req.content).queue();
         e.getChannel().sendMessage("Your numbers are: " + req.numbers).queue();
-        e.getChannel().sendMessage("Your choice was:  " + req.choice);
+        e.getChannel().sendMessage("Your choice was:  " + req.choice).queue();
     }
 }
 ```
