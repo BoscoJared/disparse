@@ -16,4 +16,6 @@ public @interface Flag {
   boolean required() default false;
 
   String description() default "no description available";
+
+  ChoiceMapping[] choices() default {};
 }

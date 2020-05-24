@@ -1,5 +1,6 @@
 package disparse.parser;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class CommandFlag {
@@ -9,19 +10,22 @@ public class CommandFlag {
   private final boolean isRequired;
   private final Types type;
   private final String description;
+  private final Map<String, String> choices;
 
   public CommandFlag(
       final String longName,
       final Character shortName,
       final Types type,
       final boolean isRequired,
-      final String description) {
+      final String description,
+      final Map<String, String> choices) {
 
     this.longName = longName;
     this.shortName = shortName;
     this.type = type;
     this.isRequired = isRequired;
     this.description = description;
+    this.choices = choices;
   }
 
   public String getLongName() {
@@ -42,6 +46,10 @@ public class CommandFlag {
 
   public String getDescription() {
     return description;
+  }
+
+  public Map<String, String> getChoices() {
+    return choices;
   }
 
   @Override

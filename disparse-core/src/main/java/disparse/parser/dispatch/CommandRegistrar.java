@@ -26,11 +26,11 @@ public class CommandRegistrar<E> {
   public static final CommandRegistrar REGISTRAR = new CommandRegistrar<>();
   private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
   private final CommandFlag helpFlag =
-      new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command");
+      new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command", Map.of());
   private final Command helpCommand =
       new Command("help", "show all commands or detailed help of one command", false);
   private final CommandFlag helpPageFlag =
-          new CommandFlag("page", 'p', Types.INT, false, "select a specific page to showcase");
+          new CommandFlag("page", 'p', Types.INT, false, "select a specific page to showcase", Map.of());
   private final HashMap<Command, Method> commandTable = new HashMap<>();
   private final HashMap<Command, Set<CommandFlag>> commandToFlags = new HashMap<>();
   private final List<Method> injectables = new ArrayList<>();
@@ -174,7 +174,20 @@ public class CommandRegistrar<E> {
                 if (flag.getType().equals(Types.INT)) {
                   field.set(newObject, Integer.parseInt((String) val));
                 } else if (flag.getType().equals(Types.ENUM)){
-                  field.set(newObject, Enum.valueOf((Class<Enum>) field.getType(), (String) val));
+                  Map<String, String> choices = flag.getChoices();
+                  String choice = choices.getOrDefault(val, (String) val);
+                  try {
+                    field.set(newObject, Enum.valueOf((Class<Enum>) field.getType(), choice));
+                  } catch (IllegalArgumentException illegalArgumentException) {
+                    String name = flagAnnotation.longName();
+                    if (name.equals("")) {
+                      name = String.valueOf(flagAnnotation.shortName());
+                    }
+                    String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
+                    helper.incorrectOption(event, "`" + val + "` is not a valid option for the enum flag:  `" + name + "`");
+                    helper.incorrectOption(event, "Pick from:  " + options);
+                    return;
+                  }
                 } else {
                   field.set(newObject, val);
                 }

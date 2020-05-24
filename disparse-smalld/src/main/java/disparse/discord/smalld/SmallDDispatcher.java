@@ -201,6 +201,11 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
     }
 
     @Override
+    public void incorrectOption(SmallDEvent event, String message) {
+        sendMessage(event, message);
+    }
+
+    @Override
     public boolean commandRolesNotMet(SmallDEvent event, Command command) {
         if (command.getRoles().length == 0) {
             return false;

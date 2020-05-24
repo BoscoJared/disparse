@@ -90,6 +90,11 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   }
 
   @Override
+  public void incorrectOption(MessageReceivedEvent event, String message) {
+    event.getChannel().sendMessage(message).queue();
+  }
+
+  @Override
   public void help(MessageReceivedEvent event, Command command, Collection<CommandFlag> flags,
       Collection<Command> commands, int pageNumber) {
     if (this.commandRolesNotMet(event, command)) {

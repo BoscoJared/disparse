@@ -3,7 +3,9 @@ package disparse.parser.reflection;
 import disparse.parser.CommandFlag;
 import disparse.parser.Types;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
 
@@ -19,6 +21,8 @@ public class Utils {
       longName = null;
     }
 
+    Map<String, String> choices = Map.of();
+
     Types type = null;
     if (field.getType().isAssignableFrom(Integer.class)) {
       type = Types.INT;
@@ -28,12 +32,16 @@ public class Utils {
       type = Types.LIST;
     } else if (field.getType().isEnum()) {
       type = Types.ENUM;
+      choices = new HashMap<>();
+      for (ChoiceMapping mapping : annotation.choices()) {
+        choices.put(mapping.userChoice(), mapping.mapTo());
+      }
     } else {
       type = Types.BOOL;
     }
 
     String description = annotation.description();
 
-    return new CommandFlag(longName, shortName, type, required, description);
+    return new CommandFlag(longName, shortName, type, required, description, choices);
   }
 }
