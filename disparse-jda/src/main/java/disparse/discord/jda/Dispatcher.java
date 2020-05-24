@@ -30,14 +30,20 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
 
   private String prefix;
   private int pageLimit;
+  private String description;
 
   public Dispatcher(String prefix) {
     this(prefix, 5);
   }
 
   public Dispatcher(String prefix, int pageLimit) {
+    this(prefix, pageLimit, "");
+  }
+
+  public Dispatcher(String prefix, int pageLimit, String description) {
     this.prefix = prefix;
     this.pageLimit = pageLimit;
+    this.description = description;
   }
 
   public static JDABuilder init(JDABuilder builder, String prefix) {
@@ -45,8 +51,12 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   }
 
   public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit) {
+    return init(builder, prefix, pageLimit, "");
+  }
+
+  public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit, String description) {
     Detector.detect();
-    Dispatcher dispatcher = new Dispatcher(prefix, pageLimit);
+    Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
     builder.addEventListeners(dispatcher);
     return builder;
   }
@@ -155,7 +165,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
   @Override
   public void allCommands(MessageReceivedEvent event, Collection<Command> commands, int pageNumber) {
     EmbedBuilder builder = new EmbedBuilder();
-    builder.setTitle("All Commands").setDescription("All registered commands");
+    builder.setTitle(this.description).setDescription("All registered commands");
 
     String currentlyViewing;
     try {

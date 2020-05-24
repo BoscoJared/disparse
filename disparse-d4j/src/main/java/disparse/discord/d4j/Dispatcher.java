@@ -29,12 +29,18 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
 
     private String prefix;
     private int pageLimit;
+    private String description;
 
-    public Dispatcher(String prefix) { this(prefix, 5); }
+    public Dispatcher(String prefix) { this(prefix, 5, ""); }
 
     public Dispatcher(String prefix, int pageLimit) {
+        this(prefix, pageLimit, "");
+    }
+
+    public Dispatcher(String prefix, int pageLimit, String description) {
         this.prefix = prefix;
         this.pageLimit = pageLimit;
+        this.description = description;
     }
 
     public static void init(GatewayDiscordClient gateway, String prefix) {
@@ -42,8 +48,12 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     }
 
     public static void init(GatewayDiscordClient gateway, String prefix, int pageLimit) {
+        init(gateway, prefix, pageLimit, "");
+    }
+
+    public static void init(GatewayDiscordClient gateway, String prefix, int pageLimit, String description) {
         Detector.detect();
-        Dispatcher dispatcher = new Dispatcher(prefix, pageLimit);
+        Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
         gateway.on(MessageCreateEvent.class).subscribe(dispatcher::onMessageReceived);
     }
 
@@ -110,7 +120,7 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     @Override
     public void allCommands(MessageCreateEvent event, Collection<Command> commands, int pageNumber) {
         EmbedCreateSpec builder = new EmbedCreateSpec();
-        builder.setTitle("All Commands").setDescription("All registered commands");
+        builder.setTitle(this.description).setDescription("All registered commands");
 
         String currentlyViewing;
         try {

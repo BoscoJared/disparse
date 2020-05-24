@@ -32,6 +32,7 @@ public class Dispatcher implements Helpable<Event> {
     private String prefix;
     private SmallD smalld;
     private int pageLimit;
+    private String description;
     private Gson gson = new Gson();
 
     public Dispatcher(String prefix, SmallD smalld) {
@@ -39,12 +40,21 @@ public class Dispatcher implements Helpable<Event> {
     }
 
     public Dispatcher(String prefix, SmallD smalld, int pageLimit) {
+        this(prefix, smalld, pageLimit, "");
+    }
+
+    public Dispatcher(String prefix, SmallD smalld, int pageLimit, String description) {
         this.prefix = prefix;
         this.smalld = smalld;
         this.pageLimit = pageLimit;
+        this.description = description;
     }
 
     public static void init(SmallD smalld, String prefix) {
+        init(smalld, prefix, "");
+    }
+
+    public static void init(SmallD smalld, String prefix, String description) {
         Detector.detect();
         Dispatcher dispatcher = new Dispatcher(prefix, smalld);
         smalld.onGatewayPayload(dispatcher::onMessageReceived);
@@ -133,7 +143,7 @@ public class Dispatcher implements Helpable<Event> {
     @Override
     public void allCommands(Event event, Collection<Command> commands, int pageNumber) {
         JsonObject embed = new JsonObject();
-        embed.addProperty("title", "All Commands");
+        embed.addProperty("title", this.description);
         embed.addProperty("description", "All registered commands");
         embed.addProperty("type", "rich");
 
