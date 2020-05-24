@@ -91,11 +91,12 @@ public class EchoCommand {
 
 ### Flag types
 
-There are currently four flag types:
+There are currently five flag types:
  - Integer - can hold integer values such as `!test --age 5`
  - Boolean - a boolean flag that if called, is true `!test -u`
  - String - holds a string. If content has spaces, it must be placed in double quotes `!test --content "content"` or `!test --content "my content"`. If your string flag content has double quotes in, then you can use single quotes to contain the content instead. `!test --content '{"my" : "content"}'`.
  - List - can be used for repeatable flags. The List can be of the types `Integer`, `Boolean`, or `String`. e.g. `!test -n 5 -n 6 -n 7 -n 8`
+ - Enum - Any Enum value can be used.  The user can pick the enum for the flag based on the full name of the option, or it can be mapped to a more user-friendly string
  
  
  Usage: `!test --age 5 --content "This is some content" -u -n 5 -n 6 -n 7 -n 8`
@@ -114,7 +115,17 @@ public class FlagExample {
         
         @Flag(shortName ='n', longName ="nums")
         List<Integer> numbers;
+
+        @Flag(shortName = 'c', longName = "choice",
+        choices = {
+            @ChoiceMapping(userChoice = "yes", mapTo = "YES",
+            @ChoiceMapping(userChoice = "no", mapTo = "NO",
+            @ChoiceMapping(userChoice = "maybe", mapTo = "MAYBE")))
+        })
+        Choice choice = Choice.NO;
     }
+
+    enum Choice { YES, NO, MAYBE }
        
     @CommandHandler(commandName = "test")
     public static void execute(FlagRequest req, MessageReceivedEvent e) {
@@ -124,6 +135,7 @@ public class FlagExample {
         }
         e.getChannel().sendMessage("Your content is: " + req.content).queue();
         e.getChannel().sendMessage("Your numbers are: " + req.numbers).queue();
+        e.getChannel().sendMessage("Your choice was:  " + req.choice);
     }
 }
 ```
