@@ -4,5 +4,6 @@ public enum Types {
   INT,
   STR,
   BOOL,
-  LIST
+  LIST,
+  ENUM
 }

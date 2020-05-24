@@ -26,6 +26,8 @@ public class Utils {
       type = Types.STR;
     } else if (field.getType().isAssignableFrom(List.class)) {
       type = Types.LIST;
+    } else if (field.getType().isEnum()) {
+      type = Types.ENUM;
     } else {
       type = Types.BOOL;
     }

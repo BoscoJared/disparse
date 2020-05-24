@@ -173,6 +173,8 @@ public class CommandRegistrar<E> {
 
                 if (flag.getType().equals(Types.INT)) {
                   field.set(newObject, Integer.parseInt((String) val));
+                } else if (flag.getType().equals(Types.ENUM)){
+                  field.set(newObject, Enum.valueOf((Class<Enum>) field.getType(), (String) val));
                 } else {
                   field.set(newObject, val);
                 }
