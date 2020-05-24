@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import disparse.discord.smalld.SmallDEvent;
+import disparse.discord.smalld.Event;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -27,11 +27,11 @@ public class Guilds {
         return new Gson().fromJson(smalld.get("/guilds/" + guildId + "/roles"), type);
     }
 
-    public static String getGuildId(SmallDEvent event) {
+    public static String getGuildId(Event event) {
         return event.getJson().get("d").getAsJsonObject().get("guild_id").getAsString();
     }
 
-    public static Set<Role> getRolesForGuildMember(SmallDEvent event, String userId) {
+    public static Set<Role> getRolesForGuildMember(Event event, String userId) {
         String guildId = getGuildId(event);
         Set<String> snowflakes = getSnowflakeRolesForGuildMember(event.getSmalld(), guildId, userId);
         Set<Role> guildRoles = getGuildRoles(event.getSmalld(), guildId);

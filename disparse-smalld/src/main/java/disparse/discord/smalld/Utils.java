@@ -3,16 +3,10 @@ package disparse.discord.smalld;
 import com.github.princesslana.smalld.SmallD;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import disparse.discord.smalld.guilds.Guilds;
-import disparse.parser.Command;
 
-import java.util.Collection;
-import java.util.List;
+public class Utils {
 
-public class SmallDUtils {
-
-    public static void sendMessage(SmallDEvent event, String content) {
+    public static void sendMessage(Event event, String content) {
         SmallD smalld = event.getSmalld();
         JsonObject json = event.getJson();
         String channelId = getChannelId(json);
@@ -23,7 +17,7 @@ public class SmallDUtils {
         smalld.post("/channels/" + channelId + "/messages", output.toString());
     }
 
-    public static void sendEmbed(SmallDEvent event, JsonObject embed) {
+    public static void sendEmbed(Event event, JsonObject embed) {
         SmallD smalld = event.getSmalld();
         JsonObject json = event.getJson();
         String channelId = getChannelId(json);
@@ -85,7 +79,7 @@ public class SmallDUtils {
         return isBot;
     }
 
-    public static String getAuthorId(SmallDEvent event) {
+    public static String getAuthorId(Event event) {
         JsonObject author = getAuthor(event.getJson());
         return author.get("id").getAsString();
     }

@@ -1,6 +1,5 @@
 package disparse.discord.smalld;
 
-import com.eclipsesource.json.Json;
 import com.github.princesslana.smalld.SmallD;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -24,22 +23,22 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static disparse.discord.smalld.SmallDUtils.*;
+import static disparse.discord.smalld.Utils.*;
 
-public class SmallDDispatcher implements Helpable<SmallDEvent> {
+public class Dispatcher implements Helpable<Event> {
 
-    private final static Logger logger = LoggerFactory.getLogger(SmallDDispatcher.class);
+    private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
     private String prefix;
     private SmallD smalld;
     private int pageLimit;
     private Gson gson = new Gson();
 
-    public SmallDDispatcher(String prefix, SmallD smalld) {
+    public Dispatcher(String prefix, SmallD smalld) {
         this(prefix, smalld, 5);
     }
 
-    public SmallDDispatcher(String prefix, SmallD smalld, int pageLimit) {
+    public Dispatcher(String prefix, SmallD smalld, int pageLimit) {
         this.prefix = prefix;
         this.smalld = smalld;
         this.pageLimit = pageLimit;
@@ -47,7 +46,7 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
 
     public static void init(SmallD smalld, String prefix) {
         Detector.detect();
-        SmallDDispatcher dispatcher = new SmallDDispatcher(prefix, smalld);
+        Dispatcher dispatcher = new Dispatcher(prefix, smalld);
         smalld.onGatewayPayload(dispatcher::onMessageReceived);
     }
 
@@ -67,12 +66,12 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
         }
 
         List<String> args = Shlex.shlex(cleanedMessage);
-        SmallDEvent event = new SmallDEvent(this.smalld, json);
+        Event event = new Event(this.smalld, json);
         CommandRegistrar.REGISTRAR.dispatch(args, this, event);
     }
 
     @Override
-    public void help(SmallDEvent event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
+    public void help(Event event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
         if (this.commandRolesNotMet(event, command)) return;
 
         JsonObject embed = new JsonObject();
@@ -132,7 +131,7 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
     }
 
     @Override
-    public void allCommands(SmallDEvent event, Collection<Command> commands, int pageNumber) {
+    public void allCommands(Event event, Collection<Command> commands, int pageNumber) {
         JsonObject embed = new JsonObject();
         embed.addProperty("title", "All Commands");
         embed.addProperty("description", "All registered commands");
@@ -167,12 +166,12 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
     }
 
     @Override
-    public void commandNotFound(SmallDEvent event, String userInput) {
+    public void commandNotFound(Event event, String userInput) {
         Help.commandNotFound(userInput, this.prefix).forEach(line -> sendMessage(event, line));
     }
 
     @Override
-    public void helpSubcommands(SmallDEvent event, String foundPrefix, Collection<Command> commands) {
+    public void helpSubcommands(Event event, String foundPrefix, Collection<Command> commands) {
         JsonObject embed = new JsonObject();
         embed.addProperty("title", foundPrefix + " | Subcommands");
         embed.addProperty("description", "All registered subcommands for " + foundPrefix);
@@ -191,22 +190,22 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
     }
 
     @Override
-    public void roleNotMet(SmallDEvent event, Command command) {
+    public void roleNotMet(Event event, Command command) {
         sendMessage(event, Help.roleNotMet(command));
     }
 
     @Override
-    public void optionRequired(SmallDEvent event, String message) {
+    public void optionRequired(Event event, String message) {
         sendMessage(event, message);
     }
 
     @Override
-    public void incorrectOption(SmallDEvent event, String message) {
+    public void incorrectOption(Event event, String message) {
         sendMessage(event, message);
     }
 
     @Override
-    public boolean commandRolesNotMet(SmallDEvent event, Command command) {
+    public boolean commandRolesNotMet(Event event, Command command) {
         if (command.getRoles().length == 0) {
             return false;
         }
@@ -225,7 +224,7 @@ public class SmallDDispatcher implements Helpable<SmallDEvent> {
                 });
     }
 
-    private void addCommandsToEmbed(JsonArray fields, List<Command> commands, SmallDEvent event) {
+    private void addCommandsToEmbed(JsonArray fields, List<Command> commands, Event event) {
         for (Command command : commands) {
             if (this.commandRolesNotMet(event, command)) {
                 continue;
