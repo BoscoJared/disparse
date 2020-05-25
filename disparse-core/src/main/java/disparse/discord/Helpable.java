@@ -129,6 +129,15 @@ public abstract class Helpable<E, T> {
         sendEmbed(event, builder);
     }
 
+    public void addCommandsToEmbed(T builder, List<Command> commands, E event) {
+        for (Command command : commands) {
+            if (this.commandRolesNotMet(event, command)) {
+                continue;
+            }
+            addField(builder, command.getCommandName(), command.getDescription(), false);
+        }
+    }
+
     public abstract boolean commandRolesNotMet(E event, Command command);
 
     public abstract void sendMessage(E event, String message);
@@ -136,8 +145,6 @@ public abstract class Helpable<E, T> {
     public abstract void setBuilderTitle(T builder, String title);
 
     public abstract void setBuilderDescription(T builder, String description);
-
-    public abstract void addCommandsToEmbed(T builder, List<Command> commands, E event);
 
     public abstract void addField(T builder, String name, String value, boolean inline);
 

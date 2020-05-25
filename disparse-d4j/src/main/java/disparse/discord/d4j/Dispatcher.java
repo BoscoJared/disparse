@@ -113,17 +113,6 @@ public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
     }
 
     @Override
-    public void addCommandsToEmbed(EmbedCreateSpec builder, List<Command> commands, MessageCreateEvent event) {
-
-        for (Command command : commands) {
-            if (this.commandRolesNotMet(event, command)) {
-                continue;
-            }
-            builder.addField(command.getCommandName(), command.getDescription(), false);
-        }
-    }
-
-    @Override
     public void sendEmbed(MessageCreateEvent event, EmbedCreateSpec builder) {
         event.getMessage()
                 .getChannel()

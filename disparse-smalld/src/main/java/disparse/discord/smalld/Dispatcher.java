@@ -134,15 +134,4 @@ public class Dispatcher extends Helpable<Event, JsonElement> {
         field.addProperty("inline", inline);
         fields.add(field);
     }
-
-    @Override
-    public void addCommandsToEmbed(JsonElement fields, List<Command> commands, Event event) {
-        for (Command command : commands) {
-            if (this.commandRolesNotMet(event, command)) {
-                continue;
-            }
-            addField(fields, command.getCommandName(), command.getDescription(), false);
-        }
-    }
-
 }

@@ -104,17 +104,6 @@ public class Dispatcher extends Helpable<MessageReceivedEvent, EmbedBuilder> {
     }
 
     @Override
-    public void addCommandsToEmbed(EmbedBuilder builder, List<Command> commands,
-                                   MessageReceivedEvent event) {
-        for (Command command : commands) {
-            if (this.commandRolesNotMet(event, command)) {
-                continue;
-            }
-            builder.addField(command.getCommandName(), command.getDescription(), false);
-        }
-    }
-
-    @Override
     public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
         if (command.getRoles().length == 0) {
             return false;
