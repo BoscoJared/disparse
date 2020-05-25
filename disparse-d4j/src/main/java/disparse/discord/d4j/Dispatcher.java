@@ -16,13 +16,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Dispatcher implements Helpable<MessageCreateEvent, EmbedCreateSpec> {
+public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
-
-    private String prefix;
-    private int pageLimit;
-    private String description;
 
     public Dispatcher(String prefix) {
         this(prefix, 5, "");
@@ -33,9 +29,7 @@ public class Dispatcher implements Helpable<MessageCreateEvent, EmbedCreateSpec>
     }
 
     public Dispatcher(String prefix, int pageLimit, String description) {
-        this.prefix = prefix;
-        this.pageLimit = pageLimit;
-        this.description = description;
+        super(prefix, pageLimit, description);
     }
 
     public static void init(GatewayDiscordClient gateway, String prefix) {
@@ -57,7 +51,7 @@ public class Dispatcher implements Helpable<MessageCreateEvent, EmbedCreateSpec>
         if (event.getMessage().getAuthor().get().isBot()) return;
 
         String raw = event.getMessage().getContent();
-        if (!raw.startsWith(this.prefix)) return;
+        if (!raw.startsWith(prefix)) return;
 
         String cleanedMessage = raw.substring(this.prefix.length());
 
@@ -71,28 +65,8 @@ public class Dispatcher implements Helpable<MessageCreateEvent, EmbedCreateSpec>
     }
 
     @Override
-    public String getDescription() {
-        return this.description;
-    }
-
-    @Override
     public void sendMessage(MessageCreateEvent event, String message) {
         event.getMessage().getChannel().block().createMessage(message).block();
-    }
-
-    @Override
-    public String getPrefix() {
-        return this.prefix;
-    }
-
-    @Override
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    @Override
-    public int getPageLimit() {
-        return this.pageLimit;
     }
 
     @Override

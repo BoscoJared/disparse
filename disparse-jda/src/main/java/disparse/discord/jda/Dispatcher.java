@@ -14,15 +14,12 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
-public class Dispatcher extends ListenerAdapter implements Helpable<MessageReceivedEvent, EmbedBuilder> {
+public class Dispatcher extends Helpable<MessageReceivedEvent, EmbedBuilder> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
-
-    private String prefix;
-    private int pageLimit;
-    private String description;
 
     public Dispatcher(String prefix) {
         this(prefix, 5);
@@ -33,9 +30,7 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     }
 
     public Dispatcher(String prefix, int pageLimit, String description) {
-        this.prefix = prefix;
-        this.pageLimit = pageLimit;
-        this.description = description;
+        super(prefix, pageLimit, description);
     }
 
     public static JDABuilder init(JDABuilder builder, String prefix) {
@@ -49,11 +44,15 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit, String description) {
         Detector.detect();
         Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
-        builder.addEventListeners(dispatcher);
+        builder.addEventListeners(new ListenerAdapter() {
+            @Override
+            public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+                dispatcher.onMessageReceived(event);
+            }
+        });
         return builder;
     }
 
-    @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) {
             return;
@@ -97,29 +96,6 @@ public class Dispatcher extends ListenerAdapter implements Helpable<MessageRecei
     @Override
     public void setBuilderDescription(EmbedBuilder builder, String description) {
         builder.setDescription(description);
-    }
-
-    @Override
-    public String getDescription() {
-        return this.description;
-    }
-
-    @Override
-    public String getPrefix() {
-        return this.prefix;
-    }
-
-    @Override
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public int getPageLimit() {
-        return this.pageLimit;
-    }
-
-    public void setPageLimit(int pageLimit) {
-        this.pageLimit = pageLimit;
     }
 
     @Override

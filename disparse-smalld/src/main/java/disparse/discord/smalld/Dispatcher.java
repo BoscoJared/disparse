@@ -1,7 +1,10 @@
 package disparse.discord.smalld;
 
 import com.github.princesslana.smalld.SmallD;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import disparse.discord.Helpable;
 import disparse.discord.smalld.guilds.Guilds;
 import disparse.parser.Command;
@@ -16,15 +19,11 @@ import java.util.List;
 
 import static disparse.discord.smalld.Utils.*;
 
-public class Dispatcher implements Helpable<Event, JsonElement> {
+public class Dispatcher extends Helpable<Event, JsonElement> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
-    private String prefix;
     private SmallD smalld;
-    private int pageLimit;
-    private String description;
-    private Gson gson = new Gson();
 
     public Dispatcher(String prefix, SmallD smalld) {
         this(prefix, smalld, 5);
@@ -35,10 +34,8 @@ public class Dispatcher implements Helpable<Event, JsonElement> {
     }
 
     public Dispatcher(String prefix, SmallD smalld, int pageLimit, String description) {
-        this.prefix = prefix;
+        super(prefix, pageLimit, description);
         this.smalld = smalld;
-        this.pageLimit = pageLimit;
-        this.description = description;
     }
 
     public static void init(SmallD smalld, String prefix) {
@@ -81,16 +78,6 @@ public class Dispatcher implements Helpable<Event, JsonElement> {
     }
 
     @Override
-    public String getPrefix() {
-        return this.prefix;
-    }
-
-    @Override
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    @Override
     public void sendEmbed(Event event, JsonElement element) {
         Utils.sendEmbed(event, element.getAsJsonObject());
     }
@@ -111,16 +98,6 @@ public class Dispatcher implements Helpable<Event, JsonElement> {
     @Override
     public void setBuilderDescription(JsonElement builder, String description) {
         builder.getAsJsonObject().addProperty("description", description);
-    }
-
-    @Override
-    public String getDescription() {
-        return this.description;
-    }
-
-    @Override
-    public int getPageLimit() {
-        return this.pageLimit;
     }
 
     @Override

@@ -11,9 +11,27 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public interface Helpable<E, T> {
+public abstract class Helpable<E, T> {
 
-    default void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
+    protected String prefix;
+    protected String description;
+    protected int pageLimit;
+
+    public Helpable(String prefix) {
+        this(prefix, 5, "");
+    }
+
+    public Helpable(String prefix, int pageLimit) {
+        this(prefix, pageLimit, "");
+    }
+
+    public Helpable(String prefix, int pageLimit, String description) {
+        this.prefix = prefix;
+        this.pageLimit = pageLimit;
+        this.description = description;
+    }
+
+    public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
         if (this.commandRolesNotMet(event, command)) return;
 
         T builder = createBuilder();
@@ -53,7 +71,7 @@ public interface Helpable<E, T> {
         sendEmbed(event, builder);
     }
 
-    default void allCommands(E event, Collection<Command> commands, int pageNumber) {
+    public void allCommands(E event, Collection<Command> commands, int pageNumber) {
         T builder = createBuilder();
         String title = this.getDescription();
         if (title == null || title.equals("")) {
@@ -80,15 +98,23 @@ public interface Helpable<E, T> {
         sendEmbed(event, builder);
     }
 
-    String getPrefix();
+    public String getPrefix() {
+        return this.prefix;
+    }
 
-    void setPrefix(String prefix);
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 
-    int getPageLimit();
+    public int getPageLimit() {
+        return this.pageLimit;
+    }
 
-    String getDescription();
+    public String getDescription() {
+        return this.description;
+    }
 
-    default void helpSubcommands(E event, String foundPrefix, Collection<Command> commands) {
+    public void helpSubcommands(E event, String foundPrefix, Collection<Command> commands) {
         T builder = createBuilder();
         setBuilderTitle(builder, foundPrefix + " | Subcommands");
         setBuilderDescription(builder, "All registered subcommands for " + foundPrefix);
@@ -103,45 +129,45 @@ public interface Helpable<E, T> {
         sendEmbed(event, builder);
     }
 
-    boolean commandRolesNotMet(E event, Command command);
+    public abstract boolean commandRolesNotMet(E event, Command command);
 
-    void sendMessage(E event, String message);
+    public abstract void sendMessage(E event, String message);
 
-    void setBuilderTitle(T builder, String title);
+    public abstract void setBuilderTitle(T builder, String title);
 
-    void setBuilderDescription(T builder, String description);
+    public abstract void setBuilderDescription(T builder, String description);
 
-    void addCommandsToEmbed(T builder, List<Command> commands, E event);
+    public abstract void addCommandsToEmbed(T builder, List<Command> commands, E event);
 
-    void addField(T builder, String name, String value, boolean inline);
+    public abstract void addField(T builder, String name, String value, boolean inline);
 
-    T createBuilder();
+    public abstract T createBuilder();
 
-    void sendEmbed(E event, T builder);
+    public abstract void sendEmbed(E event, T builder);
 
-    default void sendMessages(E event, Collection<String> messages) {
+    public void sendMessages(E event, Collection<String> messages) {
         for (String message : messages) {
             sendMessage(event, message);
         }
     }
 
-    default void commandNotFound(E event, String userInput) {
+    public void commandNotFound(E event, String userInput) {
         sendMessages(event, Help.commandNotFound(userInput, getPrefix()));
     }
 
-    default void roleNotMet(E event, Command command) {
+    public void roleNotMet(E event, Command command) {
         sendMessage(event, Help.roleNotMet(command));
     }
 
-    default void optionRequired(E event, Command command, CommandFlag flag) {
+    public void optionRequired(E event, Command command, CommandFlag flag) {
         sendMessage(event, Help.optionRequired(command, flag));
     }
 
-    default void optionRequiresValue(E event, CommandFlag flag) {
+    public void optionRequiresValue(E event, CommandFlag flag) {
         sendMessage(event, Help.optionRequiresValue(flag));
     }
 
-    default void incorrectOption(E event, String userChoice, String flagName, String options) {
+    public void incorrectOption(E event, String userChoice, String flagName, String options) {
         sendMessages(event, Help.incorrectOption(userChoice, flagName, options));
     }
 
