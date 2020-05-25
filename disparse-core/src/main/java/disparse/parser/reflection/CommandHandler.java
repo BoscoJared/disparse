@@ -9,11 +9,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface CommandHandler {
 
-  String commandName();
+    String commandName();
 
-  String description() default "no description available";
+    String description() default "no description available";
 
-  String[] roles() default {};
-  
-  boolean canBeDisabled() default true;
+    String[] roles() default {};
+
+    boolean canBeDisabled() default true;
 }

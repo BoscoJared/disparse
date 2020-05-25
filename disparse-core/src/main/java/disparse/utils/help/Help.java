@@ -42,7 +42,7 @@ public class Help {
                         return -1;
                     } else if (rightBoth) {
                         return 1;
-                    } else if (leftLongOnly && rightLongOnly){
+                    } else if (leftLongOnly && rightLongOnly) {
                         return leftLong.compareTo(rightLong);
                     } else {
                         return 0;

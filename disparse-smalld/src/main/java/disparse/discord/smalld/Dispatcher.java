@@ -1,31 +1,22 @@
 package disparse.discord.smalld;
 
 import com.github.princesslana.smalld.SmallD;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import disparse.discord.Helpable;
 import disparse.discord.smalld.guilds.Guilds;
 import disparse.parser.Command;
-import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
 import disparse.utils.help.Help;
-import disparse.utils.help.PageNumberOutOfBounds;
-import disparse.utils.help.PaginatedEntities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static disparse.discord.smalld.Utils.*;
 
-public class Dispatcher implements Helpable<Event> {
+public class Dispatcher implements Helpable<Event, JsonElement> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
@@ -54,7 +45,9 @@ public class Dispatcher implements Helpable<Event> {
         init(smalld, prefix, 5, "");
     }
 
-    public static void init(SmallD smalld, String prefix, int pageLimit) { init(smalld, prefix, pageLimit, ""); }
+    public static void init(SmallD smalld, String prefix, int pageLimit) {
+        init(smalld, prefix, pageLimit, "");
+    }
 
     public static void init(SmallD smalld, String prefix, int pageLimit, String description) {
         Detector.detect();
@@ -88,97 +81,8 @@ public class Dispatcher implements Helpable<Event> {
     }
 
     @Override
-    public void help(Event event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
-        if (this.commandRolesNotMet(event, command)) return;
-
-        JsonObject embed = new JsonObject();
-        embed.addProperty("title", Help.getTitle(command));
-        embed.addProperty("type", "rich");
-        embed.addProperty("description", Help.getDescriptionUsage(command));
-
-        List<Command> subcommands = Help.findSubcommands(command, commands);
-        String currentlyViewing;
-        try {
-            PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, pageLimit);
-            subcommands = paginatedEntities.getCommands();
-            flags = paginatedEntities.getFlags();
-            currentlyViewing = paginatedEntities.getCurrentlyViewing();
-        } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
-            sendMessage(event, pageNumberOutOfBounds.getMessage());
-            return;
-        }
-
-        List<CommandFlag> sortedFlags = Help.sortFlags(flags);
-
-        JsonArray fields = new JsonArray();
-        if (subcommands.size() > 0) {
-            JsonObject field = new JsonObject();
-            field.addProperty("name", "SUBCOMMANDS");
-            field.addProperty("value", "---------------------");
-            field.addProperty("inline", false);
-            fields.add(field);
-        }
-
-        addCommandsToEmbed(fields, subcommands, event);
-
-        if (sortedFlags.size() > 0) {
-            JsonObject field = new JsonObject();
-            field.addProperty("name", "FLAGS");
-            field.addProperty("value", "--------");
-            field.addProperty("inline", true);
-            fields.add(field);
-        }
-
-        for (CommandFlag flag : sortedFlags) {
-            String flagName = Help.flagToUserFriendlyString(flag);
-            JsonObject field = new JsonObject();
-            field.addProperty("name", flagName);
-            field.addProperty("value", flag.getDescription());
-            field.addProperty("inline", false);
-            fields.add(field);
-        }
-
-        JsonObject field = new JsonObject();
-        field.addProperty("name", currentlyViewing);
-        field.addProperty("value", "Use --page to specify a page number");
-        field.addProperty("inline", false);
-        fields.add(field);
-        embed.add("fields", fields);
-        sendEmbed(event, embed);
-    }
-
-    @Override
-    public void allCommands(Event event, Collection<Command> commands, int pageNumber) {
-        JsonObject embed = new JsonObject();
-        String title = this.description;
-        if (title == null || title.equals("")) {
-            title = "All Commands";
-        }
-        embed.addProperty("title", title);
-        embed.addProperty("description", "All registered commands");
-        embed.addProperty("type", "rich");
-
-        String currentlyViewing;
-        try {
-            PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, pageLimit);
-            commands = paginatedEntities.getCommands();
-            currentlyViewing = paginatedEntities.getCurrentlyViewing();
-        } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
-            sendMessage(event, pageNumberOutOfBounds.getMessage());
-            return;
-        }
-
-        List<Command> sortedCommands = Help.sortCommands(commands);
-        JsonArray fields = new JsonArray();
-        addCommandsToEmbed(fields, sortedCommands, event);
-        JsonObject field = new JsonObject();
-        field.addProperty("name", currentlyViewing);
-        field.addProperty("value", "Use --page to specify a page number");
-        field.addProperty("inline", false);
-        fields.add(field);
-        embed.add("fields", fields);
-
-        sendEmbed(event, embed);
+    public String getPrefix() {
+        return this.prefix;
     }
 
     @Override
@@ -187,25 +91,36 @@ public class Dispatcher implements Helpable<Event> {
     }
 
     @Override
-    public String getPrefix() { return this.prefix; }
+    public void sendEmbed(Event event, JsonElement element) {
+        Utils.sendEmbed(event, element.getAsJsonObject());
+    }
 
     @Override
-    public void helpSubcommands(Event event, String foundPrefix, Collection<Command> commands) {
-        JsonObject embed = new JsonObject();
-        embed.addProperty("title", foundPrefix + " | Subcommands");
-        embed.addProperty("description", "All registered subcommands for " + foundPrefix);
-        embed.addProperty("type", "rich");
+    public JsonElement createBuilder() {
+        JsonObject builder = new JsonObject();
+        builder.addProperty("type", "rich");
+        builder.add("fields", new JsonArray());
+        return builder;
+    }
 
-        List<Command> sortedCommands = commands.stream().sorted(Comparator
-                .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
-                .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd))
-                .collect(Collectors.toList());
+    @Override
+    public void setBuilderTitle(JsonElement builder, String title) {
+        builder.getAsJsonObject().addProperty("title", title);
+    }
 
-        JsonArray fields = new JsonArray();
-        addCommandsToEmbed(fields, sortedCommands, event);
-        embed.add("fields", fields);
+    @Override
+    public void setBuilderDescription(JsonElement builder, String description) {
+        builder.getAsJsonObject().addProperty("description", description);
+    }
 
-        sendEmbed(event, embed);
+    @Override
+    public String getDescription() {
+        return this.description;
+    }
+
+    @Override
+    public int getPageLimit() {
+        return this.pageLimit;
     }
 
     @Override
@@ -233,16 +148,23 @@ public class Dispatcher implements Helpable<Event> {
                 });
     }
 
-    private void addCommandsToEmbed(JsonArray fields, List<Command> commands, Event event) {
+    @Override
+    public void addField(JsonElement element, String name, String value, boolean inline) {
+        JsonArray fields = element.getAsJsonObject().getAsJsonArray("fields");
+        JsonObject field = new JsonObject();
+        field.addProperty("name", name);
+        field.addProperty("value", value);
+        field.addProperty("inline", inline);
+        fields.add(field);
+    }
+
+    @Override
+    public void addCommandsToEmbed(JsonElement fields, List<Command> commands, Event event) {
         for (Command command : commands) {
             if (this.commandRolesNotMet(event, command)) {
                 continue;
             }
-            JsonObject field = new JsonObject();
-            field.addProperty("name", command.getCommandName());
-            field.addProperty("value", command.getDescription());
-            field.addProperty("inline", false);
-            fields.add(field);
+            addField(fields, command.getCommandName(), command.getDescription(), false);
         }
     }
 

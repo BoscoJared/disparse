@@ -7,23 +7,16 @@ import discord4j.core.object.entity.Role;
 import discord4j.core.spec.EmbedCreateSpec;
 import disparse.discord.Helpable;
 import disparse.parser.Command;
-import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
-import disparse.utils.help.Help;
-import disparse.utils.help.PageNumberOutOfBounds;
-import disparse.utils.help.PaginatedEntities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class Dispatcher implements Helpable<MessageCreateEvent> {
+public class Dispatcher implements Helpable<MessageCreateEvent, EmbedCreateSpec> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
@@ -31,7 +24,9 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     private int pageLimit;
     private String description;
 
-    public Dispatcher(String prefix) { this(prefix, 5, ""); }
+    public Dispatcher(String prefix) {
+        this(prefix, 5, "");
+    }
 
     public Dispatcher(String prefix, int pageLimit) {
         this(prefix, pageLimit, "");
@@ -76,77 +71,18 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     }
 
     @Override
+    public String getDescription() {
+        return this.description;
+    }
+
+    @Override
     public void sendMessage(MessageCreateEvent event, String message) {
         event.getMessage().getChannel().block().createMessage(message).block();
     }
 
     @Override
-    public void help(MessageCreateEvent event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
-        if (this.commandRolesNotMet(event, command)) return;
-
-        EmbedCreateSpec builder = new EmbedCreateSpec();
-        builder.setTitle(Help.getTitle(command))
-                .setDescription(Help.getDescriptionUsage(command));
-
-        List<Command> subcommands = Help.findSubcommands(command, commands);
-        String currentlyViewing;
-        try {
-            PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, pageLimit);
-            subcommands = paginatedEntities.getCommands();
-            flags = paginatedEntities.getFlags();
-            currentlyViewing = paginatedEntities.getCurrentlyViewing();
-        } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
-            event.getMessage().getChannel().block().createMessage(pageNumberOutOfBounds.getMessage()).block();
-            return;
-        }
-
-        List<CommandFlag> sortedFlags = Help.sortFlags(flags);
-
-        if (subcommands.size() > 0) {
-            builder.addField("SUBCOMMANDS", "---------------------", false);
-        }
-
-        addCommandsToEmbed(builder, subcommands, event);
-
-        if (sortedFlags.size() > 0) {
-            builder.addField("FLAGS", "--------", true);
-        }
-
-        for (CommandFlag flag : sortedFlags) {
-            String flagName = Help.flagToUserFriendlyString(flag);
-            builder.addField(flagName, flag.getDescription(), false);
-        }
-
-        builder.addField(currentlyViewing, "Use --page to specify a page number", false);
-
-        sendEmbed(event, builder);
-    }
-
-    @Override
-    public void allCommands(MessageCreateEvent event, Collection<Command> commands, int pageNumber) {
-        EmbedCreateSpec builder = new EmbedCreateSpec();
-        String title = this.description;
-        if (title == null || title.equals("")) {
-            title = "All Commands";
-        }
-        builder.setTitle(title).setDescription("All registered commands");
-
-        String currentlyViewing;
-        try {
-            PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, pageLimit);
-            commands = paginatedEntities.getCommands();
-            currentlyViewing = paginatedEntities.getCurrentlyViewing();
-        } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
-            event.getMessage().getChannel().block().createMessage(pageNumberOutOfBounds.getMessage()).block();
-            return;
-        }
-
-        List<Command> sortedCommands = Help.sortCommands(commands);
-
-        addCommandsToEmbed(builder, sortedCommands, event);
-        builder.addField(currentlyViewing, "Use --page to specify a page number", false);
-
-        sendEmbed(event, builder);
+    public String getPrefix() {
+        return this.prefix;
     }
 
     @Override
@@ -155,22 +91,18 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
     }
 
     @Override
-    public String getPrefix() { return this.prefix; }
+    public int getPageLimit() {
+        return this.pageLimit;
+    }
 
     @Override
-    public void helpSubcommands(MessageCreateEvent event, String foundPrefix, Collection<Command> commands) {
-        EmbedCreateSpec builder = new EmbedCreateSpec();
-        builder.setTitle(foundPrefix + " | Subcommands")
-                .setDescription("All registered subcommands for " + foundPrefix);
+    public void setBuilderTitle(EmbedCreateSpec builder, String title) {
+        builder.setTitle(title);
+    }
 
-        List<Command> sortedCommands = commands.stream().sorted(Comparator
-                .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
-                .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd))
-                .collect(Collectors.toList());
-
-        addCommandsToEmbed(builder, sortedCommands, event);
-
-        sendEmbed(event, builder);
+    @Override
+    public void setBuilderDescription(EmbedCreateSpec builder, String description) {
+        builder.setDescription(description);
     }
 
 
@@ -196,7 +128,18 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
         return true;
     }
 
-    private void addCommandsToEmbed(EmbedCreateSpec builder, List<Command> commands, MessageCreateEvent event) {
+    @Override
+    public EmbedCreateSpec createBuilder() {
+        return new EmbedCreateSpec();
+    }
+
+    @Override
+    public void addField(EmbedCreateSpec builder, String name, String value, boolean inline) {
+        builder.addField(name, value, inline);
+    }
+
+    @Override
+    public void addCommandsToEmbed(EmbedCreateSpec builder, List<Command> commands, MessageCreateEvent event) {
 
         for (Command command : commands) {
             if (this.commandRolesNotMet(event, command)) {
@@ -206,7 +149,8 @@ public class Dispatcher implements Helpable<MessageCreateEvent> {
         }
     }
 
-    private static void sendEmbed(MessageCreateEvent event, EmbedCreateSpec builder) {
+    @Override
+    public void sendEmbed(MessageCreateEvent event, EmbedCreateSpec builder) {
         event.getMessage()
                 .getChannel()
                 .block()

@@ -8,7 +8,8 @@ import com.google.gson.reflect.TypeToken;
 import disparse.discord.smalld.Event;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Guilds {
 
@@ -18,12 +19,14 @@ public class Guilds {
 
     public static Set<String> getSnowflakeRolesForGuildMember(SmallD smalld, String guildId, String userId) {
         JsonObject guildMember = getGuildMember(smalld, guildId, userId);
-        Type type = new TypeToken<HashSet<String>>() {}.getType();
+        Type type = new TypeToken<HashSet<String>>() {
+        }.getType();
         return new Gson().fromJson(guildMember.get("roles"), type);
     }
 
     public static Set<Role> getGuildRoles(SmallD smalld, String guildId) {
-        Type type = new TypeToken<HashSet<Role>>() {}.getType();
+        Type type = new TypeToken<HashSet<Role>>() {
+        }.getType();
         return new Gson().fromJson(smalld.get("/guilds/" + guildId + "/roles"), type);
     }
 
