@@ -3,6 +3,10 @@
 # Disparse
 An ergonomic, simple, and easy-to-use command parsing and dispatching library for Discord bots.
 
+## Documentation
+
+View the docs on [readthedocs](https://disparse.readthedocs.io/en/latest/)!
+
 ## Usage
 
 Disparse is built and served from [Jitpack](https://jitpack.io/#BoscoJared/disparse).
