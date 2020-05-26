@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/disparse/badge/?version=latest)](https://disparse.readthedocs.io/en/latest/?badge=latest)
+
 # Disparse
 An ergonomic, simple, and easy-to-use command parsing and dispatching library for Discord bots.
 
