@@ -9,10 +9,10 @@ Disparse is built and served from [Jitpack](https://jitpack.io/#BoscoJared/dispa
 
 The specific module you want is dependent on the Discord library you would like to use.
 
-- JDA -> $MODULE = disparse-jda
-- D4J -> $MODULE = disparse-d4j
-- SmallD -> $MODULE = disparse-smalld
-- Unsupported / Creating own integration -> $MODULE = disparse-core
+- JDA -> `$MODULE` = `disparse-jda`
+- D4J -> `$MODULE` = `disparse-d4j`
+- SmallD -> `$MODULE` = `disparse-smalld`
+- Unsupported / Creating own integration -> `$MODULE` = `disparse-core`
 
 ### Maven
 
