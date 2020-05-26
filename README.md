@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/BoscoJared/disparse.svg)](https://jitpack.io/#BoscoJared/disparse)
 [![Documentation Status](https://readthedocs.org/projects/disparse/badge/?version=latest)](https://disparse.readthedocs.io/en/latest/?badge=latest)
 
 # Disparse
