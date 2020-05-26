@@ -83,6 +83,16 @@ public class Dispatcher extends Helpable<Event, JsonElement> {
     }
 
     @Override
+    public String identityFromEvent(Event event) {
+        return Utils.getAuthorId(event);
+    }
+
+    @Override
+    public String channelFromEvent(Event event) {
+        return Utils.getChannelId(event.getJson());
+    }
+
+    @Override
     public JsonElement createBuilder() {
         JsonObject builder = new JsonObject();
         builder.addProperty("type", "rich");

@@ -2,6 +2,8 @@ package disparse.discord;
 
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
+import disparse.parser.dispatch.Cooldown;
+import disparse.parser.dispatch.IdentityCommandPair;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
@@ -16,6 +18,7 @@ public abstract class Helpable<E, T> {
     protected String prefix;
     protected String description;
     protected int pageLimit;
+    protected Cooldown cooldownManager;
 
     public Helpable(String prefix) {
         this(prefix, 5, "");
@@ -29,6 +32,7 @@ public abstract class Helpable<E, T> {
         this.prefix = prefix;
         this.pageLimit = pageLimit;
         this.description = description;
+        this.cooldownManager = new Cooldown();
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
@@ -114,6 +118,10 @@ public abstract class Helpable<E, T> {
         return this.description;
     }
 
+    public Cooldown getCooldownManager() {
+        return this.cooldownManager;
+    }
+
     public void helpSubcommands(E event, String foundPrefix, Collection<Command> commands) {
         T builder = createBuilder();
         setBuilderTitle(builder, foundPrefix + " | Subcommands");
@@ -151,6 +159,10 @@ public abstract class Helpable<E, T> {
     public abstract T createBuilder();
 
     public abstract void sendEmbed(E event, T builder);
+
+    public abstract String identityFromEvent(E event);
+
+    public abstract String channelFromEvent(E event);
 
     public void sendMessages(E event, Collection<String> messages) {
         for (String message : messages) {

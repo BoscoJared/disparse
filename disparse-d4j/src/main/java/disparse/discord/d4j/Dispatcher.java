@@ -4,7 +4,9 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
+import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.rest.util.Snowflake;
 import disparse.discord.Helpable;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
 
@@ -127,5 +130,18 @@ public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
                         });
                     });
                 }).block();
+    }
+
+    @Override
+    public String identityFromEvent(MessageCreateEvent event) {
+        Optional<User> optionalUser = event.getMessage().getAuthor();
+        if (optionalUser.isEmpty()) return null;
+
+        return optionalUser.get().getId().toString();
+    }
+
+    @Override
+    public String channelFromEvent(MessageCreateEvent event) {
+        return event.getMessage().getChannelId().toString();
     }
 }

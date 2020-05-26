@@ -12,6 +12,7 @@
       <module>disparse-jda</module>
       <module>disparse-d4j</module>
       <module>disparse-smalld</module>
+      <module>disparse-example</module>
     </modules>
 
   <properties>

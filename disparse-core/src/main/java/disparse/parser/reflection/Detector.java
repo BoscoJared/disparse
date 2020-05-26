@@ -3,6 +3,7 @@ package disparse.parser.reflection;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.CommandRegistrar;
+import disparse.parser.dispatch.CooldownScope;
 import eu.infomas.annotation.AnnotationDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,8 +40,17 @@ public class Detector {
                             if (method.getName().equals(methodName)) {
                                 if (method.isAnnotationPresent(CommandHandler.class)) {
                                     CommandHandler handler = method.getAnnotation(CommandHandler.class);
+                                    Duration cooldownDuration = Duration.ZERO;
+                                    CooldownScope scope = CooldownScope.USER;
+                                    boolean sendCooldownMessage = false;
+                                    if (method.isAnnotationPresent(Cooldown.class)) {
+                                        Cooldown cooldown = method.getAnnotation(Cooldown.class);
+                                        cooldownDuration = Duration.of(cooldown.amount(), cooldown.unit());
+                                        scope = cooldown.scope();
+                                        sendCooldownMessage = cooldown.sendCooldownMessage();
+                                    }
                                     Command command =
-                                            new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled());
+                                            new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled(), cooldownDuration, scope, sendCooldownMessage);
                                     for (Class<?> paramClazz : method.getParameterTypes()) {
                                         if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
                                             Field[] fields = allImplicitFields(paramClazz);

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -150,6 +151,43 @@ public class CommandRegistrar<E, T> {
     private void emitCommand(List<String> args, Helpable<E, T> helper, E event, ParsedOutput parsedOutput, Command foundCommand)
             throws ReflectiveOperationException, OptionRequired {
         Method commandHandler = commandTable.get(foundCommand);
+
+        Duration cooldownDuration = foundCommand.getCooldownDuration();
+
+        IdentityCommandPair identity = new IdentityCommandPair(helper.identityFromEvent(event), foundCommand);
+        ChannelCommandPair channelIdentity = new ChannelCommandPair(helper.channelFromEvent(event), foundCommand);
+        CooldownScope scope = foundCommand.getScope();
+        Cooldown cooldownManager = helper.getCooldownManager();
+
+        if (!cooldownDuration.isZero()) {
+            Duration left;
+            String cooldownMessage = null;
+            switch (scope) {
+                case USER:
+                    left = cooldownManager.timeLeft(identity, cooldownDuration);
+                    cooldownMessage = "This command has a per-user cooldown!";
+                    break;
+                case CHANNEL:
+                    left = cooldownManager.timeLeft(channelIdentity, cooldownDuration);
+                    cooldownMessage = "This command has a per-channel cooldown!";
+                    break;
+                case GUILD:
+                    left = cooldownManager.timeLeft(foundCommand, cooldownDuration);
+                    cooldownMessage = "This command has a per-guild cooldown";
+                    break;
+                default:
+                    left = Duration.ZERO;
+                    break;
+            }
+
+            if (!left.isZero()) {
+                if (foundCommand.isSendCooldownMessage()) {
+                    helper.sendMessage(event, cooldownMessage);
+                }
+                return;
+            }
+        }
+
         Object[] objects = new Object[commandHandler.getParameterTypes().length];
 
         int i = 0;
@@ -238,6 +276,20 @@ public class CommandRegistrar<E, T> {
         }
 
         commandHandler.invoke(handlerObj, objects);
+
+        if (!cooldownDuration.isZero()) {
+            switch (scope) {
+                case USER:
+                    cooldownManager.cooldown(identity);
+                    break;
+                case CHANNEL:
+                    cooldownManager.cooldown(channelIdentity);
+                    break;
+                case GUILD:
+                    cooldownManager.cooldown(foundCommand);
+                    break;
+            }
+        }
     }
 
     private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, Helpable<E, T> helper)

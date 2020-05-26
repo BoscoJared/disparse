@@ -104,6 +104,16 @@ public class Dispatcher extends Helpable<MessageReceivedEvent, EmbedBuilder> {
     }
 
     @Override
+    public String identityFromEvent(MessageReceivedEvent event) {
+        return event.getAuthor().getId();
+    }
+
+    @Override
+    public String channelFromEvent(MessageReceivedEvent event) {
+        return event.getChannel().getId();
+    }
+
+    @Override
     public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
         if (command.getRoles().length == 0) {
             return false;

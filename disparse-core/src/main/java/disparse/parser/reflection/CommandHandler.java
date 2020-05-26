@@ -16,4 +16,12 @@ public @interface CommandHandler {
     String[] roles() default {};
 
     boolean canBeDisabled() default true;
+
+    int days() default 0;
+
+    int hours() default 0;
+
+    int minutes() default 0;
+
+    int seconds() default 0;
 }
