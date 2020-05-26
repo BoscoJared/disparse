@@ -4,4 +4,9 @@ theme: readthedocs
 nav:
   - FIRST STEPS:
       - Introduction: introduction.md
+  - DEEP DIVE:
+      - Flags: deep_dive/flags.md
+      - Command handlers: deep_dive/command_handlers.md
+      - Injectables: deep_dive/injectables.md
+      - Supporting new libraries: deep_dive/new_library.md
 
