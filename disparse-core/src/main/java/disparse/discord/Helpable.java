@@ -3,7 +3,7 @@ package disparse.discord;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.Cooldown;
-import disparse.parser.dispatch.IdentityCommandPair;
+import disparse.parser.dispatch.InMemoryCooldown;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
@@ -32,7 +32,7 @@ public abstract class Helpable<E, T> {
         this.prefix = prefix;
         this.pageLimit = pageLimit;
         this.description = description;
-        this.cooldownManager = new Cooldown();
+        this.cooldownManager = new InMemoryCooldown();
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
@@ -213,6 +213,11 @@ public abstract class Helpable<E, T> {
 
         public B pageLimit(int pageLimit) {
             actualClass.pageLimit = pageLimit;
+            return actualClassBuilder;
+        }
+
+        public B withCooldownStrategy(Cooldown cooldown) {
+            actualClass.cooldownManager = cooldown;
             return actualClassBuilder;
         }
     }
