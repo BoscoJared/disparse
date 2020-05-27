@@ -152,6 +152,16 @@ public class Dispatcher extends Helpable<Event, JsonElement> {
         fields.add(field);
     }
 
+    @Override
+    public boolean isSentFromChannel(Event event) {
+        return Utils.isTextChannel(event);
+    }
+
+    @Override
+    public boolean isSentFromDM(Event event) {
+        return Utils.isDm(event);
+    }
+
     public static class Builder extends BaseBuilder<Dispatcher, Builder> {
         @Override
         protected Dispatcher getActual() {

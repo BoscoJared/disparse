@@ -1,6 +1,7 @@
 package disparse.parser;
 
 import disparse.parser.dispatch.CooldownScope;
+import disparse.parser.dispatch.IncomingScope;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -14,13 +15,14 @@ public class Command {
     private final Duration cooldownDuration;
     private final CooldownScope scope;
     private final boolean sendCooldownMessage;
+    private final IncomingScope acceptFrom;
 
     public Command(final String name, final String description) {
-        this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false);
+        this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL);
     }
 
     public Command(final String name, final String description, final boolean canBeDisabled) {
-        this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false);
+        this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL);
     }
 
     public Command(final String name,
@@ -29,7 +31,8 @@ public class Command {
                    final boolean canBeDisabled,
                    final Duration cooldownDuration,
                    final CooldownScope scope,
-                   final boolean sendCooldownMessage) {
+                   final boolean sendCooldownMessage,
+                   final IncomingScope acceptFrom) {
         this.name = name;
         this.description = description;
         this.roles = roles;
@@ -37,6 +40,7 @@ public class Command {
         this.cooldownDuration = cooldownDuration;
         this.scope = scope;
         this.sendCooldownMessage = sendCooldownMessage;
+        this.acceptFrom = acceptFrom;
     }
 
     public String getCommandName() {
@@ -65,6 +69,10 @@ public class Command {
 
     public boolean isSendCooldownMessage() {
         return sendCooldownMessage;
+    }
+
+    public IncomingScope getAcceptFrom() {
+        return this.acceptFrom;
     }
 
     @Override

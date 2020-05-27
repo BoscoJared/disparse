@@ -1,5 +1,7 @@
 package disparse.parser.reflection;
 
+import disparse.parser.dispatch.IncomingScope;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,11 +19,5 @@ public @interface CommandHandler {
 
     boolean canBeDisabled() default true;
 
-    int days() default 0;
-
-    int hours() default 0;
-
-    int minutes() default 0;
-
-    int seconds() default 0;
+    IncomingScope acceptFrom() default IncomingScope.ALL;
 }

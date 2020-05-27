@@ -1,6 +1,7 @@
 package disparse.discord.smalld;
 
 import com.github.princesslana.smalld.SmallD;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -30,6 +31,22 @@ public class Utils {
 
     public static String getChannelId(JsonObject json) {
         return json.get("d").getAsJsonObject().get("channel_id").getAsString();
+    }
+
+    public static boolean isTextChannel(Event event) {
+        String channelId = getChannelId(event.getJson());
+
+        JsonObject channelObj = new Gson().fromJson(event.getSmalld().get("/channels/" + channelId), JsonObject.class);
+
+        return channelObj.get("type").getAsInt() == 0;
+    }
+
+    public static boolean isDm(Event event) {
+        String channelId = getChannelId(event.getJson());
+
+        JsonObject channelObj = new Gson().fromJson(event.getSmalld().get("/channels/" + channelId), JsonObject.class);
+
+        return channelObj.get("type").getAsInt() == 1 || channelObj.get("type").getAsInt() == 3;
     }
 
     public static boolean isMessageCreate(JsonObject json) {

@@ -7,6 +7,7 @@ import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -117,6 +118,16 @@ public class Dispatcher extends Helpable<MessageReceivedEvent, EmbedBuilder> {
     @Override
     public String channelFromEvent(MessageReceivedEvent event) {
         return event.getChannel().getId();
+    }
+
+    @Override
+    public boolean isSentFromChannel(MessageReceivedEvent event) {
+        return event.getChannelType() == ChannelType.TEXT;
+    }
+
+    @Override
+    public boolean isSentFromDM(MessageReceivedEvent event) {
+        return event.getChannelType() == ChannelType.PRIVATE || event.getChannelType() == ChannelType.GROUP;
     }
 
     @Override

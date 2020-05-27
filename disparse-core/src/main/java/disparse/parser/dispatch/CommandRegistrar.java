@@ -73,12 +73,29 @@ public class CommandRegistrar<E, T> {
 
         if (this.help(originalArgs, helper, event, parsedOutput, command)) return;
 
+        if (!canSendTo(helper, event, command)) return;
+
         try {
             this.emitCommand(args, helper, event, parsedOutput, command);
         } catch (ReflectiveOperationException exec) {
             logger.error("Error occurred", exec);
         } catch (OptionRequired exec) {
             helper.optionRequired(event, exec.getCommand(), exec.getFlag());
+        }
+    }
+
+    private boolean canSendTo(Helpable<E, T> helper, E event, Command command) {
+        IncomingScope acceptFrom = command.getAcceptFrom();
+
+        switch(acceptFrom) {
+            case ALL:
+                return true;
+            case CHANNEL:
+                return helper.isSentFromChannel(event);
+            case DM:
+                return helper.isSentFromDM(event);
+            default:
+                return false;
         }
     }
 

@@ -6,6 +6,8 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.PrivateChannel;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import disparse.discord.Helpable;
 import disparse.parser.Command;
@@ -101,6 +103,16 @@ public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
             }
         }
         return true;
+    }
+
+    @Override
+    public boolean isSentFromChannel(MessageCreateEvent event) {
+        return event.getMessage().getChannel().block() instanceof TextChannel;
+    }
+
+    @Override
+    public boolean isSentFromDM(MessageCreateEvent event) {
+        return event.getMessage().getChannel().block() instanceof PrivateChannel;
     }
 
     @Override

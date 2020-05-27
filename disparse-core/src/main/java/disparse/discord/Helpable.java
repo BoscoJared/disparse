@@ -164,6 +164,10 @@ public abstract class Helpable<E, T> {
 
     public abstract String channelFromEvent(E event);
 
+    public abstract boolean isSentFromChannel(E event);
+
+    public abstract boolean isSentFromDM(E event);
+
     public void sendMessages(E event, Collection<String> messages) {
         for (String message : messages) {
             sendMessage(event, message);
