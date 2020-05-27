@@ -44,8 +44,12 @@ public class Dispatcher extends Helpable<MessageReceivedEvent, EmbedBuilder> {
     }
 
     public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit, String description) {
-        Detector.detect();
         Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
+        return init(builder, dispatcher);
+    }
+
+    public static JDABuilder init(JDABuilder builder, Dispatcher dispatcher) {
+        Detector.detect();
         builder.addEventListeners(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
