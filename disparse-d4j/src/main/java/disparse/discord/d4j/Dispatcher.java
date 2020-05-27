@@ -1,12 +1,12 @@
 package disparse.discord.d4j;
 
+import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.rest.util.Snowflake;
 import disparse.discord.Helpable;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
@@ -22,6 +22,8 @@ import java.util.Optional;
 public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
+
+    public Dispatcher() {this("", 5, "");}
 
     public Dispatcher(String prefix) {
         this(prefix, 5, "");
@@ -143,5 +145,21 @@ public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
     @Override
     public String channelFromEvent(MessageCreateEvent event) {
         return event.getMessage().getChannelId().toString();
+    }
+
+    public static class Builder extends BaseBuilder<Dispatcher, Builder> {
+        @Override
+        protected Dispatcher getActual() {
+            return new Dispatcher();
+        }
+
+        @Override
+        protected Builder getActualBuilder() {
+            return this;
+        }
+
+        public Dispatcher build() {
+            return actualClass;
+        }
     }
 }
