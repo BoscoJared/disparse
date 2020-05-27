@@ -49,9 +49,14 @@ public class Dispatcher extends Helpable<Event, JsonElement> {
     }
 
     public static void init(SmallD smalld, String prefix, int pageLimit, String description) {
-        Detector.detect();
         Dispatcher dispatcher = new Dispatcher(prefix, smalld, pageLimit, description);
-        smalld.onGatewayPayload(dispatcher::onMessageReceived);
+        init(dispatcher);
+    }
+
+    public static void init(Dispatcher dispatcher) {
+        if (dispatcher.smalld == null) throw new NullPointerException("SmallD instance cannot be null!");
+        Detector.detect();
+        dispatcher.smalld.onGatewayPayload(dispatcher::onMessageReceived);
     }
 
     public void onMessageReceived(String message) {
