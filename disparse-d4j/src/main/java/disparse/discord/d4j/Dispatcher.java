@@ -37,17 +37,13 @@ public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
         super(prefix, pageLimit, description);
     }
 
-    public static void init(GatewayDiscordClient gateway, String prefix) {
-        init(gateway, prefix, 5);
-    }
-
-    public static void init(GatewayDiscordClient gateway, String prefix, int pageLimit) {
-        init(gateway, prefix, pageLimit, "");
-    }
-
     public static void init(GatewayDiscordClient gateway, String prefix, int pageLimit, String description) {
-        Detector.detect();
         Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
+        init(gateway, dispatcher);
+    }
+
+    public static void init(GatewayDiscordClient gateway, Dispatcher dispatcher) {
+        Detector.detect();
         gateway.on(MessageCreateEvent.class).subscribe(dispatcher::onMessageReceived);
     }
 
