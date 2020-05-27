@@ -8,12 +8,13 @@ The method should be void as the return value will not be used anywhere.
 
 The `@CommandHandler` annotation accepts the following fields:
 
-| field_name    | type     | description                                                                                                     |
-|---------------|----------|-----------------------------------------------------------------------------------------------------------------|
-| commandName   | String   | Required.  The name of the command that should invoke this command.                                             |
-| description   | String   | User-friendly / helpful description of a command to be used in generated help commands.                         |
-| roles         | String[] | The roles that are allowed to call this command.  Default is empty array and allows anyone to call the command. |
-| canBeDisabled | boolean  | If the command is allowed to be toggled on / off.  Default is true.                                             |
+| field_name    | type          | description                                                                                                     |
+|---------------|---------------|-----------------------------------------------------------------------------------------------------------------|
+| commandName   | String        | Required.  The name of the command that should invoke this command.                                             |
+| description   | String        | User-friendly / helpful description of a command to be used in generated help commands.                         |
+| roles         | String[]      | The roles that are allowed to call this command.  Default is empty array and allows anyone to call the command. |
+| canBeDisabled | boolean       | If the command is allowed to be toggled on / off.  Default is true.                                             |
+| canAccept     | IncomingScope | If the command should only respond to commands in specific types of channels.  Default is ALL.                  |
 
 <br />
 ## Subcommands
