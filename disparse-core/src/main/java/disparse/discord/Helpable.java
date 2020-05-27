@@ -190,4 +190,31 @@ public abstract class Helpable<E, T> {
         sendMessages(event, Help.incorrectOption(userChoice, flagName, options));
     }
 
+    protected static abstract class BaseBuilder<A extends Helpable, B extends BaseBuilder> {
+        protected A actualClass;
+        protected B actualClassBuilder;
+
+        protected abstract A getActual();
+        protected abstract B getActualBuilder();
+        protected BaseBuilder() {
+            actualClass = getActual();
+            actualClassBuilder = getActualBuilder();
+        }
+
+        public B prefix(String prefix) {
+            actualClass.prefix = prefix;
+            return actualClassBuilder;
+        }
+
+        public B description(String description) {
+            actualClass.description = description;
+            return actualClassBuilder;
+        }
+
+        public B pageLimit(int pageLimit) {
+            actualClass.pageLimit = pageLimit;
+            return actualClassBuilder;
+        }
+    }
+
 }
