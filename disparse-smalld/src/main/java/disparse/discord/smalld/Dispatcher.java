@@ -25,6 +25,8 @@ public class Dispatcher extends Helpable<Event, JsonElement> {
 
     private SmallD smalld;
 
+    public Dispatcher() {this("", null); }
+
     public Dispatcher(String prefix, SmallD smalld) {
         this(prefix, smalld, 5);
     }
@@ -143,5 +145,26 @@ public class Dispatcher extends Helpable<Event, JsonElement> {
         field.addProperty("value", value);
         field.addProperty("inline", inline);
         fields.add(field);
+    }
+
+    public static class Builder extends BaseBuilder<Dispatcher, Builder> {
+        @Override
+        protected Dispatcher getActual() {
+            return new Dispatcher();
+        }
+
+        @Override
+        protected Builder getActualBuilder() {
+            return this;
+        }
+
+        public Builder withSmalldClient(SmallD smalld) {
+            actualClass.smalld = smalld;
+            return this;
+        }
+
+        public Dispatcher build() {
+            return actualClass;
+        }
     }
 }
