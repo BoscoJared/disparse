@@ -169,40 +169,8 @@ public class CommandRegistrar<E, T> {
             throws ReflectiveOperationException, OptionRequired {
         Method commandHandler = commandTable.get(foundCommand);
 
-        Duration cooldownDuration = foundCommand.getCooldownDuration();
-
-        IdentityCommandPair identity = new IdentityCommandPair(helper.identityFromEvent(event), foundCommand);
-        ChannelCommandPair channelIdentity = new ChannelCommandPair(helper.channelFromEvent(event), foundCommand);
-        CooldownScope scope = foundCommand.getScope();
-        Cooldown cooldownManager = helper.getCooldownManager();
-
-        if (!cooldownDuration.isZero()) {
-            Duration left;
-            String cooldownMessage = null;
-            switch (scope) {
-                case USER:
-                    left = cooldownManager.timeLeft(identity, cooldownDuration);
-                    cooldownMessage = "This command has a per-user cooldown!";
-                    break;
-                case CHANNEL:
-                    left = cooldownManager.timeLeft(channelIdentity, cooldownDuration);
-                    cooldownMessage = "This command has a per-channel cooldown!";
-                    break;
-                case GUILD:
-                    left = cooldownManager.timeLeft(foundCommand, cooldownDuration);
-                    cooldownMessage = "This command has a per-guild cooldown";
-                    break;
-                default:
-                    left = Duration.ZERO;
-                    break;
-            }
-
-            if (!left.isZero()) {
-                if (foundCommand.isSendCooldownMessage()) {
-                    helper.sendMessage(event, cooldownMessage);
-                }
-                return;
-            }
+        if (isOnCooldown(foundCommand, helper, event)) {
+            return;
         }
 
         Object[] objects = new Object[commandHandler.getParameterTypes().length];
@@ -294,19 +262,64 @@ public class CommandRegistrar<E, T> {
 
         commandHandler.invoke(handlerObj, objects);
 
+        cooldown(foundCommand, helper, event);
+    }
+
+    private void cooldown(Command command, Helpable<E, T> helper, E event) {
+        if (!command.getCooldownDuration().isZero()) {
+            Pair<String> pair = createPairWithScope(command, helper, event);
+            helper.getCooldownManager().cooldown(pair);
+        }
+    }
+
+    private boolean isOnCooldown(Command command, Helpable<E, T> helper, E event) {
+        Duration cooldownDuration = command.getCooldownDuration();
+        Cooldown cooldownManager = helper.getCooldownManager();
+        CooldownScope scope = command.getScope();
+
         if (!cooldownDuration.isZero()) {
+            Pair<String> pair = null;
+            Duration left;
+            String cooldownMessage = null;
             switch (scope) {
                 case USER:
-                    cooldownManager.cooldown(identity);
+                    pair = Pair.of(command.getCommandName(), helper.identityFromEvent(event));
+                    cooldownMessage = "This command has a per-user cooldown!";
                     break;
                 case CHANNEL:
-                    cooldownManager.cooldown(channelIdentity);
+                    pair = Pair.of(command.getCommandName(), helper.channelFromEvent(event));
+                    cooldownMessage = "This command has a per-channel cooldown!";
                     break;
                 case GUILD:
-                    cooldownManager.cooldown(foundCommand);
+                    pair = Pair.of(command.getCommandName(), null);
+                    cooldownMessage = "This command has a per-guild cooldown";
                     break;
             }
+
+            left = cooldownManager.timeLeft(pair, cooldownDuration);
+
+            if (!left.isZero()) {
+                if (command.isSendCooldownMessage()) {
+                    helper.sendMessage(event, cooldownMessage);
+                }
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    private Pair<String> createPairWithScope(Command command, Helpable<E, T> helper, E event) {
+        switch (command.getScope()) {
+            case USER:
+                return Pair.of(command.getCommandName(), helper.identityFromEvent(event));
+            case CHANNEL:
+                return Pair.of(command.getCommandName(), helper.channelFromEvent(event));
+            case GUILD:
+                return Pair.of(command.getCommandName(), null);
+        }
+
+        return Pair.of(null, null);
     }
 
     private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, Helpable<E, T> helper)

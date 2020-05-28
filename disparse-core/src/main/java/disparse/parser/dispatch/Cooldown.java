@@ -1,19 +1,13 @@
 package disparse.parser.dispatch;
 
-import disparse.parser.Command;
-
 import java.time.Duration;
 import java.time.Instant;
 
 public interface Cooldown {
 
-    public Duration timeLeft(IdentityCommandPair identity, Duration amount);
+    Duration timeLeft(Pair<String> pair, Duration amount);
 
-    public Duration timeLeft(Command identity, Duration amount);
-
-    public Duration timeLeft(ChannelCommandPair identity, Duration amount);
-
-    public default Duration timeLeft(Instant then, Duration amount) {
+    default Duration timeLeft(Instant then, Duration amount) {
         Instant now = Instant.now();
 
         if (then == null) return Duration.ZERO;
@@ -27,9 +21,5 @@ public interface Cooldown {
         }
     }
 
-    public void cooldown(IdentityCommandPair identity);
-
-    public void cooldown(Command identity);
-
-    public void cooldown(ChannelCommandPair identity);
+    void cooldown(Pair<String> pair);
 }
