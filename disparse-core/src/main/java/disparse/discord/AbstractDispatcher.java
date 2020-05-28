@@ -15,22 +15,22 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class Helpable<E, T> {
+public abstract class AbstractDispatcher<E, T> {
 
     protected String prefix;
     protected String description;
     protected int pageLimit;
     protected Cooldown cooldownManager;
 
-    public Helpable(String prefix) {
+    public AbstractDispatcher(String prefix) {
         this(prefix, 5, "");
     }
 
-    public Helpable(String prefix, int pageLimit) {
+    public AbstractDispatcher(String prefix, int pageLimit) {
         this(prefix, pageLimit, "");
     }
 
-    public Helpable(String prefix, int pageLimit, String description) {
+    public AbstractDispatcher(String prefix, int pageLimit, String description) {
         this.prefix = prefix;
         this.pageLimit = pageLimit;
         this.description = description;
@@ -219,7 +219,7 @@ public abstract class Helpable<E, T> {
         sendMessages(event, Help.incorrectOption(userChoice, flagName, options));
     }
 
-    protected static abstract class BaseBuilder<A extends Helpable, B extends BaseBuilder> {
+    protected static abstract class BaseBuilder<A extends AbstractDispatcher, B extends BaseBuilder> {
         protected A actualClass;
         protected B actualClassBuilder;
 

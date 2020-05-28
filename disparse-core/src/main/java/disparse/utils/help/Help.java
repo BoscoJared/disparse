@@ -109,7 +109,7 @@ public class Help {
 
     public static List<Command> findSubcommands(Command command, Collection<Command> commands) {
         Predicate<Command> predicate =
-                c -> c.getCommandName().startsWith(command.getCommandName()) && !c.getCommandName().equals(command.getCommandName());
+                c -> c.getCommandName().startsWith(command.getCommandName() + ".") && !c.getCommandName().equals(command.getCommandName());
 
         Comparator<Command> comparator =
                 Comparator.comparing(cmd -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder());

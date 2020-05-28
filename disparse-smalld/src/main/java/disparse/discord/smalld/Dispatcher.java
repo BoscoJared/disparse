@@ -5,7 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import disparse.discord.Helpable;
+import disparse.discord.AbstractDispatcher;
 import disparse.discord.smalld.guilds.Guilds;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
@@ -19,7 +19,7 @@ import java.util.List;
 
 import static disparse.discord.smalld.Utils.*;
 
-public class Dispatcher extends Helpable<Event, JsonElement> {
+public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 

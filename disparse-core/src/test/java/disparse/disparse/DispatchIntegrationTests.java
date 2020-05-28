@@ -1,6 +1,6 @@
 package disparse.disparse;
 
-import disparse.discord.Helpable;
+import disparse.discord.AbstractDispatcher;
 import disparse.parser.reflection.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ public class DispatchIntegrationTests {
     private TestDispatcher dispatcher;
 
     @CommandHandler(commandName = "test")
-    public static void test(Helpable<Object, Object> helper, List<String> args) {
+    public static void test(AbstractDispatcher<Object, Object> helper, List<String> args) {
         helper.sendMessage(null, "test");
         for (String arg: args) {
             helper.sendMessage(null, arg);
@@ -29,7 +29,7 @@ public class DispatchIntegrationTests {
     }
 
     @CommandHandler(commandName = "foo.bar")
-    public static void fooBar(Helpable<Object, Object> helper, List<String> args) {
+    public static void fooBar(AbstractDispatcher<Object, Object> helper, List<String> args) {
         helper.sendMessage(null, "test");
         for (String arg: args) {
             helper.sendMessage(null, arg);
@@ -43,13 +43,13 @@ public class DispatchIntegrationTests {
     }
 
     @CommandHandler(commandName = "foo")
-    public static void foo(Helpable<Object, Object> helper, FooOpts opts) {
+    public static void foo(AbstractDispatcher<Object, Object> helper, FooOpts opts) {
         helper.sendMessage(null, "test");
         helper.sendMessage(null, opts.toggle.toString());
     }
 
     @CommandHandler(commandName = "foo.bar.baz")
-    public static void fooBarBaz(Helpable<Object, Object> helper, FooOpts opts, List<String> args) {
+    public static void fooBarBaz(AbstractDispatcher<Object, Object> helper, FooOpts opts, List<String> args) {
         helper.sendMessage(null, "test");
         for (String arg: args) {
             helper.sendMessage(null, arg);
@@ -59,7 +59,7 @@ public class DispatchIntegrationTests {
 
     @CommandHandler(commandName = "cooldown")
     @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, sendCooldownMessage = true)
-    public static void cooldown(Helpable<Object, Object> helper) {
+    public static void cooldown(AbstractDispatcher<Object, Object> helper) {
         helper.sendMessage(null, "test");
     }
 

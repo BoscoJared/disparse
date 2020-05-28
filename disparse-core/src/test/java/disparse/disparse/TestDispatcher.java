@@ -1,15 +1,14 @@
 package disparse.disparse;
 
-import disparse.discord.Helpable;
+import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.utils.Shlex;
-import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestDispatcher extends Helpable<Object, Object> {
+public class TestDispatcher extends AbstractDispatcher<Object, Object> {
 
     List<String> messages = new ArrayList<>();
 

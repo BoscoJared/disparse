@@ -1,6 +1,6 @@
 package disparse.parser.dispatch;
 
-import disparse.discord.Helpable;
+import disparse.discord.AbstractDispatcher;
 import disparse.parser.*;
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequired;
@@ -82,7 +82,7 @@ public class CommandRegistrar<E, T> {
         this.injectables.add(method);
     }
 
-    public void dispatch(List<String> args, Helpable<E, T> helper, E event) {
+    public void dispatch(List<String> args, AbstractDispatcher<E, T> helper, E event) {
         List<String> originalArgs = new ArrayList<>(args);
         ParsedOutput parsedOutput = this.parse(args, helper, event);
         if (parsedOutput == null) return;
@@ -112,7 +112,7 @@ public class CommandRegistrar<E, T> {
         }
     }
 
-    private boolean canSendTo(Helpable<E, T> helper, E event, Command command) {
+    private boolean canSendTo(AbstractDispatcher<E, T> helper, E event, Command command) {
         IncomingScope acceptFrom = command.getAcceptFrom();
 
         switch(acceptFrom) {
@@ -127,7 +127,7 @@ public class CommandRegistrar<E, T> {
         }
     }
 
-    private boolean help(List<String> args, Helpable<E, T> helper, E event, ParsedOutput parsedOutput, Command command) {
+    private boolean help(List<String> args, AbstractDispatcher<E, T> helper, E event, ParsedOutput parsedOutput, Command command) {
         String parentName = command.getParentName();
         if (parentName != null) {
             command = this.commandTable.keySet()
@@ -149,7 +149,7 @@ public class CommandRegistrar<E, T> {
         return false;
     }
 
-    private void helpCommand(List<String> args, Helpable<E, T> helper, E event, ParsedOutput parsedOutput) {
+    private void helpCommand(List<String> args, AbstractDispatcher<E, T> helper, E event, ParsedOutput parsedOutput) {
         args = new ArrayList<>(args);
 
         if (args.size() <= 1) {
@@ -187,7 +187,7 @@ public class CommandRegistrar<E, T> {
         this.emitHelp(args, helper, event, foundCommand);
     }
 
-    private Command prefixHelp(List<String> args, Helpable<E, T> helper, E event, String prefix) {
+    private Command prefixHelp(List<String> args, AbstractDispatcher<E, T> helper, E event, String prefix) {
         PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
         List<Command> prefixes = prefixContainer.getPrefixes();
         String foundPrefix = prefixContainer.getFoundPrefix();
@@ -201,7 +201,7 @@ public class CommandRegistrar<E, T> {
         return null;
     }
 
-    private void emitHelp(List<String> args, Helpable<E, T> helper, E event, Command command) {
+    private void emitHelp(List<String> args, AbstractDispatcher<E, T> helper, E event, Command command) {
         List<String> translatedArgs = new ArrayList<>();
         Parser parser = new Parser(this.commandToFlags);
         translatedArgs.add("help");
@@ -212,7 +212,7 @@ public class CommandRegistrar<E, T> {
         helper.help(event, command, commandToFlags.get(command), commandTable.keySet(), pageLimit);
     }
 
-    private void emitCommand(List<String> args, Helpable<E, T> helper, E event, ParsedOutput parsedOutput, Command foundCommand)
+    private void emitCommand(List<String> args, AbstractDispatcher<E, T> helper, E event, ParsedOutput parsedOutput, Command foundCommand)
             throws ReflectiveOperationException, OptionRequired {
         Method commandHandler = commandTable.get(foundCommand);
 
@@ -320,14 +320,14 @@ public class CommandRegistrar<E, T> {
         cooldown(foundCommand, helper, event);
     }
 
-    private void cooldown(Command command, Helpable<E, T> helper, E event) {
+    private void cooldown(Command command, AbstractDispatcher<E, T> helper, E event) {
         if (!command.getCooldownDuration().isZero()) {
             Pair<String> pair = createPairWithScope(command, helper, event);
             helper.getCooldownManager().cooldown(pair);
         }
     }
 
-    private boolean isOnCooldown(Command command, Helpable<E, T> helper, E event) {
+    private boolean isOnCooldown(Command command, AbstractDispatcher<E, T> helper, E event) {
         Duration cooldownDuration = command.getCooldownDuration();
         Cooldown cooldownManager = helper.getCooldownManager();
         CooldownScope scope = command.getScope();
@@ -348,7 +348,7 @@ public class CommandRegistrar<E, T> {
         return false;
     }
 
-    private Pair<String> createPairWithScope(Command command, Helpable<E, T> helper, E event) {
+    private Pair<String> createPairWithScope(Command command, AbstractDispatcher<E, T> helper, E event) {
         String commandName = command.getParentName();
         if (commandName == null) {
             commandName = command.getCommandName();
@@ -365,7 +365,7 @@ public class CommandRegistrar<E, T> {
         return Pair.of(null, null);
     }
 
-    private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, Helpable<E, T> helper)
+    private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, AbstractDispatcher<E, T> helper)
             throws ReflectiveOperationException {
         if (clazz.isAssignableFrom(List.class)) {
             objects[index] = args;
@@ -386,7 +386,7 @@ public class CommandRegistrar<E, T> {
         }
     }
 
-    private ParsedOutput parse(List<String> args, Helpable<E, T> helper, E event) {
+    private ParsedOutput parse(List<String> args, AbstractDispatcher<E, T> helper, E event) {
         Parser parser = new Parser(this.commandToFlags);
 
         try {
@@ -400,7 +400,7 @@ public class CommandRegistrar<E, T> {
         return null;
     }
 
-    private void noCommandNameFound(List<String> args, Helpable<E, T> helper, E event) {
+    private void noCommandNameFound(List<String> args, AbstractDispatcher<E, T> helper, E event) {
         PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
         List<Command> prefixMatchedCommands = prefixContainer.getPrefixes();
         String foundPrefix = prefixContainer.getFoundPrefix();

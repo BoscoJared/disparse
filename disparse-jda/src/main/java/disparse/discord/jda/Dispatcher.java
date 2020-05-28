@@ -1,6 +1,6 @@
 package disparse.discord.jda;
 
-import disparse.discord.Helpable;
+import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class Dispatcher extends Helpable<MessageReceivedEvent, EmbedBuilder> {
+public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBuilder> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 

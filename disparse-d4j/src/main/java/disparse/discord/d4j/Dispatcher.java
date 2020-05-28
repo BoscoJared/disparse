@@ -1,6 +1,5 @@
 package disparse.discord.d4j;
 
-import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Member;
@@ -9,7 +8,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
-import disparse.discord.Helpable;
+import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
@@ -21,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class Dispatcher extends Helpable<MessageCreateEvent, EmbedCreateSpec> {
+public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCreateSpec> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
 
