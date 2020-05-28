@@ -15,6 +15,7 @@ The `@CommandHandler` annotation accepts the following fields:
 | roles         | String[]      | The roles that are allowed to call this command.  Default is empty array and allows anyone to call the command. |
 | canBeDisabled | boolean       | If the command is allowed to be toggled on / off.  Default is true.                                             |
 | canAccept     | IncomingScope | If the command should only respond to commands in specific types of channels.  Default is ALL.                  |
+| aliases       | String[]      | Aliases that also point to the same command.  Default is empty array.                                           |
 
 <br />
 ## Subcommands

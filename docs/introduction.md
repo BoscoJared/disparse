@@ -11,6 +11,7 @@ Disparse is an ergonomic, simple, and easy-to-use command parsing and dispatchin
 Disparse offers the ability to easily create commands, as well as handle their invocation in a CLI-like way.  Disparses features include:
 
 - [Easy command creation](#creating-a-command)
+- Command aliases
 - [Command arguments](#arguments)
 - [Command flags](#flags)
     - [Flag types](#flag-types)
@@ -18,6 +19,7 @@ Disparse offers the ability to easily create commands, as well as handle their i
 - [Role based access](#roles)
 - [Help command generation](#help-commands)
 - [Subcommands](#subcommands)
+- Cooldowns / rate limiting commands
 - [Injectable command entities](#injectables)
 
 Disparse does not make a choice for which Discord library to use.  The API is designed in such a way that it is possible to plug new libraries in easily.  Currently, three libraries are supported:
