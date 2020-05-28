@@ -54,12 +54,12 @@ public class TestDispatcher extends Helpable<Object, Object> {
 
     @Override
     public String identityFromEvent(Object event) {
-        return null;
+        return "USER";
     }
 
     @Override
     public String channelFromEvent(Object event) {
-        return null;
+        return "CHANNEL";
     }
 
     @Override

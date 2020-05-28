@@ -1,15 +1,14 @@
 package disparse.disparse;
 
 import disparse.discord.Helpable;
-import disparse.parser.reflection.CommandHandler;
-import disparse.parser.reflection.Detector;
-import disparse.parser.reflection.Flag;
-import disparse.parser.reflection.ParsedEntity;
+import disparse.parser.reflection.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
 
@@ -56,6 +55,12 @@ public class DispatchIntegrationTests {
             helper.sendMessage(null, arg);
         }
         helper.sendMessage(null, opts.toggle.toString());
+    }
+
+    @CommandHandler(commandName = "cooldown")
+    @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, sendCooldownMessage = true)
+    public static void cooldown(Helpable<Object, Object> helper) {
+        helper.sendMessage(null, "test");
     }
 
     @BeforeAll
@@ -149,6 +154,22 @@ public class DispatchIntegrationTests {
 
         List<String> inOrderMessages = List.of("`noCommand` is not a valid command!",
                 "Use !help to get a list of all available commands.");
+
+        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    }
+
+    @Test
+    public void testCommandWithSimpleUserCooldown() throws Exception {
+        dispatcher.dispatch("!cooldown");
+        dispatcher.dispatch("!cooldown");
+
+        TimeUnit.MILLISECONDS.sleep(50);
+
+        dispatcher.dispatch("!cooldown");
+
+        List<String> inOrderMessages = List.of("test",
+                "This command has a per-user cooldown!",
+                "test");
 
         Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
     }
