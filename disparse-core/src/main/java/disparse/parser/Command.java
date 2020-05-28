@@ -5,6 +5,7 @@ import disparse.parser.dispatch.IncomingScope;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Set;
 
 public class Command {
 
@@ -16,13 +17,15 @@ public class Command {
     private final CooldownScope scope;
     private final boolean sendCooldownMessage;
     private final IncomingScope acceptFrom;
+    private final String[] aliases;
+    private String parentName = null;
 
     public Command(final String name, final String description) {
-        this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL);
+        this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{});
     }
 
     public Command(final String name, final String description, final boolean canBeDisabled) {
-        this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL);
+        this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{});
     }
 
     public Command(final String name,
@@ -32,7 +35,8 @@ public class Command {
                    final Duration cooldownDuration,
                    final CooldownScope scope,
                    final boolean sendCooldownMessage,
-                   final IncomingScope acceptFrom) {
+                   final IncomingScope acceptFrom,
+                   final String[] aliases) {
         this.name = name;
         this.description = description;
         this.roles = roles;
@@ -41,6 +45,7 @@ public class Command {
         this.scope = scope;
         this.sendCooldownMessage = sendCooldownMessage;
         this.acceptFrom = acceptFrom;
+        this.aliases = aliases;
     }
 
     public String getCommandName() {
@@ -74,6 +79,12 @@ public class Command {
     public IncomingScope getAcceptFrom() {
         return this.acceptFrom;
     }
+
+    public String[] getAliases() { return this.aliases; }
+
+    public String getParentName() { return this.parentName; }
+
+    public void setParentName(String parentName) { this.parentName = parentName; }
 
     @Override
     public boolean equals(Object o) {

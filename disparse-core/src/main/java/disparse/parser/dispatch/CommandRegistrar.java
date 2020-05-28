@@ -43,11 +43,39 @@ public class CommandRegistrar<E, T> {
         this.commandToFlags.putIfAbsent(command, new HashSet<>());
         this.commandToFlags.get(command).add(helpFlag);
         this.commandTable.put(command, method);
+
+        for (String alias : command.getAliases()) {
+            Command aliasCommand = new Command(alias,
+                    command.getDescription(),
+                    command.getRoles(),
+                    command.canBeDisabled(),
+                    command.getCooldownDuration(),
+                    command.getScope(),
+                    command.isSendCooldownMessage(),
+                    command.getAcceptFrom(),
+                    new String[]{});
+            aliasCommand.setParentName(command.getCommandName());
+            register(aliasCommand, method);
+        }
     }
 
     public void register(Command command, CommandFlag flag) {
         this.commandToFlags.putIfAbsent(command, new HashSet<>());
         this.commandToFlags.get(command).add(flag);
+
+        for (String alias : command.getAliases()) {
+            Command aliasCommand = new Command(alias,
+                    command.getDescription(),
+                    command.getRoles(),
+                    command.canBeDisabled(),
+                    command.getCooldownDuration(),
+                    command.getScope(),
+                    command.isSendCooldownMessage(),
+                    command.getAcceptFrom(),
+                    new String[]{});
+            aliasCommand.setParentName(command.getCommandName());
+            register(aliasCommand, flag);
+        }
     }
 
     public void register(Method method) {
@@ -278,25 +306,9 @@ public class CommandRegistrar<E, T> {
         CooldownScope scope = command.getScope();
 
         if (!cooldownDuration.isZero()) {
-            Pair<String> pair = null;
-            Duration left;
-            String cooldownMessage = null;
-            switch (scope) {
-                case USER:
-                    pair = Pair.of(command.getCommandName(), helper.identityFromEvent(event));
-                    cooldownMessage = "This command has a per-user cooldown!";
-                    break;
-                case CHANNEL:
-                    pair = Pair.of(command.getCommandName(), helper.channelFromEvent(event));
-                    cooldownMessage = "This command has a per-channel cooldown!";
-                    break;
-                case GUILD:
-                    pair = Pair.of(command.getCommandName(), null);
-                    cooldownMessage = "This command has a per-guild cooldown";
-                    break;
-            }
-
-            left = cooldownManager.timeLeft(pair, cooldownDuration);
+            Pair<String> pair = createPairWithScope(command, helper, event);
+            String cooldownMessage = scope.getCooldownMessage();
+            Duration left = cooldownManager.timeLeft(pair, cooldownDuration);
 
             if (!left.isZero()) {
                 if (command.isSendCooldownMessage()) {
@@ -310,13 +322,17 @@ public class CommandRegistrar<E, T> {
     }
 
     private Pair<String> createPairWithScope(Command command, Helpable<E, T> helper, E event) {
+        String commandName = command.getParentName();
+        if (commandName == null) {
+            commandName = command.getCommandName();
+        }
         switch (command.getScope()) {
             case USER:
-                return Pair.of(command.getCommandName(), helper.identityFromEvent(event));
+                return Pair.of(commandName, helper.identityFromEvent(event));
             case CHANNEL:
-                return Pair.of(command.getCommandName(), helper.channelFromEvent(event));
+                return Pair.of(commandName, helper.channelFromEvent(event));
             case GUILD:
-                return Pair.of(command.getCommandName(), null);
+                return Pair.of(commandName, null);
         }
 
         return Pair.of(null, null);

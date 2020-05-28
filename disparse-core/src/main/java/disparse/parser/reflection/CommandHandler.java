@@ -20,4 +20,6 @@ public @interface CommandHandler {
     boolean canBeDisabled() default true;
 
     IncomingScope acceptFrom() default IncomingScope.ALL;
+
+    String[] aliases() default {};
 }
