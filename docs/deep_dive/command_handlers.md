@@ -4,7 +4,10 @@ The annotation for a command handler is: `@CommandHandler`
 
 The annotation goes on methods that may either be non-static or static.
 
-The method should be void as the return value will not be used anywhere.
+The method may return:
+- void
+- String
+- T ( Builder depends on module being used )
 
 The `@CommandHandler` annotation accepts the following fields:
 
@@ -42,3 +45,57 @@ Command Handlers can accept many parameters:
 - D4J -> `discord4j.core.event.domain.message.MessageCreateEvent`
 - SmallD -> `disparse.discord.smalld.Event`
 - Unsupported -> If you implemented your own Dispatcher it is probably obvious which Event type you would be using as it is the same type defined in `Helpable<E, ?>
+
+
+### Return Values
+
+For convenience, command handlers can simply return a String or a `T Builder`.  These will be automatically sent to the same channel as the event came in on.  If there needs to be more control, a void method accepting the event will be the easiest way to decide exactly where a response should be sent.
+
+Consider the following:
+
+```java
+@CommandHandler(commandName = "ping")
+public static void pingVerbose(MessageReceivedEvent event) {
+    event.getChannel().sendMessage("pong").queue();
+}
+```
+
+could be rewritten as:
+
+```java
+@CommandHandler(commandName = "ping")
+public static String pingShort() {
+    return "pong";
+}
+```
+
+Sending Embeds depends on the specific module being used, but they are all similar and it is the specific type that will change.
+
+```java
+@CommandHandler(commandName = "embed")
+public static void sendEmbedVerbose(MessageReceivedEvent event) {
+    Embed embed = new EmbedBuilder()
+        .setTitle("hello")
+        .setDescription("world!").build();
+
+    event.getChannel().sendEmbed(embed).queue();
+}
+```
+
+could be rewritten as:
+
+```java
+public static EmbedBuilder sendEmbedShort() {
+    return new EmbedBuilder()
+        .setTitle("hello")
+        .setDescription("world!");
+}
+```
+
+If more complex behavior is desired, switch to the void return type and work with the event directly.
+
+### What builder type?
+
+- JDA -> `net.dv8tion.jda.api.EmbedBuilder`
+- D4J -> `discord4j.core.spec.EmbedCreateSpec`
+- SmallD -> `com.google.gson.JsonElement`
