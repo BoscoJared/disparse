@@ -307,7 +307,15 @@ public class CommandRegistrar<E, T> {
             handlerObj = bestCtor.newInstance(bestCtorParams);
         }
 
-        commandHandler.invoke(handlerObj, objects);
+        if (commandHandler.getReturnType().equals(String.class)) {
+            String msg = (String) commandHandler.invoke(handlerObj, objects);
+            helper.sendMessage(event, msg);
+        } else if (commandHandler.getReturnType() == helper.createBuilder().getClass()) {
+            T builder = (T) commandHandler.invoke(handlerObj, objects);
+            helper.sendEmbed(event, builder);
+        } else {
+            commandHandler.invoke(handlerObj, objects);
+        }
 
         cooldown(foundCommand, helper, event);
     }

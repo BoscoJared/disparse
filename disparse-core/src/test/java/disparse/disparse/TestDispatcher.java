@@ -44,7 +44,7 @@ public class TestDispatcher extends Helpable<Object, Object> {
 
     @Override
     public Object createBuilder() {
-        return null;
+        return new StringBuilder();
     }
 
     @Override
