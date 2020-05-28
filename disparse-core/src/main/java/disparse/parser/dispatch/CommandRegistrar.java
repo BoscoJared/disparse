@@ -128,6 +128,16 @@ public class CommandRegistrar<E, T> {
     }
 
     private boolean help(List<String> args, Helpable<E, T> helper, E event, ParsedOutput parsedOutput, Command command) {
+        String parentName = command.getParentName();
+        if (parentName != null) {
+            command = this.commandTable.keySet()
+                    .stream()
+                    .filter(c -> c.getCommandName().equals(parentName))
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (command == null) return false;
+
         if (command.getCommandName().equalsIgnoreCase("help")) {
             this.helpCommand(args, helper, event, parsedOutput);
             return true;
@@ -165,6 +175,15 @@ public class CommandRegistrar<E, T> {
 
         if (foundCommand == null) return; // no prefix was matched so we can't really help
 
+        String parentName = foundCommand.getParentName();
+
+        if (parentName != null) {
+            foundCommand = this.commandTable.keySet()
+                    .stream()
+                    .filter(c -> c.getCommandName().equals(parentName))
+                    .findFirst()
+                    .orElse(foundCommand);
+        }
         this.emitHelp(args, helper, event, foundCommand);
     }
 

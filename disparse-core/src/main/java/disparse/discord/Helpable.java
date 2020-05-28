@@ -9,6 +9,7 @@ import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -42,6 +43,13 @@ public abstract class Helpable<E, T> {
         T builder = createBuilder();
         setBuilderTitle(builder, Help.getTitle(command));
         setBuilderDescription(builder, Help.getDescriptionUsage(command));
+
+        if (command.getAliases().length > 0) {
+            String[] aliases = command.getAliases();
+            Arrays.sort(aliases, Comparator.comparingInt(String::length));
+            String aliasString = String.join(", ", aliases);
+            addField(builder, "Aliases", aliasString, false);
+        }
 
         if (!command.getCooldownDuration().isZero()) {
             String type = "";
