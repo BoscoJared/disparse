@@ -8,6 +8,7 @@ import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -41,6 +42,22 @@ public abstract class Helpable<E, T> {
         T builder = createBuilder();
         setBuilderTitle(builder, Help.getTitle(command));
         setBuilderDescription(builder, Help.getDescriptionUsage(command));
+
+        if (!command.getCooldownDuration().isZero()) {
+            String type = "";
+            switch(command.getScope()) {
+                case USER:
+                    type = "User";
+                    break;
+                case CHANNEL:
+                    type = "Channel";
+                    break;
+                case GUILD:
+                    type = "Guild";
+                    break;
+            }
+            addField(builder, type + " Cooldown Enabled", humanReadableFormat(command.getCooldownDuration()), false);
+        }
 
         List<Command> subcommands = Help.findSubcommands(command, commands);
         String currentlyViewing;
@@ -224,6 +241,13 @@ public abstract class Helpable<E, T> {
             actualClass.cooldownManager = cooldown;
             return actualClassBuilder;
         }
+    }
+
+    private static String humanReadableFormat(Duration duration) {
+        return duration.toString()
+                .substring(2)
+                .replaceAll("(\\d[HMS])(?!$)", "$1 ")
+                .toLowerCase();
     }
 
 }
