@@ -1,4 +1,4 @@
-package disparse.parser.dispatch;
+package disparse.discord.manager;
 
 import disparse.discord.AbstractDispatcher;
 

@@ -1,6 +1,7 @@
 package disparse.parser.dispatch;
 
 import disparse.discord.AbstractDispatcher;
+import disparse.discord.manager.CooldownManager;
 import disparse.parser.*;
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequired;
@@ -329,7 +330,7 @@ public class CommandRegistrar<E, T> {
 
     private boolean isOnCooldown(Command command, AbstractDispatcher<E, T> helper, E event) {
         Duration cooldownDuration = command.getCooldownDuration();
-        Cooldown cooldownManager = helper.getCooldownManager();
+        CooldownManager cooldownManager = helper.getCooldownManager();
         CooldownScope scope = command.getScope();
 
         if (!cooldownDuration.isZero()) {

@@ -2,10 +2,10 @@ package disparse.discord;
 
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
-import disparse.parser.dispatch.Cooldown;
-import disparse.parser.dispatch.InMemoryCooldown;
-import disparse.parser.dispatch.InMemoryPrefixManager;
-import disparse.parser.dispatch.PrefixManager;
+import disparse.discord.manager.CooldownManager;
+import disparse.discord.manager.provided.InMemoryCooldownManager;
+import disparse.discord.manager.provided.InMemoryPrefixManager;
+import disparse.discord.manager.PrefixManager;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
@@ -22,7 +22,7 @@ public abstract class AbstractDispatcher<E, T> {
     protected PrefixManager<E, T> prefixManager;
     protected String description;
     protected int pageLimit;
-    protected Cooldown cooldownManager;
+    protected CooldownManager cooldownManager;
 
     public AbstractDispatcher(String prefix) {
         this(prefix, 5, "");
@@ -36,7 +36,7 @@ public abstract class AbstractDispatcher<E, T> {
         this.prefixManager = new InMemoryPrefixManager<>(prefix);
         this.pageLimit = pageLimit;
         this.description = description;
-        this.cooldownManager = new InMemoryCooldown();
+        this.cooldownManager = new InMemoryCooldownManager();
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
@@ -145,7 +145,7 @@ public abstract class AbstractDispatcher<E, T> {
         return this.description;
     }
 
-    public Cooldown getCooldownManager() {
+    public CooldownManager getCooldownManager() {
         return this.cooldownManager;
     }
 
@@ -254,8 +254,8 @@ public abstract class AbstractDispatcher<E, T> {
             return actualClassBuilder;
         }
 
-        public B withCooldownStrategy(Cooldown cooldown) {
-            actualClass.cooldownManager = cooldown;
+        public B withCooldownStrategy(CooldownManager cooldownManager) {
+            actualClass.cooldownManager = cooldownManager;
             return actualClassBuilder;
         }
     }

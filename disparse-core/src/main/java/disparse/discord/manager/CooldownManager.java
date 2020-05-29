@@ -1,9 +1,11 @@
-package disparse.parser.dispatch;
+package disparse.discord.manager;
+
+import disparse.parser.dispatch.Pair;
 
 import java.time.Duration;
 import java.time.Instant;
 
-public interface Cooldown {
+public interface CooldownManager {
 
     Duration timeLeft(Pair<String> pair, Duration amount);
 

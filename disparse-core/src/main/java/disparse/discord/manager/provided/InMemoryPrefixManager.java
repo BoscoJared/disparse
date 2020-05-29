@@ -1,6 +1,7 @@
-package disparse.parser.dispatch;
+package disparse.discord.manager.provided;
 
 import disparse.discord.AbstractDispatcher;
+import disparse.discord.manager.PrefixManager;
 
 import java.util.concurrent.ConcurrentHashMap;
 
