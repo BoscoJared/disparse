@@ -1,6 +1,8 @@
 package disparse.discord;
 
 import disparse.discord.manager.DescriptionManager;
+import disparse.discord.manager.PageLimitManager;
+import disparse.discord.manager.provided.InMemoryPageLimitManager;
 import disparse.discord.manager.provided.SingleDescriptionManager;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
@@ -23,7 +25,7 @@ public abstract class AbstractDispatcher<E, T> {
 
     protected PrefixManager<E, T> prefixManager;
     protected DescriptionManager<E, T> descriptionManager;
-    protected int pageLimit;
+    protected PageLimitManager<E, T> pageLimitManager;
     protected CooldownManager cooldownManager;
 
     public AbstractDispatcher(String prefix) {
@@ -36,7 +38,7 @@ public abstract class AbstractDispatcher<E, T> {
 
     public AbstractDispatcher(String prefix, int pageLimit, String description) {
         this.prefixManager = new InMemoryPrefixManager<>(prefix);
-        this.pageLimit = pageLimit;
+        this.pageLimitManager = new InMemoryPageLimitManager<>(pageLimit);
         this.descriptionManager = new SingleDescriptionManager<>(description);
         this.cooldownManager = new InMemoryCooldownManager();
     }
@@ -74,7 +76,7 @@ public abstract class AbstractDispatcher<E, T> {
         List<Command> subcommands = Help.findSubcommands(command, commands);
         String currentlyViewing;
         try {
-            PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, getPageLimit());
+            PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, getPageLimit(event));
             subcommands = paginatedEntities.getCommands();
             flags = paginatedEntities.getFlags();
             currentlyViewing = paginatedEntities.getCurrentlyViewing();
@@ -115,7 +117,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         String currentlyViewing;
         try {
-            PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, getPageLimit());
+            PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, getPageLimit(event));
             commands = paginatedEntities.getCommands();
             currentlyViewing = paginatedEntities.getCurrentlyViewing();
         } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
@@ -139,8 +141,12 @@ public abstract class AbstractDispatcher<E, T> {
         this.prefixManager.setPrefixForGuild(event, this, prefix);
     }
 
-    public int getPageLimit() {
-        return this.pageLimit;
+    public int getPageLimit(E event) {
+        return this.pageLimitManager.pageLimitForGuild(event, this);
+    }
+
+    public void setPageLimit(E event, int pageLimit) {
+        this.pageLimitManager.setPageLimitForGuild(event, this, pageLimit);
     }
 
     public String getDescription(E event) {
@@ -257,7 +263,12 @@ public abstract class AbstractDispatcher<E, T> {
         }
 
         public B pageLimit(int pageLimit) {
-            actualClass.pageLimit = pageLimit;
+            actualClass.pageLimitManager = new InMemoryPageLimitManager<>(pageLimit);
+            return actualClassBuilder;
+        }
+
+        public B withPageLimitManager(PageLimitManager<E, T> pageLimitManager) {
+            actualClass.pageLimitManager = pageLimitManager;
             return actualClassBuilder;
         }
 
