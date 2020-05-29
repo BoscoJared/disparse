@@ -16,6 +16,8 @@ import disparse.utils.help.PaginatedEntities;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,7 @@ public abstract class AbstractDispatcher<E, T> {
     protected DescriptionManager<E, T> descriptionManager;
     protected PageLimitManager<E, T> pageLimitManager;
     protected CooldownManager cooldownManager;
+    protected ExecutorService executorService;
 
     protected List<BiFunction<E, String, Boolean>> registeredMiddleware = new ArrayList<>();
 
@@ -41,6 +44,7 @@ public abstract class AbstractDispatcher<E, T> {
         this.pageLimitManager = new InMemoryPageLimitManager<>(pageLimit);
         this.descriptionManager = new SingleDescriptionManager<>(description);
         this.cooldownManager = new InMemoryCooldownManager();
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
@@ -271,6 +275,11 @@ public abstract class AbstractDispatcher<E, T> {
 
         public B pageLimit(int pageLimit) {
             actualClass.pageLimitManager = new InMemoryPageLimitManager<>(pageLimit);
+            return actualClassBuilder;
+        }
+
+        public B withExecutorService(ExecutorService executorService) {
+            actualClass.executorService = executorService;
             return actualClassBuilder;
         }
 

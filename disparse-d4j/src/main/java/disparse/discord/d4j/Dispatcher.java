@@ -65,7 +65,8 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
         }
 
         List<String> args = Shlex.shlex(cleanedMessage);
-        CommandRegistrar.REGISTRAR.dispatch(args, this, event);
+
+        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
     }
 
     @Override

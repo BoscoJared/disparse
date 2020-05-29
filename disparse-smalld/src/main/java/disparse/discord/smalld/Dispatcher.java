@@ -78,7 +78,8 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         }
 
         List<String> args = Shlex.shlex(cleanedMessage);
-        CommandRegistrar.REGISTRAR.dispatch(args, this, event);
+
+        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
     }
 
     @Override
