@@ -7,6 +7,7 @@ nav:
   - DEEP DIVE:
       - Flags: deep_dive/flags.md
       - Command handlers: deep_dive/command_handlers.md
+      - Middleware: deep_dive/middleware.md
       - Cooldown: deep_dive/cooldown.md
       - Prefix Manager: deep_dive/prefix_manager.md
       - Injectables: deep_dive/injectables.md
