@@ -4,6 +4,8 @@ import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.Cooldown;
 import disparse.parser.dispatch.InMemoryCooldown;
+import disparse.parser.dispatch.InMemoryPrefixManager;
+import disparse.parser.dispatch.PrefixManager;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
@@ -17,7 +19,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractDispatcher<E, T> {
 
-    protected String prefix;
+    protected PrefixManager<E, T> prefixManager;
     protected String description;
     protected int pageLimit;
     protected Cooldown cooldownManager;
@@ -31,7 +33,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public AbstractDispatcher(String prefix, int pageLimit, String description) {
-        this.prefix = prefix;
+        this.prefixManager = new InMemoryPrefixManager<>(prefix);
         this.pageLimit = pageLimit;
         this.description = description;
         this.cooldownManager = new InMemoryCooldown();
@@ -127,12 +129,12 @@ public abstract class AbstractDispatcher<E, T> {
         sendEmbed(event, builder);
     }
 
-    public String getPrefix() {
-        return this.prefix;
+    public String getPrefix(E event) {
+        return this.prefixManager.prefixForGuild(event, this);
     }
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
+    public void setPrefix(E event, String prefix) {
+        this.prefixManager.setPrefixForGuild(event, this, prefix);
     }
 
     public int getPageLimit() {
@@ -189,6 +191,8 @@ public abstract class AbstractDispatcher<E, T> {
 
     public abstract String channelFromEvent(E event);
 
+    public abstract String guildFromEvent(E event);
+
     public abstract boolean isSentFromChannel(E event);
 
     public abstract boolean isSentFromDM(E event);
@@ -200,7 +204,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void commandNotFound(E event, String userInput) {
-        sendMessages(event, Help.commandNotFound(userInput, getPrefix()));
+        sendMessages(event, Help.commandNotFound(userInput, this.prefixManager.prefixForGuild(event, this)));
     }
 
     public void roleNotMet(E event, Command command) {
@@ -219,7 +223,7 @@ public abstract class AbstractDispatcher<E, T> {
         sendMessages(event, Help.incorrectOption(userChoice, flagName, options));
     }
 
-    protected static abstract class BaseBuilder<A extends AbstractDispatcher, B extends BaseBuilder> {
+    protected static abstract class BaseBuilder<E, T, A extends AbstractDispatcher<E, T>, B extends BaseBuilder> {
         protected A actualClass;
         protected B actualClassBuilder;
 
@@ -231,7 +235,12 @@ public abstract class AbstractDispatcher<E, T> {
         }
 
         public B prefix(String prefix) {
-            actualClass.prefix = prefix;
+            actualClass.prefixManager = new InMemoryPrefixManager<>(prefix);
+            return actualClassBuilder;
+        }
+
+        public B prefixManager(PrefixManager<E, T> prefixManager) {
+            actualClass.prefixManager = prefixManager;
             return actualClassBuilder;
         }
 

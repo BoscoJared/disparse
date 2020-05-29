@@ -8,6 +8,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.rest.util.Snowflake;
 import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
@@ -53,9 +54,10 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
         if (event.getMessage().getAuthor().get().isBot()) return;
 
         String raw = event.getMessage().getContent();
-        if (!raw.startsWith(prefix)) return;
+        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
+        if (!raw.startsWith(currentPrefix)) return;
 
-        String cleanedMessage = raw.substring(this.prefix.length());
+        String cleanedMessage = raw.substring(currentPrefix.length());
 
         if (cleanedMessage.isEmpty()) {
             logger.info("After removing the prefix, the message was empty.  Not continuing.");
@@ -154,7 +156,12 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
         return event.getMessage().getChannelId().toString();
     }
 
-    public static class Builder extends BaseBuilder<Dispatcher, Builder> {
+    @Override
+    public String guildFromEvent(MessageCreateEvent event) {
+        return event.getGuildId().map(Snowflake::asString).orElse(null);
+    }
+
+    public static class Builder extends BaseBuilder<MessageCreateEvent, EmbedCreateSpec, Dispatcher, Builder> {
         @Override
         protected Dispatcher getActual() {
             return new Dispatcher();

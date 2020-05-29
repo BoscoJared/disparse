@@ -65,11 +65,13 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
             return;
         }
         String raw = event.getMessage().getContentRaw();
-        if (!raw.startsWith(this.prefix)) {
+        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
+
+        if (!raw.startsWith(currentPrefix)) {
             return;
         }
 
-        String cleanedMessage = raw.substring(this.prefix.length());
+        String cleanedMessage = raw.substring(currentPrefix.length());
 
         if (cleanedMessage.isEmpty()) {
             logger.info("After removing the prefix, the message was empty.  Not continuing.");
@@ -121,6 +123,15 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
     }
 
     @Override
+    public String guildFromEvent(MessageReceivedEvent event) {
+        if (isSentFromChannel(event)) {
+            return event.getGuild().getId();
+        }
+
+        return null;
+    }
+
+    @Override
     public boolean isSentFromChannel(MessageReceivedEvent event) {
         return event.getChannelType() == ChannelType.TEXT;
     }
@@ -151,7 +162,7 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
         return true;
     }
 
-    public static class Builder extends BaseBuilder<Dispatcher, Builder> {
+    public static class Builder extends BaseBuilder<MessageReceivedEvent, EmbedBuilder, Dispatcher, Builder> {
         @Override
         protected Dispatcher getActual() {
             return new Dispatcher();

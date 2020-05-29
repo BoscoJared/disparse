@@ -62,6 +62,9 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
     }
 
     @Override
+    public String guildFromEvent(Object event) { return "GUILD"; }
+
+    @Override
     public boolean isSentFromChannel(Object event) {
         return false;
     }
@@ -72,11 +75,12 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
     }
 
     public void dispatch(String raw) {
-        if (!raw.startsWith(this.prefix)) {
+        String currentPrefix = this.prefixManager.prefixForGuild(null, this);
+        if (!raw.startsWith(currentPrefix)) {
             return;
         }
 
-        String cleanedMessage = raw.substring(this.prefix.length());
+        String cleanedMessage = raw.substring(currentPrefix.length());
 
         if (cleanedMessage.isEmpty()) {
             return;
@@ -86,7 +90,7 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
         CommandRegistrar.REGISTRAR.dispatch(args, this, new Object());
     }
 
-    public static class Builder extends BaseBuilder<TestDispatcher, Builder> {
+    public static class Builder extends BaseBuilder<Object, Object, TestDispatcher, Builder> {
 
         @Override
         protected TestDispatcher getActual() {

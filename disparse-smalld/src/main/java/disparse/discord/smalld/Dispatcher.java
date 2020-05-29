@@ -61,13 +61,16 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
 
     public void onMessageReceived(String message) {
         JsonObject json = JsonParser.parseString(message).getAsJsonObject();
+        Event event = new Event(this.smalld, json);
 
         if (!isMessageCreate(json) || isAuthorBot(json)) return;
 
         String raw = getMessageContent(json);
-        if (!raw.startsWith(this.prefix)) return;
+        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
 
-        String cleanedMessage = raw.substring(this.prefix.length());
+        if (!raw.startsWith(currentPrefix)) return;
+
+        String cleanedMessage = raw.substring(currentPrefix.length());
 
         if (cleanedMessage.isEmpty()) {
             logger.info("After removing the prefix, the message was empty.  Not continuing.");
@@ -75,7 +78,6 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         }
 
         List<String> args = Shlex.shlex(cleanedMessage);
-        Event event = new Event(this.smalld, json);
         CommandRegistrar.REGISTRAR.dispatch(args, this, event);
     }
 
@@ -97,6 +99,16 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     @Override
     public String channelFromEvent(Event event) {
         return Utils.getChannelId(event.getJson());
+    }
+
+    @Override
+    public String guildFromEvent(Event event) {
+
+        if (Utils.isTextChannel(event)) {
+            return Guilds.getGuildId(event);
+        }
+
+        return null;
     }
 
     @Override
@@ -162,7 +174,7 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         return Utils.isDm(event);
     }
 
-    public static class Builder extends BaseBuilder<Dispatcher, Builder> {
+    public static class Builder extends BaseBuilder<Event, JsonElement, Dispatcher, Builder> {
         @Override
         protected Dispatcher getActual() {
             return new Dispatcher();
