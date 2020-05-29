@@ -1,13 +1,13 @@
 package disparse.discord.manager;
 
-import disparse.parser.dispatch.Pair;
+import disparse.parser.dispatch.CooldownCompositeKey;
 
 import java.time.Duration;
 import java.time.Instant;
 
 public interface CooldownManager {
 
-    Duration timeLeft(Pair<String> pair, Duration amount);
+    Duration timeLeft(CooldownCompositeKey<String> cooldownCompositeKey, Duration amount);
 
     default Duration timeLeft(Instant then, Duration amount) {
         Instant now = Instant.now();
@@ -23,5 +23,5 @@ public interface CooldownManager {
         }
     }
 
-    void cooldown(Pair<String> pair);
+    void cooldown(CooldownCompositeKey<String> cooldownCompositeKey);
 }

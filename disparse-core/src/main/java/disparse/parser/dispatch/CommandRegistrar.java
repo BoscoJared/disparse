@@ -323,8 +323,8 @@ public class CommandRegistrar<E, T> {
 
     private void cooldown(Command command, AbstractDispatcher<E, T> helper, E event) {
         if (!command.getCooldownDuration().isZero()) {
-            Pair<String> pair = createPairWithScope(command, helper, event);
-            helper.getCooldownManager().cooldown(pair);
+            CooldownCompositeKey<String> cooldownCompositeKey = createPairWithScope(command, helper, event);
+            helper.getCooldownManager().cooldown(cooldownCompositeKey);
         }
     }
 
@@ -334,9 +334,9 @@ public class CommandRegistrar<E, T> {
         CooldownScope scope = command.getScope();
 
         if (!cooldownDuration.isZero()) {
-            Pair<String> pair = createPairWithScope(command, helper, event);
+            CooldownCompositeKey<String> cooldownCompositeKey = createPairWithScope(command, helper, event);
             String cooldownMessage = scope.getCooldownMessage();
-            Duration left = cooldownManager.timeLeft(pair, cooldownDuration);
+            Duration left = cooldownManager.timeLeft(cooldownCompositeKey, cooldownDuration);
 
             if (!left.isZero()) {
                 if (command.isSendCooldownMessage()) {
@@ -349,21 +349,23 @@ public class CommandRegistrar<E, T> {
         return false;
     }
 
-    private Pair<String> createPairWithScope(Command command, AbstractDispatcher<E, T> helper, E event) {
+    private CooldownCompositeKey<String> createPairWithScope(Command command, AbstractDispatcher<E, T> helper, E event) {
         String commandName = command.getParentName();
         if (commandName == null) {
             commandName = command.getCommandName();
         }
+
+        String guildId = helper.guildFromEvent(event);
         switch (command.getScope()) {
             case USER:
-                return Pair.of(commandName, helper.identityFromEvent(event));
+                return CooldownCompositeKey.of(guildId, helper.identityFromEvent(event), commandName);
             case CHANNEL:
-                return Pair.of(commandName, helper.channelFromEvent(event));
+                return CooldownCompositeKey.of(guildId, helper.channelFromEvent(event), commandName);
             case GUILD:
-                return Pair.of(commandName, null);
+                return CooldownCompositeKey.of(guildId, null, commandName);
         }
 
-        return Pair.of(null, null);
+        return CooldownCompositeKey.of(null, null, null);
     }
 
     private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, AbstractDispatcher<E, T> helper)
