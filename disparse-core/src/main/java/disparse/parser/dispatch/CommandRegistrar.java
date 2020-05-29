@@ -221,6 +221,15 @@ public class CommandRegistrar<E, T> {
             return;
         }
 
+        String realCommandName = foundCommand.getParentName();
+        if (realCommandName == null) {
+            realCommandName = foundCommand.getCommandName();
+        }
+
+        if (!helper.runMiddleware(event, realCommandName)) {
+            return;
+        }
+
         Object[] objects = new Object[commandHandler.getParameterTypes().length];
 
         int i = 0;

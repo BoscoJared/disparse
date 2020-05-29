@@ -15,10 +15,8 @@ import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public abstract class AbstractDispatcher<E, T> {
@@ -27,6 +25,8 @@ public abstract class AbstractDispatcher<E, T> {
     protected DescriptionManager<E, T> descriptionManager;
     protected PageLimitManager<E, T> pageLimitManager;
     protected CooldownManager cooldownManager;
+
+    protected List<BiFunction<E, String, Boolean>> registeredMiddleware = new ArrayList<>();
 
     public AbstractDispatcher(String prefix) {
         this(prefix, 5, "");
@@ -181,6 +181,13 @@ public abstract class AbstractDispatcher<E, T> {
         }
     }
 
+    public boolean runMiddleware(E event, String command) {
+        if (this.registeredMiddleware.size() == 0) return true;
+
+        return this.registeredMiddleware.stream().allMatch(f -> f.apply(event, command));
+
+    }
+
     public abstract boolean commandRolesNotMet(E event, Command command);
 
     public abstract void sendMessage(E event, String message);
@@ -274,6 +281,11 @@ public abstract class AbstractDispatcher<E, T> {
 
         public B withCooldownStrategy(CooldownManager cooldownManager) {
             actualClass.cooldownManager = cooldownManager;
+            return actualClassBuilder;
+        }
+
+        public B withMiddleware(BiFunction<E, String, Boolean> middleware) {
+            actualClass.registeredMiddleware.add(middleware);
             return actualClassBuilder;
         }
     }
