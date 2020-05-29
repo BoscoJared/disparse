@@ -1,5 +1,7 @@
 package disparse.discord;
 
+import disparse.discord.manager.DescriptionManager;
+import disparse.discord.manager.provided.SingleDescriptionManager;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.discord.manager.CooldownManager;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractDispatcher<E, T> {
 
     protected PrefixManager<E, T> prefixManager;
-    protected String description;
+    protected DescriptionManager<E, T> descriptionManager;
     protected int pageLimit;
     protected CooldownManager cooldownManager;
 
@@ -35,7 +37,7 @@ public abstract class AbstractDispatcher<E, T> {
     public AbstractDispatcher(String prefix, int pageLimit, String description) {
         this.prefixManager = new InMemoryPrefixManager<>(prefix);
         this.pageLimit = pageLimit;
-        this.description = description;
+        this.descriptionManager = new SingleDescriptionManager<>(description);
         this.cooldownManager = new InMemoryCooldownManager();
     }
 
@@ -104,7 +106,7 @@ public abstract class AbstractDispatcher<E, T> {
 
     public void allCommands(E event, Collection<Command> commands, int pageNumber) {
         T builder = createBuilder();
-        String title = this.getDescription();
+        String title = this.getDescription(event);
         if (title == null || title.equals("")) {
             title = "All Commands";
         }
@@ -141,8 +143,8 @@ public abstract class AbstractDispatcher<E, T> {
         return this.pageLimit;
     }
 
-    public String getDescription() {
-        return this.description;
+    public String getDescription(E event) {
+        return this.descriptionManager.descriptionForGuild(event, this);
     }
 
     public CooldownManager getCooldownManager() {
@@ -245,7 +247,12 @@ public abstract class AbstractDispatcher<E, T> {
         }
 
         public B description(String description) {
-            actualClass.description = description;
+            actualClass.descriptionManager = new SingleDescriptionManager<>(description);
+            return actualClassBuilder;
+        }
+
+        public B descriptionManager(DescriptionManager<E, T> descriptionManager) {
+            actualClass.descriptionManager = descriptionManager;
             return actualClassBuilder;
         }
 
