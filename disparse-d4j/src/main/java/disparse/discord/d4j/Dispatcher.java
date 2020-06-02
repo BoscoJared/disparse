@@ -108,6 +108,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
     }
 
     @Override
+    public boolean commandIntentsNotMet(MessageCreateEvent event, Command command) {
+        return false;
+    }
+
+    @Override
     public boolean isSentFromChannel(MessageCreateEvent event) {
         return event.getMessage().getChannel().block() instanceof TextChannel;
     }
