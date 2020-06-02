@@ -194,6 +194,8 @@ public abstract class AbstractDispatcher<E, T> {
 
     public abstract boolean commandRolesNotMet(E event, Command command);
 
+    public abstract boolean commandIntentsNotMet(E event, Command command);
+
     public abstract void sendMessage(E event, String message);
 
     public abstract void setBuilderTitle(T builder, String title);
