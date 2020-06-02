@@ -22,6 +22,9 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
     }
 
     @Override
+    public boolean commandIntentsNotMet(Object event, Command command) { return false; }
+
+    @Override
     public void sendMessage(Object event, String message) {
         this.messages.add(message);
     }

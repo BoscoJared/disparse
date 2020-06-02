@@ -22,7 +22,7 @@ public @interface CommandHandler {
 
     IncomingScope acceptFrom() default IncomingScope.ALL;
 
-    AbstractPermission[] intents() default {};
+    AbstractPermission[] perms() default {};
 
     String[] aliases() default {};
 }

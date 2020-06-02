@@ -52,7 +52,7 @@ public class Detector {
                                         sendCooldownMessage = cooldown.sendCooldownMessage();
                                     }
                                     Command command =
-                                            new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled(), cooldownDuration, scope, sendCooldownMessage, acceptFrom, handler.aliases());
+                                            new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled(), cooldownDuration, scope, sendCooldownMessage, acceptFrom, handler.aliases(), handler.perms());
                                     for (Class<?> paramClazz : method.getParameterTypes()) {
                                         if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
                                             Field[] fields = allImplicitFields(paramClazz);

@@ -54,7 +54,8 @@ public class CommandRegistrar<E, T> {
                     command.getScope(),
                     command.isSendCooldownMessage(),
                     command.getAcceptFrom(),
-                    new String[]{});
+                    new String[]{},
+                    command.getPerms());
             aliasCommand.setParentName(command.getCommandName());
             register(aliasCommand, method);
         }
@@ -73,7 +74,8 @@ public class CommandRegistrar<E, T> {
                     command.getScope(),
                     command.isSendCooldownMessage(),
                     command.getAcceptFrom(),
-                    new String[]{});
+                    new String[]{},
+                    command.getPerms());
             aliasCommand.setParentName(command.getCommandName());
             register(aliasCommand, flag);
         }
