@@ -153,7 +153,7 @@ public class CommandRegistrar<E, T> {
     private void helpCommand(List<String> args, AbstractDispatcher<E, T> helper, E event, ParsedOutput parsedOutput) {
         args = new ArrayList<>(args);
 
-        if (args.size() <= 1) {
+        if (parsedOutput.getArguments().size() <= 1) {
             int pageLimit = Integer.parseInt((String) parsedOutput.getOptions().getOrDefault(helpPageFlag, "1"));
             helper.allCommands(event, commandTable.keySet(), pageLimit);
             return;
