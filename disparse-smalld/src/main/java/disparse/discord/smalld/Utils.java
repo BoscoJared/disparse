@@ -36,7 +36,7 @@ public class Utils {
     public static boolean isTextChannel(Event event) {
         String channelId = getChannelId(event.getJson());
 
-        JsonObject channelObj = new Gson().fromJson(event.getSmalld().get("/channels/" + channelId), JsonObject.class);
+        JsonObject channelObj = Utils.getChannel(event, channelId);
 
         return channelObj.get("type").getAsInt() == 0;
     }
@@ -99,5 +99,9 @@ public class Utils {
     public static String getAuthorId(Event event) {
         JsonObject author = getAuthor(event.getJson());
         return author.get("id").getAsString();
+    }
+
+    public static JsonObject getChannel(Event event, String channelId) {
+        return new Gson().fromJson(event.getSmalld().get("/channels/" + channelId), JsonObject.class);
     }
 }

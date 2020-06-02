@@ -6,7 +6,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import disparse.discord.AbstractDispatcher;
+import disparse.discord.PermissionEnumConverter;
 import disparse.discord.smalld.guilds.Guilds;
+import disparse.discord.smalld.permissions.Permission;
+import disparse.discord.smalld.permissions.PermissionBase;
+import disparse.discord.smalld.permissions.PermissionUtils;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
@@ -15,6 +19,7 @@ import disparse.utils.help.Help;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static disparse.discord.smalld.Utils.*;
@@ -22,6 +27,8 @@ import static disparse.discord.smalld.Utils.*;
 public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
+
+    private PermissionEnumConverter<Permission> enumConverter = new PermissionMapping();
 
     private SmallD smalld;
 
@@ -157,7 +164,16 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
 
     @Override
     public boolean commandIntentsNotMet(Event event, Command command) {
-        return false;
+        if (command.getPerms().length == 0) {
+            return false;
+        }
+
+        return Arrays.stream(command.getPerms())
+                .map(enumConverter::into)
+                .noneMatch(p -> {
+                    PermissionBase perm = PermissionUtils.computeAllPerms(event);
+                    return perm.contains(p);
+                });
     }
 
     @Override

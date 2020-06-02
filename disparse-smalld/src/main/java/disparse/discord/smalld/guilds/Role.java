@@ -5,14 +5,14 @@ import java.util.Objects;
 public class Role {
     private String id;
     private String name;
-    private int permissions;
+    private long permissions;
     private int color;
     private boolean hoist;
     private int position;
     private boolean managed;
     private boolean mentionable;
 
-    public Role(String id, String name, int permissions, int color, boolean hoist, int position, boolean managed, boolean mentionable) {
+    public Role(String id, String name, long permissions, int color, boolean hoist, int position, boolean managed, boolean mentionable) {
         this.id = id;
         this.name = name;
         this.permissions = permissions;
@@ -45,7 +45,7 @@ public class Role {
         return name;
     }
 
-    public int getPermissions() {
+    public long getPermissions() {
         return permissions;
     }
 
