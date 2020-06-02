@@ -156,6 +156,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     }
 
     @Override
+    public boolean commandIntentsNotMet(Event event, Command command) {
+        return false;
+    }
+
+    @Override
     public void addField(JsonElement element, String name, String value, boolean inline) {
         JsonArray fields = element.getAsJsonObject().getAsJsonArray("fields");
         JsonObject field = new JsonObject();
