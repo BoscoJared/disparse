@@ -162,6 +162,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
         return true;
     }
 
+    @Override
+    public boolean commandIntentsNotMet(MessageReceivedEvent event, Command command) {
+        return false;
+    }
+
     public static class Builder extends BaseBuilder<MessageReceivedEvent, EmbedBuilder, Dispatcher, Builder> {
         @Override
         protected Dispatcher getActual() {
