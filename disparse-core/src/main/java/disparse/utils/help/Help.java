@@ -132,11 +132,11 @@ public class Help {
                                              int pageNumber,
                                              int pageLimit) throws PageNumberOutOfBounds {
 
-        int skipNum = (1 - pageNumber) * pageLimit;
+        int skipNum = (pageNumber - 1) * pageLimit;
         int total = commands.size() + flags.size();
         int pages = (int) Math.ceil((double) (total) / pageLimit);
 
-        if (skipNum > total) throw new PageNumberOutOfBounds(pageNumber, pages);
+        if (pageNumber > pages || pageNumber < 1) throw new PageNumberOutOfBounds(pageNumber, pages);
 
         List<Object> entities = Stream.concat(commands.stream(), flags.stream())
                 .skip(skipNum)
