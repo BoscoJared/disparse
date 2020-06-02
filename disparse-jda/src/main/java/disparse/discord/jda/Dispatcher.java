@@ -1,12 +1,14 @@
 package disparse.discord.jda;
 
 import disparse.discord.AbstractDispatcher;
+import disparse.discord.PermissionEnumConverter;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -16,11 +18,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 import java.util.List;
 
 public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBuilder> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
+
+    private final PermissionEnumConverter<Permission> enumConverter = new PermissionMapping();
 
     public Dispatcher() { this(""); }
 
@@ -164,7 +169,14 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
 
     @Override
     public boolean commandIntentsNotMet(MessageReceivedEvent event, Command command) {
-        return false;
+
+        if (command.getPerms().length == 0) {
+            return false;
+        }
+
+        return Arrays.stream(command.getPerms())
+                .map(enumConverter::into)
+                .noneMatch(p -> event.getMember().hasPermission(p));
     }
 
     public static class Builder extends BaseBuilder<MessageReceivedEvent, EmbedBuilder, Dispatcher, Builder> {
