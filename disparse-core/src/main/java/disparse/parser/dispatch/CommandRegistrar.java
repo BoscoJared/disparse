@@ -97,7 +97,7 @@ public class CommandRegistrar<E, T> {
                 .findFirst()
                 .orElse(null);
         if (!commandTable.containsKey(command)) return;
-        if (helper.commandRolesNotMet(event, command)) {
+        if (helper.commandRolesNotMet(event, command) || helper.commandIntentsNotMet(event, command)) {
             helper.roleNotMet(event, command);
             return;
         }
