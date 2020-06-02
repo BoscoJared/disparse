@@ -1,5 +1,6 @@
 package disparse.parser.reflection;
 
+import disparse.discord.AbstractPermission;
 import disparse.parser.dispatch.IncomingScope;
 
 import java.lang.annotation.ElementType;
@@ -20,6 +21,8 @@ public @interface CommandHandler {
     boolean canBeDisabled() default true;
 
     IncomingScope acceptFrom() default IncomingScope.ALL;
+
+    AbstractPermission[] intents() default {};
 
     String[] aliases() default {};
 }
