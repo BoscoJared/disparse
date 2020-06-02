@@ -8,8 +8,10 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.rest.util.Permission;
 import discord4j.rest.util.Snowflake;
 import disparse.discord.AbstractDispatcher;
+import disparse.discord.PermissionEnumConverter;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.reflection.Detector;
@@ -18,12 +20,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCreateSpec> {
 
     private final static Logger logger = LoggerFactory.getLogger(Dispatcher.class);
+
+    private final PermissionEnumConverter<Permission> enumConverter = new PermissionMapping();
 
     public Dispatcher() {this("", 5, "");}
 
@@ -109,7 +114,19 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
 
     @Override
     public boolean commandIntentsNotMet(MessageCreateEvent event, Command command) {
-        return false;
+        if (command.getPerms().length == 0) {
+            return false;
+        }
+        return Arrays.stream(command.getPerms())
+                .map(enumConverter::into)
+                .noneMatch(p -> {
+
+                    Optional<Member> optionalMember = event.getMember();
+
+                    if (optionalMember.isEmpty()) return false;
+
+                    return optionalMember.get().getBasePermissions().block().contains(p);
+                });
     }
 
     @Override
