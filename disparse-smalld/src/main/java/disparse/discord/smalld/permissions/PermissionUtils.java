@@ -20,12 +20,9 @@ public class PermissionUtils {
   public static PermissionBase computeBasePermissions(Event event) {
     String userId = Utils.getAuthorId(event);
 
-    long perm = 0x0;
-    for (Role role : Guilds.getRolesForGuildMember(event, userId)) {
-      perm |= role.getPermissions();
-    }
-
-    return new PermissionBase(perm);
+    return Guilds.getRolesForGuildMember(event, userId).stream()
+            .map(r -> new PermissionBase(r.getPermissions()))
+            .reduce(new PermissionBase(0L), PermissionBase::plus);
   }
 
   public static PermissionBase computeOverwrites(PermissionBase permissionBase, Event event) {
@@ -68,7 +65,7 @@ public class PermissionUtils {
             .filter(Objects::nonNull)
             .forEach(overwrite -> {
               allow.updateAndGet(v -> v | overwrite.allow);
-              deny.updateAndGet(v -> v | overwrite.allow);
+              deny.updateAndGet(v -> v | overwrite.deny);
             });
 
     perms &= ~deny.get();
