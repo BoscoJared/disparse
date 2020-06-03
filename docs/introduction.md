@@ -17,6 +17,7 @@ Disparse offers the ability to easily create commands, as well as handle their i
     - [Flag types](#flag-types)
     - [Repeatable flags](#flag-types)
 - [Role based access](#roles)
+- [Perm based access](#perms)
 - [Help command generation](#help-commands)
 - [Subcommands](#subcommands)
 - Cooldowns / rate limiting commands
@@ -188,6 +189,22 @@ public static void execute(MessageReceivedEvent e) {
                     e.getMember().getEffectiveName() + "You've been warned!"));
 }
 ```
+
+### Perms
+
+Permissions are more general than role names.  This is a great way to limit commands to users that have certain general permissions within the executing guild.  Roles tie the command to a specific role name, which would not scale to multiple guilds not using the same role names for permissions.
+
+```java
+@CommandHandler(commandName = "ban", description = "Ban mentioned users", perms = AbstractPemission.BAN_MEMBERS)
+public static void execute(MessageReceivedEvent e) {
+    MessageChannel channel = e.getChannel();
+    e.getMessage().getMentionedMembers().forEach(
+            member -> channel.sendMessage(
+                    e.getMember().getEffectiveName() + "You've been warned!"));
+}
+```
+
+Now any user must possess the BAN_MEMBERS permission to be able to call and execute this command!
 
 ### Help commands
 
