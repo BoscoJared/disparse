@@ -48,7 +48,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
-        if (this.commandRolesNotMet(event, command)) return;
+        if (this.commandRolesNotMet(event, command) || this.commandIntentsNotMet(event, command)) return;
 
         T builder = createBuilder();
         setBuilderTitle(builder, Help.getTitle(command));
@@ -168,7 +168,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         List<Command> sortedCommands = commands.stream().sorted(Comparator
                 .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
-                .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd))
+                .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd) && !this.commandIntentsNotMet(event, cmd))
                 .collect(Collectors.toList());
 
         addCommandsToEmbed(builder, sortedCommands, event);
@@ -178,7 +178,7 @@ public abstract class AbstractDispatcher<E, T> {
 
     public void addCommandsToEmbed(T builder, List<Command> commands, E event) {
         for (Command command : commands) {
-            if (this.commandRolesNotMet(event, command)) {
+            if (this.commandRolesNotMet(event, command) || this.commandIntentsNotMet(event, command)) {
                 continue;
             }
             addField(builder, command.getCommandName(), command.getDescription(), false);
