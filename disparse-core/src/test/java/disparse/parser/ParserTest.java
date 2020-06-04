@@ -17,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ParserTest {
 
     private static Parser testParser;
-    private static CommandFlag flagOne = new CommandFlag("create", 'c', Types.LIST, false, "", Map.of());
+    private static CommandFlag flagOne = new CommandFlag("create", 'c', Types.STR_LIST, false, "", Map.of());
     private static CommandFlag flagTwo = new CommandFlag("update", 'u', Types.BOOL, false, "", Map.of());
     private static CommandFlag flagThree = new CommandFlag("read-only", 'r', Types.BOOL, false, "", Map.of());
     private static CommandFlag flagFour = new CommandFlag("delete", 'd', Types.BOOL, false, "", Map.of());
     private static CommandFlag flagFive = new CommandFlag("user", ' ', Types.STR, false, "", Map.of());
     private static CommandFlag flagSix = new CommandFlag("minutes", 'm', Types.INT, false, "", Map.of());
-    private static CommandFlag flagSeven = new CommandFlag("random", ' ', Types.LIST, false, "", Map.of());
+    private static CommandFlag flagSeven = new CommandFlag("random", ' ', Types.STR_LIST, false, "", Map.of());
 
     @BeforeAll
     static void initializeTestParser() {

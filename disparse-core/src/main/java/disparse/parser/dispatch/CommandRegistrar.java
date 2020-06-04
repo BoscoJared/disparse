@@ -13,9 +13,7 @@ import disparse.parser.reflection.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -112,6 +110,8 @@ public class CommandRegistrar<E, T> {
             logger.error("Error occurred", exec);
         } catch (OptionRequired exec) {
             helper.optionRequired(event, exec.getCommand(), exec.getFlag());
+        } catch (Exception exec) {
+            logger.error("Unhandled exception: ", exec);
         }
     }
 
@@ -251,7 +251,12 @@ public class CommandRegistrar<E, T> {
                             field.setAccessible(true);
 
                             if (flag.getType().equals(Types.INT)) {
-                                field.set(newObject, Integer.parseInt((String) val));
+                                try {
+                                    field.set(newObject, Integer.parseInt((String) val));
+                                } catch (NumberFormatException numberFormatException) {
+                                    helper.flagRequiresInt(event, flag, (String) val);
+                                    return;
+                                }
                             } else if (flag.getType().equals(Types.ENUM)) {
                                 Map<String, String> choices = flag.getChoices();
                                 String choice = choices.getOrDefault(val, (String) val);
@@ -266,6 +271,36 @@ public class CommandRegistrar<E, T> {
                                     helper.incorrectOption(event, (String) val, name, options);
                                     return;
                                 }
+                            } else if (flag.getType().equals(Types.INT_LIST)) {
+                                List<Integer> ints = new ArrayList<>();
+                                for (String str : (List<String>) val) {
+                                    try {
+                                        ints.add(Integer.parseInt(str));
+                                    } catch (NumberFormatException numberFormatException) {
+                                        helper.flagRequiresInt(event, flag, str);
+                                        return;
+                                    }
+                                }
+                                field.set(newObject, ints);
+                            } else if (flag.getType().equals(Types.ENUM_LIST)) {
+                                List<Enum<?>> enums = new ArrayList<>();
+                                Map<String, String> choices = flag.getChoices();
+                                Class<?> genericTypes = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                                for (String str : (List<String>) val) {
+                                    String choice = choices.getOrDefault(str, str);
+                                    try {
+                                        enums.add(Enum.valueOf((Class<Enum>) genericTypes, choice));
+                                    } catch (IllegalArgumentException illegalArgumentException) {
+                                        String name = flagAnnotation.longName();
+                                        if (name.equals("")) {
+                                            name = String.valueOf(flagAnnotation.shortName());
+                                        }
+                                        String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
+                                        helper.incorrectOption(event, choice, name, options);
+                                        return;
+                                    }
+                                }
+                                field.set(newObject, enums);
                             } else {
                                 field.set(newObject, val);
                             }

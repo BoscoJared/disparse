@@ -19,7 +19,7 @@ public class Parser {
             Map<CommandFlag, Object> optionMap, CommandFlag flag, Iterator<String> iter) {
         if (flag.getType() == Types.BOOL) {
             optionMap.put(flag, true);
-        } else if (flag.getType() == Types.LIST) {
+        } else if (Types.allLists().contains(flag.getType())) {
             optionMap.putIfAbsent(flag, new ArrayList<String>());
             if (iter.hasNext()) {
                 ((ArrayList<String>) optionMap.get(flag)).add(iter.next());

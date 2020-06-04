@@ -174,7 +174,7 @@ public class Help {
             flagName = String.format("-%s | --%s", flag.getShortName(), flag.getLongName());
         }
 
-        if (flag.getType() == Types.LIST) {
+        if (Types.allLists().contains(flag.getType())) {
             flagName = flagName + " [+]";
         }
 

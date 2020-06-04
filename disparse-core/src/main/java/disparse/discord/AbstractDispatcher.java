@@ -189,7 +189,12 @@ public abstract class AbstractDispatcher<E, T> {
         if (this.registeredMiddleware.size() == 0) return true;
 
         return this.registeredMiddleware.stream().allMatch(f -> f.apply(event, command));
+    }
 
+    public void flagRequiresInt(E event, CommandFlag flag, String received) {
+        String flagOutput = Help.flagToUserFriendlyString(flag);
+        String msg = "`" + flagOutput + "` requires an integer value!  Received:  `" + received + "`";
+        this.sendMessage(event, msg);
     }
 
     public abstract boolean commandRolesNotMet(E event, Command command);
