@@ -13,9 +13,9 @@
 
     <dependencies>
         <dependency>
-            <artifactId>JDA</artifactId>
             <groupId>net.dv8tion</groupId>
-            <version>4.BETA.0_32</version>
+            <artifactId>JDA</artifactId>
+            <version>4.1.1_156</version>
         </dependency>
         <dependency>
             <groupId>com.github.boscojared</groupId>
