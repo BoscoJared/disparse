@@ -1,5 +1,5 @@
 [![](https://jitpack.io/v/BoscoJared/disparse.svg)](https://jitpack.io/#BoscoJared/disparse) [![](https://jitci.com/gh/BoscoJared/disparse/svg)](https://jitci.com/gh/BoscoJared/disparse) [![Build Status](https://travis-ci.com/BoscoJared/disparse.svg?branch=master)](https://travis-ci.com/BoscoJared/disparse)
-[![Documentation Status](https://readthedocs.org/projects/disparse/badge/?version=latest)](https://disparse.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/disparse/badge/?version=latest)](https://disparse.readthedocs.io/en/latest/?badge=latest) [![Discord](https://img.shields.io/discord/417389758470422538)](https://discord.gg/3aTVQtz)
 
 # Disparse
 An ergonomic, simple, and easy-to-use command parsing and dispatching library for Discord bots.
