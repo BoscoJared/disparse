@@ -76,7 +76,10 @@ public abstract class AbstractDispatcher<E, T> {
             addField(builder, type + " Cooldown Enabled", humanReadableFormat(command.getCooldownDuration()), false);
         }
 
-        List<Command> subcommands = Help.findSubcommands(command, commands);
+        List<Command> subcommands = Help.findSubcommands(command, commands).stream()
+                .filter(c -> !this.commandRolesNotMet(event, c) && !this.commandIntentsNotMet(event, c))
+                .collect(Collectors.toList());
+
         String currentlyViewing;
         try {
             PaginatedEntities paginatedEntities = Help.paginate(subcommands, Help.sortFlags(flags), pageNumber, getPageLimit(event));
@@ -114,6 +117,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         Collection<Command> filteredCommands = commands.stream()
                 .filter(c -> this.disabledCommandManager.commandAllowedInGuild(guildId, c))
+                .filter(c -> !this.commandRolesNotMet(event, c) && !this.commandIntentsNotMet(event, c))
                 .collect(Collectors.toList());
 
         T builder = createBuilder();
@@ -173,10 +177,11 @@ public abstract class AbstractDispatcher<E, T> {
 
         String guildId = guildFromEvent(event);
 
-        List<Command> sortedCommands = commands.stream().sorted(Comparator
-                .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
+        List<Command> sortedCommands = commands.stream()
                 .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd) && !this.commandIntentsNotMet(event, cmd))
                 .filter((Command cmd) -> this.disabledCommandManager.commandAllowedInGuild(guildId, cmd))
+                .sorted(Comparator.comparing((Command cmd) ->
+                        cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
                 .collect(Collectors.toList());
 
         addCommandsToEmbed(builder, sortedCommands, event);
@@ -187,12 +192,6 @@ public abstract class AbstractDispatcher<E, T> {
     public void addCommandsToEmbed(T builder, List<Command> commands, E event) {
         String guildId = guildFromEvent(event);
         for (Command command : commands) {
-            if (this.commandRolesNotMet(event, command) || this.commandIntentsNotMet(event, command)) {
-                continue;
-            }
-            if (!this.disabledCommandManager.commandAllowedInGuild(guildId, command)) {
-                continue;
-            }
             addField(builder, command.getCommandName(), command.getDescription(), false);
         }
     }
