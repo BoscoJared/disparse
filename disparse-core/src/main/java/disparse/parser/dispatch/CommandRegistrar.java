@@ -104,6 +104,8 @@ public class CommandRegistrar<E, T> {
 
         if (!canSendTo(helper, event, command)) return;
 
+        if (!helper.isEnabledForGuild(event, command)) return;
+
         try {
             this.emitCommand(args, helper, event, parsedOutput, command);
         } catch (ReflectiveOperationException exec) {

@@ -227,6 +227,10 @@ public abstract class AbstractDispatcher<E, T> {
         foundCommand.ifPresent(c -> this.disabledCommandManager.enableCommandForGuild(guildId, c));
     }
 
+    public boolean isEnabledForGuild(E event, Command command) {
+        return this.disabledCommandManager.commandAllowedInGuild(guildFromEvent(event), command);
+    }
+
     public abstract boolean commandRolesNotMet(E event, Command command);
 
     public abstract boolean commandIntentsNotMet(E event, Command command);
