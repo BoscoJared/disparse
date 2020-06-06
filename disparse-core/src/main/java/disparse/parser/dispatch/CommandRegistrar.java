@@ -466,29 +466,8 @@ public class CommandRegistrar<E, T> {
         }
     }
 
-    public void disableCommand(String commandName) throws IllegalArgumentException {
-        Command command = findCommand(commandTable.keySet(), commandName)
-                .orElseThrow(() -> new IllegalArgumentException("Command could not be found"));
-        if (!command.canBeDisabled()) {
-            throw new IllegalArgumentException("Command cannot be disabled");
-        }
-        Method method = commandTable.get(command);
-        Set<CommandFlag> flags = commandToFlags.get(command);
-        disabledCommands.put(command, new CommandContainer(method, flags));
-        commandTable.remove(command);
-        commandToFlags.remove(command);
-    }
-
-    public void enableCommand(String commandName) throws IllegalArgumentException {
-        Command command = findCommand(disabledCommands.keySet(), commandName)
-                .orElseThrow(() -> new IllegalArgumentException("Command could not be found"));
-        CommandContainer fullCommand = disabledCommands.get(command);
-        if (fullCommand == null) {
-            throw new IllegalArgumentException("Command is not disabled");
-        }
-        commandTable.put(command, fullCommand.getMethod());
-        commandToFlags.put(command, fullCommand.getFlags());
-        disabledCommands.remove(command);
+    public Collection<Command> getAllCommands() {
+        return this.commandTable.keySet();
     }
 
     private Optional<Command> findCommand(Set<Command> commands, String commandName) {

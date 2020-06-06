@@ -1,15 +1,10 @@
 package disparse.discord;
 
-import disparse.discord.manager.DescriptionManager;
-import disparse.discord.manager.PageLimitManager;
-import disparse.discord.manager.provided.InMemoryPageLimitManager;
-import disparse.discord.manager.provided.SingleDescriptionManager;
+import disparse.discord.manager.*;
+import disparse.discord.manager.provided.*;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
-import disparse.discord.manager.CooldownManager;
-import disparse.discord.manager.provided.InMemoryCooldownManager;
-import disparse.discord.manager.provided.InMemoryPrefixManager;
-import disparse.discord.manager.PrefixManager;
+import disparse.parser.dispatch.CommandRegistrar;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
@@ -27,6 +22,7 @@ public abstract class AbstractDispatcher<E, T> {
     protected DescriptionManager<E, T> descriptionManager;
     protected PageLimitManager<E, T> pageLimitManager;
     protected CooldownManager cooldownManager;
+    protected DisabledCommandManager disabledCommandManager;
     protected ExecutorService executorService;
 
     protected List<BiFunction<E, String, Boolean>> registeredMiddleware = new ArrayList<>();
@@ -44,11 +40,14 @@ public abstract class AbstractDispatcher<E, T> {
         this.pageLimitManager = new InMemoryPageLimitManager<>(pageLimit);
         this.descriptionManager = new SingleDescriptionManager<>(description);
         this.cooldownManager = new InMemoryCooldownManager();
+        this.disabledCommandManager = new InMemoryDisabledCommandManager();
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
         if (this.commandRolesNotMet(event, command) || this.commandIntentsNotMet(event, command)) return;
+
+        if (!this.disabledCommandManager.commandAllowedInGuild(this.guildFromEvent(event), command)) return;
 
         T builder = createBuilder();
         setBuilderTitle(builder, Help.getTitle(command));
@@ -111,6 +110,12 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void allCommands(E event, Collection<Command> commands, int pageNumber) {
+        String guildId = guildFromEvent(event);
+
+        Collection<Command> filteredCommands = commands.stream()
+                .filter(c -> this.disabledCommandManager.commandAllowedInGuild(guildId, c))
+                .collect(Collectors.toList());
+
         T builder = createBuilder();
         String title = this.getDescription(event);
         if (title == null || title.equals("")) {
@@ -121,7 +126,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         String currentlyViewing;
         try {
-            PaginatedEntities paginatedEntities = Help.paginate(commands, List.of(), pageNumber, getPageLimit(event));
+            PaginatedEntities paginatedEntities = Help.paginate(filteredCommands, List.of(), pageNumber, getPageLimit(event));
             commands = paginatedEntities.getCommands();
             currentlyViewing = paginatedEntities.getCurrentlyViewing();
         } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
@@ -166,9 +171,12 @@ public abstract class AbstractDispatcher<E, T> {
         setBuilderTitle(builder, foundPrefix + " | Subcommands");
         setBuilderDescription(builder, "All registered subcommands for " + foundPrefix);
 
+        String guildId = guildFromEvent(event);
+
         List<Command> sortedCommands = commands.stream().sorted(Comparator
                 .comparing((Command cmd) -> cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
                 .filter((Command cmd) -> !this.commandRolesNotMet(event, cmd) && !this.commandIntentsNotMet(event, cmd))
+                .filter((Command cmd) -> this.disabledCommandManager.commandAllowedInGuild(guildId, cmd))
                 .collect(Collectors.toList());
 
         addCommandsToEmbed(builder, sortedCommands, event);
@@ -177,8 +185,12 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void addCommandsToEmbed(T builder, List<Command> commands, E event) {
+        String guildId = guildFromEvent(event);
         for (Command command : commands) {
             if (this.commandRolesNotMet(event, command) || this.commandIntentsNotMet(event, command)) {
+                continue;
+            }
+            if (!this.disabledCommandManager.commandAllowedInGuild(guildId, command)) {
                 continue;
             }
             addField(builder, command.getCommandName(), command.getDescription(), false);
@@ -195,6 +207,24 @@ public abstract class AbstractDispatcher<E, T> {
         String flagOutput = Help.flagToUserFriendlyString(flag);
         String msg = "`" + flagOutput + "` requires an integer value!  Received:  `" + received + "`";
         this.sendMessage(event, msg);
+    }
+
+    public void disableCommand(E event, String commandName) {
+        Collection<Command> commands = CommandRegistrar.REGISTRAR.getAllCommands();
+        Optional<Command> foundCommand = commands.stream()
+                .filter(c -> c.getCommandName().equals(commandName)).findFirst();
+        String guildId = guildFromEvent(event);
+
+        foundCommand.ifPresent(c -> this.disabledCommandManager.disableCommandForGuild(guildId, c));
+    }
+
+    public void enableCommand(E event, String commandName) {
+        Collection<Command> commands = CommandRegistrar.REGISTRAR.getAllCommands();
+        Optional<Command> foundCommand = commands.stream()
+                .filter(c -> c.getCommandName().equals(commandName)).findFirst();
+        String guildId = guildFromEvent(event);
+
+        foundCommand.ifPresent(c -> this.disabledCommandManager.enableCommandForGuild(guildId, c));
     }
 
     public abstract boolean commandRolesNotMet(E event, Command command);
@@ -297,6 +327,11 @@ public abstract class AbstractDispatcher<E, T> {
 
         public B withCooldownStrategy(CooldownManager cooldownManager) {
             actualClass.cooldownManager = cooldownManager;
+            return actualClassBuilder;
+        }
+
+        public B withDisabledCommandManager(DisabledCommandManager disabledCommandManager) {
+            actualClass.disabledCommandManager = disabledCommandManager;
             return actualClassBuilder;
         }
 
