@@ -79,7 +79,7 @@ public abstract class AbstractDispatcher<E, T> {
         List<Command> subcommands = Help.findSubcommands(command, commands);
         String currentlyViewing;
         try {
-            PaginatedEntities paginatedEntities = Help.paginate(subcommands, flags, pageNumber, getPageLimit(event));
+            PaginatedEntities paginatedEntities = Help.paginate(subcommands, Help.sortFlags(flags), pageNumber, getPageLimit(event));
             subcommands = paginatedEntities.getCommands();
             flags = paginatedEntities.getFlags();
             currentlyViewing = paginatedEntities.getCurrentlyViewing();
@@ -88,7 +88,7 @@ public abstract class AbstractDispatcher<E, T> {
             return;
         }
 
-        List<CommandFlag> sortedFlags = Help.sortFlags(flags);
+        List<CommandFlag> sortedFlags = new ArrayList<>(flags);
 
         if (subcommands.size() > 0) {
             addField(builder, "SUBCOMMANDS", "---------------------", false);
@@ -126,7 +126,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         String currentlyViewing;
         try {
-            PaginatedEntities paginatedEntities = Help.paginate(filteredCommands, List.of(), pageNumber, getPageLimit(event));
+            PaginatedEntities paginatedEntities = Help.paginate(Help.sortCommands(filteredCommands), List.of(), pageNumber, getPageLimit(event));
             commands = paginatedEntities.getCommands();
             currentlyViewing = paginatedEntities.getCurrentlyViewing();
         } catch (PageNumberOutOfBounds pageNumberOutOfBounds) {
@@ -134,7 +134,7 @@ public abstract class AbstractDispatcher<E, T> {
             return;
         }
 
-        List<Command> sortedCommands = Help.sortCommands(commands);
+        List<Command> sortedCommands = new ArrayList<>(commands);
 
         addCommandsToEmbed(builder, sortedCommands, event);
         addField(builder, currentlyViewing, "Use --page to specify a page number", false);
