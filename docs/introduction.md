@@ -119,7 +119,7 @@ There are currently five flag types:
  - Integer: Can hold integer values such as `!test --age 5`.
  - Boolean: A boolean flag that if present is true.  This flag does not accept a value -> `!test --update`
  - String - Holds a String.  If content has spaces, it must be placed in double quotes -> `!test --content "my content"`.  If your content has double quotes in it, you can use single quotes to contain it instead -> `!test --content '{"my": "content"}'`.
- - List: Can be used for repeatable flags.  The List can also be of the types `Integer`, `Boolean`, `String` e.g. `!test -n 5 -n 6 -n 7 -n 8` would give a List of `[5, 6, 7, 8]`.
+ - List: Can be used for repeatable flags.  The List can also be of the types `Integer`, `Enum`, `String` e.g. `!test -n 5 -n 6 -n 7 -n 8` would give a List of `[5, 6, 7, 8]`.
  - Enum: Any custom Enum value can be used.  The user can pick the enum for the flag based on the full name of the option, or it can be mapped to a more user-friendly string.
  
 ```java
