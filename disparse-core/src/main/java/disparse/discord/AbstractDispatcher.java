@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractDispatcher<E, T> {
@@ -24,6 +25,7 @@ public abstract class AbstractDispatcher<E, T> {
     protected PageLimitManager<E, T> pageLimitManager;
     protected CooldownManager cooldownManager;
     protected DisabledCommandManager disabledCommandManager;
+    protected HelpBaseEmbedManager<E, T> helpBaseEmbedManager;
     protected ExecutorService executorService;
     protected boolean respondToBots;
 
@@ -43,6 +45,7 @@ public abstract class AbstractDispatcher<E, T> {
         this.descriptionManager = new SingleDescriptionManager<>(description);
         this.cooldownManager = new InMemoryCooldownManager();
         this.disabledCommandManager = new InMemoryDisabledCommandManager();
+        this.helpBaseEmbedManager = new SingleHelpBaseEmbedManager<>(this::createBuilder);
         this.executorService = Executors.newSingleThreadExecutor();
         this.respondToBots = false;
     }
@@ -52,7 +55,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         if (!this.disabledCommandManager.commandAllowedInGuild(this.guildFromEvent(event), command)) return;
 
-        T builder = createBuilder();
+        T builder = this.helpBaseEmbedManager.baseHelpEmbedForGuild(event, this);
         setBuilderTitle(builder, Help.getTitle(command));
         setBuilderDescription(builder, Help.getDescriptionUsage(command));
 
@@ -133,7 +136,7 @@ public abstract class AbstractDispatcher<E, T> {
                 .filter(c -> !this.commandRolesNotMet(event, c) && !this.commandIntentsNotMet(event, c))
                 .collect(Collectors.toList());
 
-        T builder = createBuilder();
+        T builder = this.helpBaseEmbedManager.baseHelpEmbedForGuild(event, this);
         String title = this.getDescription(event);
         if (title == null || title.equals("")) {
             title = "All Commands";
@@ -184,7 +187,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void helpSubcommands(E event, String foundPrefix, Collection<Command> commands) {
-        T builder = createBuilder();
+        T builder = this.helpBaseEmbedManager.baseHelpEmbedForGuild(event, this);
         setBuilderTitle(builder, foundPrefix + " | Subcommands");
         setBuilderDescription(builder, "All registered subcommands for " + foundPrefix);
 
@@ -357,6 +360,16 @@ public abstract class AbstractDispatcher<E, T> {
 
         public B withMiddleware(BiFunction<E, String, Boolean> middleware) {
             actualClass.registeredMiddleware.add(middleware);
+            return actualClassBuilder;
+        }
+
+        public B withHelpBaseEmbed(Supplier<T> builderSupplier) {
+            actualClass.helpBaseEmbedManager = new SingleHelpBaseEmbedManager<>(builderSupplier);
+            return actualClassBuilder;
+        }
+
+        public B withHelpBaseEmbedManager(HelpBaseEmbedManager<E, T> helpBaseEmbedManager) {
+            actualClass.helpBaseEmbedManager = helpBaseEmbedManager;
             return actualClassBuilder;
         }
 
