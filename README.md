@@ -62,3 +62,15 @@ dependencies {
         implementation 'com.github.BoscoJared.disparse:$MODULE:$LATEST'
 }
 ```
+
+## Examples In The Wild
+
+A non-exhaustive list of discord bots using disparse:
+
+- [Lambda](https://github.com/JVMRally/Lambda)
+- [Bertrand](https://github.com/Toby-Larone/bertrand)
+- [Honeywell](https://github.com/BoscoJared/honeywell)
+- [showme](https://github.com/ianagbip1oti/showme)
+
+If you are building something open-source with Disparse, submit an issue or mention `Bosco#8564`
+on Discord to be added to the list!
