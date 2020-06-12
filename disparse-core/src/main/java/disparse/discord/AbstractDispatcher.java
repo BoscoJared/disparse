@@ -256,6 +256,8 @@ public abstract class AbstractDispatcher<E, T> {
 
     public abstract boolean isSentFromDM(E event);
 
+    public abstract AbstractDiscordRequest<E, T> createRequest(E event, List<String> args);
+
     public void sendMessages(E event, Collection<String> messages) {
         for (String message : messages) {
             sendMessage(event, message);

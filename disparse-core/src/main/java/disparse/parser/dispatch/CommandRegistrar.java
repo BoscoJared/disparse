@@ -1,5 +1,6 @@
 package disparse.parser.dispatch;
 
+import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.manager.CooldownManager;
 import disparse.parser.*;
@@ -428,6 +429,10 @@ public class CommandRegistrar<E, T> {
 
         if (clazz.isAssignableFrom(helper.getClass())) {
             objects[index] = helper;
+        }
+
+        if (AbstractDiscordRequest.class.isAssignableFrom(clazz)) {
+            objects[index] = helper.createRequest(event, args);
         }
 
         for (Method injectable : this.injectables) {

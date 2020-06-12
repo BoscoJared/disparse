@@ -1,5 +1,6 @@
 package disparse.discord.jda;
 
+import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.PermissionEnumConverter;
 import disparse.parser.Command;
@@ -144,6 +145,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
     @Override
     public boolean isSentFromDM(MessageReceivedEvent event) {
         return event.getChannelType() == ChannelType.PRIVATE || event.getChannelType() == ChannelType.GROUP;
+    }
+
+    @Override
+    public AbstractDiscordRequest<MessageReceivedEvent, EmbedBuilder> createRequest(MessageReceivedEvent event, List<String> args) {
+        return new DiscordRequest(this, event, args);
     }
 
     @Override

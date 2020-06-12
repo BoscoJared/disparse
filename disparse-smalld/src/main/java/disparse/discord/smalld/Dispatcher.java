@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.PermissionEnumConverter;
 import disparse.discord.smalld.guilds.Guilds;
@@ -194,6 +195,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     @Override
     public boolean isSentFromDM(Event event) {
         return Utils.isDm(event);
+    }
+
+    @Override
+    public AbstractDiscordRequest<Event, JsonElement> createRequest(Event event, List<String> args) {
+        return new DiscordRequest(this, event, args);
     }
 
     public static class Builder extends BaseBuilder<Event, JsonElement, Dispatcher, Builder> {

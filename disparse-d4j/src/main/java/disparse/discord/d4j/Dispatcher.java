@@ -10,6 +10,7 @@ import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Permission;
+import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.PermissionEnumConverter;
 import disparse.parser.Command;
@@ -137,6 +138,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
     @Override
     public boolean isSentFromDM(MessageCreateEvent event) {
         return event.getMessage().getChannel().block() instanceof PrivateChannel;
+    }
+
+    @Override
+    public AbstractDiscordRequest<MessageCreateEvent, EmbedCreateSpec> createRequest(MessageCreateEvent event, List<String> args) {
+        return new DiscordRequest(this, event, args);
     }
 
     @Override

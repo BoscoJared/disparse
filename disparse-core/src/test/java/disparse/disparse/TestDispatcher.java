@@ -1,5 +1,6 @@
 package disparse.disparse;
 
+import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.dispatch.CommandRegistrar;
@@ -91,6 +92,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
 
         List<String> args = Shlex.shlex(cleanedMessage);
         CommandRegistrar.REGISTRAR.dispatch(args, this, new Object());
+    }
+
+    @Override
+    public AbstractDiscordRequest<Object, Object> createRequest(Object event, List<String> args) {
+        return null;
     }
 
     public static class Builder extends BaseBuilder<Object, Object, TestDispatcher, Builder> {
