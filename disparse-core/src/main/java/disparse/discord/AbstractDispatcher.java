@@ -108,7 +108,7 @@ public abstract class AbstractDispatcher<E, T> {
             addField(builder, flagName, flag.getDescription(), false);
         }
 
-        addField(builder, currentlyViewing, "Use --page to specify a page number", false);
+        addField(builder, currentlyViewing, "Use `-p | --page` to specify a page number", false);
         sendEmbed(event, builder);
     }
 
@@ -141,7 +141,7 @@ public abstract class AbstractDispatcher<E, T> {
         List<Command> sortedCommands = new ArrayList<>(commands);
 
         addCommandsToEmbed(builder, sortedCommands, event);
-        addField(builder, currentlyViewing, "Use --page to specify a page number", false);
+        addField(builder, currentlyViewing, "Use `-p | --page` to specify a page number", false);
 
         sendEmbed(event, builder);
     }
@@ -192,7 +192,7 @@ public abstract class AbstractDispatcher<E, T> {
     public void addCommandsToEmbed(T builder, List<Command> commands, E event) {
         String guildId = guildFromEvent(event);
         for (Command command : commands) {
-            addField(builder, command.getCommandName(), command.getDescription(), false);
+            addField(builder, "**" + command.getCommandName() + "**", command.getDescription(), false);
         }
     }
 
