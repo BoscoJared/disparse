@@ -174,6 +174,10 @@ public class Help {
             flagName = String.format("-%s | --%s", flag.getShortName(), flag.getLongName());
         }
 
+        if (flag.isRequired()) {
+            flagName = flagName + "*";
+        }
+
         if (Types.allLists().contains(flag.getType())) {
             flagName = flagName + " [+]";
         }
@@ -182,7 +186,7 @@ public class Help {
     }
 
     public static String getDescriptionUsage(Command command) {
-        return String.format("Usage of command:  %s.  [+] may be repeated.",
+        return String.format("Usage of command:  %s.  [+] may be repeated.  * is required.",
                 command.getCommandName());
     }
 
