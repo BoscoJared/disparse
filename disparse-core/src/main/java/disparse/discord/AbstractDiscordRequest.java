@@ -16,6 +16,10 @@ public class AbstractDiscordRequest<E, T> {
     this.args = args;
   }
 
+  public T createBuilder() {
+    return this.dispatcher.baseEmbedManager.baseHelpEmbedForGuild(event, this.dispatcher);
+  }
+
   public List<String> getArgs() {
     return args;
   }
