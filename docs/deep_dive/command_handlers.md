@@ -4,10 +4,7 @@ The annotation for a command handler is: `@CommandHandler`
 
 The annotation goes on methods that may either be non-static or static.
 
-The method may return:
-- void
-- String
-- T ( Builder depends on module being used )
+The method may return nothing ( void ) or a `DiscordResponse`
 
 The `@CommandHandler` annotation accepts the following fields:
 
@@ -33,30 +30,28 @@ The `commandName` of a method should just separate commands with a `.` to be abl
 
 Command Handlers can accept many parameters:
 
-- Event type ( depends on discord library )
-- List<String>: positional arguments
+- DiscordRequest: Request holds the arguments, event, and dispatcher
 - Injectable: any Injectable defined in the project
 - ParsedEntity: any ParsedEntity, this implicitly means the command now requires the flags defined in the ParsedEntity
-- Helpable: class that gives you more meta access to Disparse's dispatch.  Help commands, prefixes, etc. can be changed here.
 
 ### What event type?
 
 - JDA -> `net.dv8tion.jda.api.events.message.MessageReceivedEvent`
 - D4J -> `discord4j.core.event.domain.message.MessageCreateEvent`
 - SmallD -> `disparse.discord.smalld.Event`
-- Unsupported -> If you implemented your own Dispatcher it is probably obvious which Event type you would be using as it is the same type defined in `Helpable<E, ?>
+- Unsupported -> If you implemented your own Dispatcher it is probably obvious which Event type you would be using.
 
 
 ### Return Values
 
-For convenience, command handlers can simply return a String or a `T Builder`.  These will be automatically sent to the same channel as the event came in on.  If there needs to be more control, a void method accepting the event will be the easiest way to decide exactly where a response should be sent.
+For convenience, command handlers can simply return a DiscordResponse.  These will be automatically sent to the same channel as the event came in on.  If there needs to be more control, a void method accepting the DiscordRequest will be the easiest way to decide exactly where a response should be sent.
 
 Consider the following:
 
 ```java
 @CommandHandler(commandName = "ping")
-public static void pingVerbose(MessageReceivedEvent event) {
-    event.getChannel().sendMessage("pong").queue();
+public static void pingVerbose(DiscordRequest req) {
+    req.getEvent().getChannel().sendMessage("pong").queue();
 }
 ```
 
@@ -64,8 +59,8 @@ could be rewritten as:
 
 ```java
 @CommandHandler(commandName = "ping")
-public static String pingShort() {
-    return "pong";
+public static DiscordResponse pingShort() {
+    return DiscordResponse.of("pong");
 }
 ```
 
@@ -73,26 +68,39 @@ Sending Embeds depends on the specific module being used, but they are all simil
 
 ```java
 @CommandHandler(commandName = "embed")
-public static void sendEmbedVerbose(MessageReceivedEvent event) {
+public static void sendEmbedVerbose(DiscordRequest req) {
     Embed embed = new EmbedBuilder()
         .setTitle("hello")
         .setDescription("world!").build();
 
-    event.getChannel().sendEmbed(embed).queue();
+    req.getEvent().getChannel().sendEmbed(embed).queue();
 }
 ```
 
 could be rewritten as:
 
 ```java
-public static EmbedBuilder sendEmbedShort() {
-    return new EmbedBuilder()
+public static DiscordResponse sendEmbedShort() {
+    return DiscordResponse.of(new EmbedBuilder()
         .setTitle("hello")
-        .setDescription("world!");
+        .setDescription("world!"));
 }
 ```
 
-If more complex behavior is desired, switch to the void return type and work with the event directly.
+If a handler decides to do nothing for some reason, such as an argument
+was incorrectly formatted and the developer does not want to return an error
+message as it was an obvious typo, it is possible to return a noop DiscordResponse.
+
+```java
+public static DiscordResponse sendEmbed() {
+  return DiscordResponse.noop();
+}
+```
+
+This will not send any message or embed to the user even when they call the command
+successfully.
+
+If more complex behavior is desired, switch to the void return type and work with the event directly by calling `DiscordRequest#getEvent`.
 
 ### What builder type?
 
