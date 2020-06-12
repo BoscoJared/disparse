@@ -53,7 +53,8 @@ public class Detector {
                                         scope = cooldown.scope();
                                         sendCooldownMessage = cooldown.sendCooldownMessage();
                                     }
-                                    List<CommandUsage> commandUsages = Arrays.stream(handler.usages())
+
+                                    List<CommandUsage> commandUsages = Arrays.stream(method.getAnnotationsByType(Usage.class))
                                             .map(usageMapping -> new CommandUsage(usageMapping.usage(), usageMapping.description()))
                                             .collect(Collectors.toList());
 
