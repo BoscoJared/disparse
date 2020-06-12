@@ -28,16 +28,4 @@ public class AbstractDiscordResponse<T> {
   public Optional<T> getOptionalBuilder() {
     return optionalBuilder;
   }
-
-  public static <T> AbstractDiscordResponse<T> of(String message) {
-    return new AbstractDiscordResponse<>(message);
-  }
-
-  public static <T> AbstractDiscordResponse<T> of(T builder) {
-    return new AbstractDiscordResponse<>(builder);
-  }
-
-  public static <T> AbstractDiscordResponse<T> noop() {
-    return new AbstractDiscordResponse<>();
-  }
 }
