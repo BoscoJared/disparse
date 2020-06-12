@@ -1,6 +1,7 @@
 package disparse.parser.dispatch;
 
 import disparse.discord.AbstractDiscordRequest;
+import disparse.discord.AbstractDiscordResponse;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.manager.CooldownManager;
 import disparse.parser.*;
@@ -363,6 +364,10 @@ public class CommandRegistrar<E, T> {
         } else if (commandHandler.getReturnType() == helper.createBuilder().getClass()) {
             T builder = (T) commandHandler.invoke(handlerObj, objects);
             helper.sendEmbed(event, builder);
+        } else if (AbstractDiscordResponse.class.isAssignableFrom(commandHandler.getReturnType())) {
+            AbstractDiscordResponse<T> response = (AbstractDiscordResponse<T>) commandHandler.invoke(handlerObj, objects);
+            response.getOptionalMessage().ifPresent(msg -> helper.sendMessage(event, msg));
+            response.getOptionalBuilder().ifPresent(builder -> helper.sendEmbed(event, builder));
         } else {
             commandHandler.invoke(handlerObj, objects);
         }
