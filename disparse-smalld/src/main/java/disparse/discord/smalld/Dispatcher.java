@@ -72,24 +72,7 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         Event event = new Event(this.smalld, json);
 
         if (!isMessageCreate(json)) return;
-
-        if (!respondToBots && this.isAuthorABot(event)) return;
-
-        String raw = getMessageContent(json);
-        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
-
-        if (!raw.startsWith(currentPrefix)) return;
-
-        String cleanedMessage = raw.substring(currentPrefix.length());
-
-        if (cleanedMessage.isEmpty()) {
-            logger.info("After removing the prefix, the message was empty.  Not continuing.");
-            return;
-        }
-
-        List<String> args = Shlex.shlex(cleanedMessage);
-
-        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
+        this.dispatch(event);
     }
 
     @Override
@@ -120,6 +103,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         }
 
         return null;
+    }
+
+    @Override
+    public String rawMessageContentFromEvent(Event event) {
+        return Utils.getMessageContent(event.getJson());
     }
 
     @Override

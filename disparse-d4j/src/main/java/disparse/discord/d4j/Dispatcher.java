@@ -57,22 +57,7 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
 
     public void onMessageReceived(MessageCreateEvent event) {
         if (event.getMessage().getAuthor().isEmpty()) return;
-        if (!respondToBots && this.isAuthorABot(event)) return;
-
-        String raw = event.getMessage().getContent();
-        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
-        if (!raw.startsWith(currentPrefix)) return;
-
-        String cleanedMessage = raw.substring(currentPrefix.length());
-
-        if (cleanedMessage.isEmpty()) {
-            logger.info("After removing the prefix, the message was empty.  Not continuing.");
-            return;
-        }
-
-        List<String> args = Shlex.shlex(cleanedMessage);
-
-        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
+        this.dispatch(event);
     }
 
     @Override
@@ -193,6 +178,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
     @Override
     public String guildFromEvent(MessageCreateEvent event) {
         return event.getGuildId().map(Snowflake::asString).orElse(null);
+    }
+
+    @Override
+    public String rawMessageContentFromEvent(MessageCreateEvent event) {
+        return event.getMessage().getContent();
     }
 
     public static class Builder extends BaseBuilder<MessageCreateEvent, EmbedCreateSpec, Dispatcher, Builder> {

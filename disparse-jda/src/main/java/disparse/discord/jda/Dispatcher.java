@@ -60,31 +60,10 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
         builder.addEventListeners(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
-                dispatcher.onMessageReceived(event);
+                dispatcher.dispatch(event);
             }
         });
         return builder;
-    }
-
-    public void onMessageReceived(MessageReceivedEvent event) {
-        if (!respondToBots && this.isAuthorABot(event)) return;
-
-        String raw = event.getMessage().getContentRaw();
-        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
-
-        if (!raw.startsWith(currentPrefix)) {
-            return;
-        }
-
-        String cleanedMessage = raw.substring(currentPrefix.length());
-
-        if (cleanedMessage.isEmpty()) {
-            logger.info("After removing the prefix, the message was empty.  Not continuing.");
-            return;
-        }
-
-        List<String> args = Shlex.shlex(cleanedMessage);
-        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
     }
 
     @Override
@@ -134,6 +113,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
         }
 
         return null;
+    }
+
+    @Override
+    public String rawMessageContentFromEvent(MessageReceivedEvent event) {
+        return event.getMessage().getContentRaw();
     }
 
     @Override

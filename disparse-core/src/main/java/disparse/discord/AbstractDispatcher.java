@@ -6,9 +6,12 @@ import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.CommandUsage;
 import disparse.parser.dispatch.CommandRegistrar;
+import disparse.utils.Shlex;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
@@ -19,6 +22,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractDispatcher<E, T> {
+
+    private final static Logger logger = LoggerFactory.getLogger(AbstractDispatcher.class);
 
     protected PrefixManager<E, T> prefixManager;
     protected DescriptionManager<E, T> descriptionManager;
@@ -48,6 +53,28 @@ public abstract class AbstractDispatcher<E, T> {
         this.helpBaseEmbedManager = new SingleHelpBaseEmbedManager<>(this::createBuilder);
         this.executorService = Executors.newSingleThreadExecutor();
         this.respondToBots = false;
+    }
+
+    public void dispatch(E event) {
+        if (!respondToBots && this.isAuthorABot(event)) return;
+
+        String raw = this.rawMessageContentFromEvent(event);
+        String currentPrefix = this.prefixManager.prefixForGuild(event, this);
+
+        if (!raw.startsWith(currentPrefix)) {
+            return;
+        }
+
+        String cleanedMessage = raw.substring(currentPrefix.length());
+
+        if (cleanedMessage.isEmpty()) {
+            logger.info("After removing the prefix, the message was empty.  Not continuing.");
+            return;
+        }
+
+        List<String> args = Shlex.shlex(cleanedMessage);
+        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
+
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
@@ -267,6 +294,8 @@ public abstract class AbstractDispatcher<E, T> {
     public abstract String channelFromEvent(E event);
 
     public abstract String guildFromEvent(E event);
+
+    public abstract String rawMessageContentFromEvent(E event);
 
     public abstract boolean isSentFromChannel(E event);
 

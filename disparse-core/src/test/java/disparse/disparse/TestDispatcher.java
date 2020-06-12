@@ -69,6 +69,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
     public String guildFromEvent(Object event) { return "GUILD"; }
 
     @Override
+    public String rawMessageContentFromEvent(Object event) {
+        return null;
+    }
+
+    @Override
     public boolean isSentFromChannel(Object event) {
         return false;
     }
