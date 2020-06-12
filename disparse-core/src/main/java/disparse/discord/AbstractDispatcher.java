@@ -4,6 +4,7 @@ import disparse.discord.manager.*;
 import disparse.discord.manager.provided.*;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
+import disparse.parser.CommandUsage;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
@@ -74,6 +75,16 @@ public abstract class AbstractDispatcher<E, T> {
                     break;
             }
             addField(builder, type + " Cooldown Enabled", humanReadableFormat(command.getCooldownDuration()), false);
+        }
+
+        if (command.getUsageExamples().size() > 0 && pageNumber == 1) {
+            String prefix = this.prefixManager.prefixForGuild(event, this);
+            addField(builder, "USAGE", "---------------------", false);
+            command.getUsageExamples().forEach(usage -> {
+                String msg = usage.getUsage();
+                msg = "`" + prefix + command.getCommandName() + " " + msg + "`";
+                addField(builder, msg, usage.getDescription(), false);
+            });
         }
 
         List<Command> subcommands = Help.findSubcommands(command, commands).stream()

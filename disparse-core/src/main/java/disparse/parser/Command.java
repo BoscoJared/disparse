@@ -5,6 +5,7 @@ import disparse.parser.dispatch.CooldownScope;
 import disparse.parser.dispatch.IncomingScope;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 
 public class Command {
@@ -19,14 +20,15 @@ public class Command {
   private final IncomingScope acceptFrom;
   private final String[] aliases;
   private final AbstractPermission[] perms;
+  private final List<CommandUsage> usageExamples;
   private String parentName = null;
 
   public Command(final String name, final String description) {
-    this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{}, new AbstractPermission[]{});
+    this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{}, new AbstractPermission[]{}, List.of());
   }
 
   public Command(final String name, final String description, final boolean canBeDisabled) {
-    this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{}, new AbstractPermission[]{});
+    this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{}, new AbstractPermission[]{}, List.of());
   }
 
   public Command(final String name,
@@ -38,7 +40,8 @@ public class Command {
                  final boolean sendCooldownMessage,
                  final IncomingScope acceptFrom,
                  final String[] aliases,
-                 final AbstractPermission[] perms) {
+                 final AbstractPermission[] perms,
+                 final List<CommandUsage> usageExamples) {
     this.name = name;
     this.description = description;
     this.roles = roles;
@@ -49,6 +52,7 @@ public class Command {
     this.acceptFrom = acceptFrom;
     this.aliases = aliases;
     this.perms = perms;
+    this.usageExamples = usageExamples;
   }
 
   public String getCommandName() {
@@ -90,6 +94,8 @@ public class Command {
   public AbstractPermission[] getPerms() {
     return this.perms;
   }
+
+  public List<CommandUsage> getUsageExamples() { return this.usageExamples; }
 
   public String getParentName() {
     return this.parentName;

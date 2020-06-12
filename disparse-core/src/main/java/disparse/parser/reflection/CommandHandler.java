@@ -25,4 +25,6 @@ public @interface CommandHandler {
     AbstractPermission[] perms() default {};
 
     String[] aliases() default {};
+
+    UsageMapping[] usages() default {};
 }

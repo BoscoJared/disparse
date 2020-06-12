@@ -2,6 +2,7 @@ package disparse.parser.reflection;
 
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
+import disparse.parser.CommandUsage;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.dispatch.CooldownScope;
 import disparse.parser.dispatch.IncomingScope;
@@ -17,6 +18,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Detector {
 
@@ -51,8 +53,12 @@ public class Detector {
                                         scope = cooldown.scope();
                                         sendCooldownMessage = cooldown.sendCooldownMessage();
                                     }
+                                    List<CommandUsage> commandUsages = Arrays.stream(handler.usages())
+                                            .map(usageMapping -> new CommandUsage(usageMapping.usage(), usageMapping.description()))
+                                            .collect(Collectors.toList());
+
                                     Command command =
-                                            new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled(), cooldownDuration, scope, sendCooldownMessage, acceptFrom, handler.aliases(), handler.perms());
+                                            new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled(), cooldownDuration, scope, sendCooldownMessage, acceptFrom, handler.aliases(), handler.perms(), commandUsages);
                                     for (Class<?> paramClazz : method.getParameterTypes()) {
                                         if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
                                             Field[] fields = allImplicitFields(paramClazz);

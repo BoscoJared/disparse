@@ -55,7 +55,8 @@ public class CommandRegistrar<E, T> {
                     command.isSendCooldownMessage(),
                     command.getAcceptFrom(),
                     new String[]{},
-                    command.getPerms());
+                    command.getPerms(),
+                    command.getUsageExamples());
             aliasCommand.setParentName(command.getCommandName());
             register(aliasCommand, method);
         }
@@ -75,7 +76,8 @@ public class CommandRegistrar<E, T> {
                     command.isSendCooldownMessage(),
                     command.getAcceptFrom(),
                     new String[]{},
-                    command.getPerms());
+                    command.getPerms(),
+                    command.getUsageExamples());
             aliasCommand.setParentName(command.getCommandName());
             register(aliasCommand, flag);
         }
