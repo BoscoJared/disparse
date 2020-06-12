@@ -4,7 +4,6 @@ import disparse.discord.manager.*;
 import disparse.discord.manager.provided.*;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
-import disparse.parser.CommandUsage;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.utils.Shlex;
 import disparse.utils.help.Help;
@@ -30,7 +29,7 @@ public abstract class AbstractDispatcher<E, T> {
     protected PageLimitManager<E, T> pageLimitManager;
     protected CooldownManager cooldownManager;
     protected DisabledCommandManager disabledCommandManager;
-    protected HelpBaseEmbedManager<E, T> helpBaseEmbedManager;
+    protected BaseEmbedManager<E, T> baseEmbedManager;
     protected ExecutorService executorService;
     protected boolean respondToBots;
 
@@ -50,7 +49,7 @@ public abstract class AbstractDispatcher<E, T> {
         this.descriptionManager = new SingleDescriptionManager<>(description);
         this.cooldownManager = new InMemoryCooldownManager();
         this.disabledCommandManager = new InMemoryDisabledCommandManager();
-        this.helpBaseEmbedManager = new SingleHelpBaseEmbedManager<>(this::createBuilder);
+        this.baseEmbedManager = new SingleBaseEmbedManager<>(this::createBuilder);
         this.executorService = Executors.newSingleThreadExecutor();
         this.respondToBots = false;
     }
@@ -82,7 +81,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         if (!this.disabledCommandManager.commandAllowedInGuild(this.guildFromEvent(event), command)) return;
 
-        T builder = this.helpBaseEmbedManager.baseHelpEmbedForGuild(event, this);
+        T builder = this.baseEmbedManager.baseHelpEmbedForGuild(event, this);
         setBuilderTitle(builder, Help.getTitle(command));
         setBuilderDescription(builder, Help.getDescriptionUsage(command));
 
@@ -163,7 +162,7 @@ public abstract class AbstractDispatcher<E, T> {
                 .filter(c -> !this.commandRolesNotMet(event, c) && !this.commandIntentsNotMet(event, c))
                 .collect(Collectors.toList());
 
-        T builder = this.helpBaseEmbedManager.baseHelpEmbedForGuild(event, this);
+        T builder = this.baseEmbedManager.baseHelpEmbedForGuild(event, this);
         String title = this.getDescription(event);
         if (title == null || title.equals("")) {
             title = "All Commands";
@@ -214,7 +213,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void helpSubcommands(E event, String foundPrefix, Collection<Command> commands) {
-        T builder = this.helpBaseEmbedManager.baseHelpEmbedForGuild(event, this);
+        T builder = this.baseEmbedManager.baseHelpEmbedForGuild(event, this);
         setBuilderTitle(builder, foundPrefix + " | Subcommands");
         setBuilderDescription(builder, "All registered subcommands for " + foundPrefix);
 
@@ -393,12 +392,12 @@ public abstract class AbstractDispatcher<E, T> {
         }
 
         public B withHelpBaseEmbed(Supplier<T> builderSupplier) {
-            actualClass.helpBaseEmbedManager = new SingleHelpBaseEmbedManager<>(builderSupplier);
+            actualClass.baseEmbedManager = new SingleBaseEmbedManager<>(builderSupplier);
             return actualClassBuilder;
         }
 
-        public B withHelpBaseEmbedManager(HelpBaseEmbedManager<E, T> helpBaseEmbedManager) {
-            actualClass.helpBaseEmbedManager = helpBaseEmbedManager;
+        public B withHelpBaseEmbedManager(BaseEmbedManager<E, T> baseEmbedManager) {
+            actualClass.baseEmbedManager = baseEmbedManager;
             return actualClassBuilder;
         }
 

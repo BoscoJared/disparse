@@ -1,14 +1,14 @@
 package disparse.discord.manager.provided;
 
 import disparse.discord.AbstractDispatcher;
-import disparse.discord.manager.HelpBaseEmbedManager;
+import disparse.discord.manager.BaseEmbedManager;
 
 import java.util.function.Supplier;
 
-public class SingleHelpBaseEmbedManager<E, T> implements HelpBaseEmbedManager<E, T> {
+public class SingleBaseEmbedManager<E, T> implements BaseEmbedManager<E, T> {
   private final Supplier<T> builderSupplier;
 
-  public SingleHelpBaseEmbedManager(Supplier<T> builderSupplier) {
+  public SingleBaseEmbedManager(Supplier<T> builderSupplier) {
     this.builderSupplier = builderSupplier;
   }
 
