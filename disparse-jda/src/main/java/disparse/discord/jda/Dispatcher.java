@@ -67,9 +67,8 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
     }
 
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) {
-            return;
-        }
+        if (!respondToBots && this.isAuthorABot(event)) return;
+
         String raw = event.getMessage().getContentRaw();
         String currentPrefix = this.prefixManager.prefixForGuild(event, this);
 
@@ -145,6 +144,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
     @Override
     public boolean isSentFromDM(MessageReceivedEvent event) {
         return event.getChannelType() == ChannelType.PRIVATE || event.getChannelType() == ChannelType.GROUP;
+    }
+
+    @Override
+    public boolean isAuthorABot(MessageReceivedEvent event) {
+        return event.getAuthor().isBot();
     }
 
     @Override

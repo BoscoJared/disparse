@@ -25,6 +25,7 @@ public abstract class AbstractDispatcher<E, T> {
     protected CooldownManager cooldownManager;
     protected DisabledCommandManager disabledCommandManager;
     protected ExecutorService executorService;
+    protected boolean respondToBots;
 
     protected List<BiFunction<E, String, Boolean>> registeredMiddleware = new ArrayList<>();
 
@@ -43,6 +44,7 @@ public abstract class AbstractDispatcher<E, T> {
         this.cooldownManager = new InMemoryCooldownManager();
         this.disabledCommandManager = new InMemoryDisabledCommandManager();
         this.executorService = Executors.newSingleThreadExecutor();
+        this.respondToBots = false;
     }
 
     public void help(E event, Command command, Collection<CommandFlag> flags, Collection<Command> commands, int pageNumber) {
@@ -267,6 +269,8 @@ public abstract class AbstractDispatcher<E, T> {
 
     public abstract boolean isSentFromDM(E event);
 
+    public abstract boolean isAuthorABot(E event);
+
     public abstract AbstractDiscordRequest<E, T> createRequest(E event, List<String> args);
 
     public void sendMessages(E event, Collection<String> messages) {
@@ -353,6 +357,16 @@ public abstract class AbstractDispatcher<E, T> {
 
         public B withMiddleware(BiFunction<E, String, Boolean> middleware) {
             actualClass.registeredMiddleware.add(middleware);
+            return actualClassBuilder;
+        }
+
+        public B allowIncomingBotMessages() {
+            actualClass.respondToBots = true;
+            return actualClassBuilder;
+        }
+
+        public B disallowIncomingBotMessages() {
+            actualClass.respondToBots = false;
             return actualClassBuilder;
         }
     }

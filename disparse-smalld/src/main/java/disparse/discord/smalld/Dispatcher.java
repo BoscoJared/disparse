@@ -71,7 +71,9 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         JsonObject json = JsonParser.parseString(message).getAsJsonObject();
         Event event = new Event(this.smalld, json);
 
-        if (!isMessageCreate(json) || isAuthorBot(json)) return;
+        if (!isMessageCreate(json)) return;
+
+        if (!respondToBots && this.isAuthorABot(event)) return;
 
         String raw = getMessageContent(json);
         String currentPrefix = this.prefixManager.prefixForGuild(event, this);
@@ -195,6 +197,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     @Override
     public boolean isSentFromDM(Event event) {
         return Utils.isDm(event);
+    }
+
+    @Override
+    public boolean isAuthorABot(Event event) {
+        return isAuthorBot(event.getJson());
     }
 
     @Override

@@ -78,6 +78,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
         return false;
     }
 
+    @Override
+    public boolean isAuthorABot(Object event) {
+        return false;
+    }
+
     public void dispatch(String raw) {
         String currentPrefix = this.prefixManager.prefixForGuild(null, this);
         if (!raw.startsWith(currentPrefix)) {

@@ -57,7 +57,7 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
 
     public void onMessageReceived(MessageCreateEvent event) {
         if (event.getMessage().getAuthor().isEmpty()) return;
-        if (event.getMessage().getAuthor().get().isBot()) return;
+        if (!respondToBots && this.isAuthorABot(event)) return;
 
         String raw = event.getMessage().getContent();
         String currentPrefix = this.prefixManager.prefixForGuild(event, this);
@@ -138,6 +138,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
     @Override
     public boolean isSentFromDM(MessageCreateEvent event) {
         return event.getMessage().getChannel().block() instanceof PrivateChannel;
+    }
+
+    @Override
+    public boolean isAuthorABot(MessageCreateEvent event) {
+        return event.getMessage().getAuthor().get().isBot();
     }
 
     @Override
