@@ -7,9 +7,10 @@ import disparse.parser.dispatch.CommandRegistrar;
 import disparse.utils.Shlex;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class TestDispatcher extends AbstractDispatcher<Object, Object> {
+public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
 
     List<String> messages = new ArrayList<>();
 
@@ -31,28 +32,28 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
     }
 
     @Override
-    public void setBuilderTitle(Object builder, String title) {
-
+    public void setBuilderTitle(StringBuilder builder, String title) {
+        builder.append("title|").append(title).append("\n");
     }
 
     @Override
-    public void setBuilderDescription(Object builder, String description) {
-
+    public void setBuilderDescription(StringBuilder builder, String description) {
+        builder.append("description|").append(description).append("\n");
     }
 
     @Override
-    public void addField(Object builder, String name, String value, boolean inline) {
-
+    public void addField(StringBuilder builder, String name, String value, boolean inline) {
+        builder.append(String.join("|", name, value, String.valueOf(inline))).append("\n");
     }
 
     @Override
-    public Object createBuilder() {
+    public StringBuilder createBuilder() {
         return new StringBuilder();
     }
 
     @Override
-    public void sendEmbed(Object event, Object builder) {
-
+    public void sendEmbed(Object event, StringBuilder builder) {
+        Collections.addAll(this.messages, builder.toString().split("\\n"));
     }
 
     @Override
@@ -105,11 +106,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, Object> {
     }
 
     @Override
-    public AbstractDiscordRequest<Object, Object> createRequest(Object event, List<String> args) {
-        return null;
+    public AbstractDiscordRequest<Object, StringBuilder> createRequest(Object event, List<String> args) {
+        return new TestDiscordRequest(this, event, args);
     }
 
-    public static class Builder extends BaseBuilder<Object, Object, TestDispatcher, Builder> {
+    public static class Builder extends BaseBuilder<Object, StringBuilder, TestDispatcher, Builder> {
 
         @Override
         protected TestDispatcher getActual() {
