@@ -98,12 +98,19 @@ public class DispatchIntegrationTests {
     static class AllOpts {
         @Flag(shortName = 'r', longName = "repeat")
         List<String> repeatable = new ArrayList<>();
+
+        @Flag(shortName = 'P', longName = "print-args")
+        Boolean printArgs = false;
     }
 
     @CommandHandler(commandName = "allopts")
     public static TestDiscordResponse required(TestDiscordRequest req, AllOpts opts) {
         if (opts.repeatable.size() > 0) {
             opts.repeatable.forEach(r -> req.getDispatcher().sendMessage(null, r));
+        }
+
+        if (opts.printArgs) {
+            req.getArgs().forEach(r -> req.getDispatcher().sendMessage(null, r));
         }
 
         return TestDiscordResponse.noop();
@@ -371,6 +378,18 @@ public class DispatchIntegrationTests {
                 "bar",
                 "foo",
                 "baz"
+        );
+
+        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    }
+
+    @Test
+    public void testStandaloneHyphenDoesNotCrash() {
+        dispatcher.dispatch("!allopts - foo --print-args");
+
+        List<String> inOrderMessages = List.of(
+                "-",
+                "foo"
         );
 
         Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);

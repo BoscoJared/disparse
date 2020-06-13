@@ -123,6 +123,9 @@ public class Parser {
             final String currArg = iter.next();
             if (currArg.startsWith("-")) {
                 final String currOpt = currArg.replaceFirst("-", "");
+                if (currOpt.isEmpty()) { // this was a standalone "-", perhaps it was just an argument?
+                    continue;
+                }
                 final Character currChar = currOpt.charAt(0);
                 if (this.shortOptionMap.containsKey(currChar)) {
                     CommandFlag flag = this.shortOptionMap.get(currChar);
