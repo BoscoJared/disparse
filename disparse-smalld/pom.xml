@@ -4,16 +4,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>disparse</artifactId>
-        <groupId>com.github.boscojared</groupId>
+        <groupId>com.github.BoscoJared</groupId>
         <version>0.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>disparse-smalld</artifactId>
+    <version>0.1.0</version>
 
     <dependencies>
         <dependency>
-            <groupId>com.github.boscojared</groupId>
+            <groupId>com.github.BoscoJared</groupId>
             <artifactId>disparse-core</artifactId>
             <version>0.1.0</version>
             <scope>compile</scope>
