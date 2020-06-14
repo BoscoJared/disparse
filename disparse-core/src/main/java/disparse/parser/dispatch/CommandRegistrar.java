@@ -298,13 +298,7 @@ public class CommandRegistrar<E, T> {
       handlerObj = bestCtor.newInstance(bestCtorParams);
     }
 
-    if (commandHandler.getReturnType().equals(String.class)) {
-      String msg = (String) commandHandler.invoke(handlerObj, objects);
-      helper.sendMessage(event, msg);
-    } else if (commandHandler.getReturnType() == helper.createBuilder().getClass()) {
-      T builder = (T) commandHandler.invoke(handlerObj, objects);
-      helper.sendEmbed(event, builder);
-    } else if (AbstractDiscordResponse.class.isAssignableFrom(commandHandler.getReturnType())) {
+    if (AbstractDiscordResponse.class.isAssignableFrom(commandHandler.getReturnType())) {
       AbstractDiscordResponse<T> response =
           (AbstractDiscordResponse<T>) commandHandler.invoke(handlerObj, objects);
       response.getOptionalMessage().ifPresent(msg -> helper.sendMessage(event, msg));
