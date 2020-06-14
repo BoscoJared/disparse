@@ -47,8 +47,6 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
   }
 
   public static void init(Dispatcher dispatcher) {
-    if (dispatcher.smalld == null)
-      throw new NullPointerException("SmallD instance cannot be null!");
     dispatcher.smalld.onGatewayPayload(dispatcher::onMessageReceived);
   }
 
@@ -202,6 +200,13 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     public Builder withSmalldClient(SmallD smalld) {
       actualClass.smalld = smalld;
       return this;
+    }
+
+    @Override
+    public Dispatcher build() {
+      if (actualClass.smalld == null)
+        throw new NullPointerException("SmallD instance cannot be null!");
+      return super.build();
     }
   }
 }
