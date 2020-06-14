@@ -40,12 +40,6 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
     super(prefix, pageLimit, description);
   }
 
-  public static JDABuilder init(
-      JDABuilder builder, String prefix, int pageLimit, String description) {
-    Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
-    return init(builder, dispatcher);
-  }
-
   public static JDABuilder init(JDABuilder builder, Dispatcher dispatcher) {
     builder.addEventListeners(
         new ListenerAdapter() {
