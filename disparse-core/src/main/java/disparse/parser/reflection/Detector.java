@@ -6,13 +6,10 @@ import disparse.parser.CommandUsage;
 import disparse.parser.dispatch.CommandRegistrar;
 import disparse.parser.dispatch.CooldownScope;
 import disparse.parser.dispatch.IncomingScope;
-import eu.infomas.annotation.AnnotationDetector;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.Duration;
