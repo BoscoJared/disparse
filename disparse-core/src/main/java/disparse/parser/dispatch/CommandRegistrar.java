@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 public class CommandRegistrar<E, T> {
 
-    public static final CommandRegistrar REGISTRAR = new CommandRegistrar<>();
     private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
     private final CommandFlag helpFlag =
             new CommandFlag("help", 'h', Types.BOOL, false, "show usage of a particular command", Map.of());
@@ -35,7 +34,7 @@ public class CommandRegistrar<E, T> {
     private final List<Method> injectables = new ArrayList<>();
     private final Map<Command, CommandContainer> disabledCommands = new HashMap<>();
 
-    private CommandRegistrar() {
+    public CommandRegistrar() {
         this.commandToFlags.put(helpCommand, Set.of(helpPageFlag));
         this.commandTable.put(helpCommand, null);
     }

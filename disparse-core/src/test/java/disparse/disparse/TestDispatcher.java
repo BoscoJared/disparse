@@ -14,8 +14,8 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
 
     List<String> messages = new ArrayList<>();
 
-    public TestDispatcher() {
-        super("!");
+    protected TestDispatcher(String prefix, int pageLimit, String description) {
+        super(prefix, pageLimit, description);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
         }
 
         List<String> args = Shlex.shlex(cleanedMessage);
-        CommandRegistrar.REGISTRAR.dispatch(args, this, new Object());
+        this.registrar.dispatch(args, this, new Object());
     }
 
     @Override
@@ -112,9 +112,13 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
 
     public static class Builder extends BaseBuilder<Object, StringBuilder, TestDispatcher, Builder> {
 
+        public Builder(Class<?> clazz) {
+            super(clazz);
+        }
+
         @Override
         protected TestDispatcher getActual() {
-            return new TestDispatcher();
+            return new TestDispatcher("!", 6, "");
         }
 
         @Override
@@ -122,8 +126,5 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
             return this;
         }
 
-        public TestDispatcher build() {
-            return actualClass;
-        }
     }
 }

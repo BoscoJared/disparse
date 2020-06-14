@@ -42,21 +42,12 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
         super(prefix, pageLimit, description);
     }
 
-    public static JDABuilder init(JDABuilder builder, String prefix) {
-        return init(builder, prefix, 5);
-    }
-
-    public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit) {
-        return init(builder, prefix, pageLimit, "");
-    }
-
     public static JDABuilder init(JDABuilder builder, String prefix, int pageLimit, String description) {
         Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
         return init(builder, dispatcher);
     }
 
     public static JDABuilder init(JDABuilder builder, Dispatcher dispatcher) {
-        Detector.detect();
         builder.addEventListeners(new ListenerAdapter() {
             @Override
             public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
@@ -174,6 +165,10 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
     }
 
     public static class Builder extends BaseBuilder<MessageReceivedEvent, EmbedBuilder, Dispatcher, Builder> {
+        public Builder(Class<?> clazz) {
+            super(clazz);
+        }
+
         @Override
         protected Dispatcher getActual() {
             return new Dispatcher();
@@ -184,8 +179,5 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
             return this;
         }
 
-        public Dispatcher build() {
-            return actualClass;
-        }
     }
 }

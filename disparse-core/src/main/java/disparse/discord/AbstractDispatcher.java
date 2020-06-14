@@ -5,10 +5,15 @@ import disparse.discord.manager.provided.*;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.dispatch.CommandRegistrar;
+import disparse.parser.reflection.Detector;
 import disparse.utils.Shlex;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
+import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,19 +36,13 @@ public abstract class AbstractDispatcher<E, T> {
     protected DisabledCommandManager disabledCommandManager;
     protected BaseEmbedManager<E, T> baseEmbedManager;
     protected ExecutorService executorService;
+    protected Reflections reflections;
+    protected CommandRegistrar<E, T> registrar;
     protected boolean respondToBots;
 
     protected List<BiFunction<E, String, Boolean>> registeredMiddleware = new ArrayList<>();
 
-    public AbstractDispatcher(String prefix) {
-        this(prefix, 5, "");
-    }
-
-    public AbstractDispatcher(String prefix, int pageLimit) {
-        this(prefix, pageLimit, "");
-    }
-
-    public AbstractDispatcher(String prefix, int pageLimit, String description) {
+    protected AbstractDispatcher(String prefix, int pageLimit, String description) {
         this.prefixManager = new InMemoryPrefixManager<>(prefix);
         this.pageLimitManager = new InMemoryPageLimitManager<>(pageLimit);
         this.descriptionManager = new SingleDescriptionManager<>(description);
@@ -51,6 +50,8 @@ public abstract class AbstractDispatcher<E, T> {
         this.disabledCommandManager = new InMemoryDisabledCommandManager();
         this.baseEmbedManager = new SingleBaseEmbedManager<>(this::createBuilder);
         this.executorService = Executors.newSingleThreadExecutor();
+        this.reflections = this.defaultReflection(this.getClass());
+        this.registrar = null;
         this.respondToBots = false;
     }
 
@@ -72,7 +73,7 @@ public abstract class AbstractDispatcher<E, T> {
         }
 
         List<String> args = Shlex.shlex(cleanedMessage);
-        this.executorService.submit(() -> CommandRegistrar.REGISTRAR.dispatch(args, this, event));
+        this.executorService.submit(() -> this.registrar.dispatch(args, this, event));
 
     }
 
@@ -251,7 +252,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void disableCommand(E event, String commandName) {
-        Collection<Command> commands = CommandRegistrar.REGISTRAR.getAllCommands();
+        Collection<Command> commands = this.registrar.getAllCommands();
         Optional<Command> foundCommand = commands.stream()
                 .filter(c -> c.getCommandName().equals(commandName)).findFirst();
         String guildId = guildFromEvent(event);
@@ -260,7 +261,7 @@ public abstract class AbstractDispatcher<E, T> {
     }
 
     public void enableCommand(E event, String commandName) {
-        Collection<Command> commands = CommandRegistrar.REGISTRAR.getAllCommands();
+        Collection<Command> commands = this.registrar.getAllCommands();
         Optional<Command> foundCommand = commands.stream()
                 .filter(c -> c.getCommandName().equals(commandName)).findFirst();
         String guildId = guildFromEvent(event);
@@ -330,15 +331,24 @@ public abstract class AbstractDispatcher<E, T> {
         sendMessages(event, Help.incorrectOption(userChoice, flagName, options));
     }
 
+    public Reflections defaultReflection(Class<?> clazz) {
+        return new Reflections(
+                new ConfigurationBuilder()
+                        .setUrls(ClasspathHelper.forPackage(clazz.getPackage().getName()))
+                        .setScanners(new MethodAnnotationsScanner())
+        );
+    }
+
     protected static abstract class BaseBuilder<E, T, A extends AbstractDispatcher<E, T>, B extends BaseBuilder> {
         protected A actualClass;
         protected B actualClassBuilder;
 
         protected abstract A getActual();
         protected abstract B getActualBuilder();
-        protected BaseBuilder() {
+        protected BaseBuilder(Class<?> clazz) {
             actualClass = getActual();
             actualClassBuilder = getActualBuilder();
+            actualClass.reflections = actualClass.defaultReflection(clazz);
         }
 
         public B prefix(String prefix) {
@@ -409,6 +419,16 @@ public abstract class AbstractDispatcher<E, T> {
         public B disallowIncomingBotMessages() {
             actualClass.respondToBots = false;
             return actualClassBuilder;
+        }
+
+        public B withReflections(Reflections reflections) {
+            actualClass.reflections = reflections;
+            return actualClassBuilder;
+        }
+
+        public A build() {
+            actualClass.registrar = Detector.detect(actualClass.reflections);
+            return actualClass;
         }
     }
 

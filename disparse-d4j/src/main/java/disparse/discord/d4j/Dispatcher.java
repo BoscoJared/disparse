@@ -45,13 +45,7 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
         super(prefix, pageLimit, description);
     }
 
-    public static void init(GatewayDiscordClient gateway, String prefix, int pageLimit, String description) {
-        Dispatcher dispatcher = new Dispatcher(prefix, pageLimit, description);
-        init(gateway, dispatcher);
-    }
-
     public static void init(GatewayDiscordClient gateway, Dispatcher dispatcher) {
-        Detector.detect();
         gateway.on(MessageCreateEvent.class).subscribe(dispatcher::onMessageReceived);
     }
 
@@ -186,6 +180,10 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
     }
 
     public static class Builder extends BaseBuilder<MessageCreateEvent, EmbedCreateSpec, Dispatcher, Builder> {
+        public Builder(Class<?> clazz) {
+            super(clazz);
+        }
+
         @Override
         protected Dispatcher getActual() {
             return new Dispatcher();
@@ -196,8 +194,5 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
             return this;
         }
 
-        public Dispatcher build() {
-            return actualClass;
-        }
     }
 }

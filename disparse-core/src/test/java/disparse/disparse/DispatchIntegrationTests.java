@@ -116,14 +116,9 @@ public class DispatchIntegrationTests {
         return TestDiscordResponse.noop();
     }
 
-    @BeforeAll
-    public static void beforeAll() {
-        Detector.detect();
-    }
-
     @BeforeEach
     public void beforeEach() {
-        this.dispatcher = new TestDispatcher.Builder()
+        this.dispatcher = new TestDispatcher.Builder(this.getClass())
                 .prefix(PREFIX)
                 .pageLimit(PAGE_LIMIT)
                 .description(DESCRIPTION)

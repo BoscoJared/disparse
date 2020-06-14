@@ -48,22 +48,8 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
         this.smalld = smalld;
     }
 
-    public static void init(SmallD smalld, String prefix) {
-        init(smalld, prefix, 5, "");
-    }
-
-    public static void init(SmallD smalld, String prefix, int pageLimit) {
-        init(smalld, prefix, pageLimit, "");
-    }
-
-    public static void init(SmallD smalld, String prefix, int pageLimit, String description) {
-        Dispatcher dispatcher = new Dispatcher(prefix, smalld, pageLimit, description);
-        init(dispatcher);
-    }
-
     public static void init(Dispatcher dispatcher) {
         if (dispatcher.smalld == null) throw new NullPointerException("SmallD instance cannot be null!");
-        Detector.detect();
         dispatcher.smalld.onGatewayPayload(dispatcher::onMessageReceived);
     }
 
@@ -198,6 +184,10 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     }
 
     public static class Builder extends BaseBuilder<Event, JsonElement, Dispatcher, Builder> {
+        public Builder(Class<?> clazz) {
+            super(clazz);
+        }
+
         @Override
         protected Dispatcher getActual() {
             return new Dispatcher();
@@ -213,8 +203,5 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
             return this;
         }
 
-        public Dispatcher build() {
-            return actualClass;
-        }
     }
 }
