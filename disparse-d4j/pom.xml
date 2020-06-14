@@ -24,6 +24,16 @@
             <artifactId>discord4j-core</artifactId>
             <version>3.1.0.RC2</version>
         </dependency>
+        <dependency>
+            <groupId>com.discord4j</groupId>
+            <artifactId>discord-json-api</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>3.3.4.RELEASE</version>
+        </dependency>
     </dependencies>
 
 
