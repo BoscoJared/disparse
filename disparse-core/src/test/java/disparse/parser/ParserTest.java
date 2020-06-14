@@ -1,7 +1,6 @@
 package disparse.parser;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequiresValue;
@@ -122,8 +121,6 @@ public class ParserTest {
             new ArrayList<>(List.of("init", "-c", "foo", "--create", "bar", "-c", "baz")));
     Assertions.assertEquals(output.getOptions().size(), 1);
     Assertions.assertEquals(output.getArguments().size(), 0);
-    assertTrue(
-        ((List<String>) output.getOptions().get(flagOne))
-            .containsAll(List.of("foo", "bar", "baz")));
+    Assertions.assertEquals(output.getOptions().get(flagOne), List.of("foo", "bar", "baz"));
   }
 }

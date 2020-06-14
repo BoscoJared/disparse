@@ -368,7 +368,7 @@ public class DispatchIntegrationTests {
   public void testRepeatableFlagMixedWithShortAndLong() {
     dispatcher.dispatch("!allopts -r foo --repeat bar -r baz");
 
-    List<String> inOrderMessages = List.of("bar", "foo", "baz");
+    List<String> inOrderMessages = List.of("foo", "bar", "baz");
 
     Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
   }
