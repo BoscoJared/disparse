@@ -478,18 +478,6 @@ public class CommandRegistrar<E, T> {
       E event,
       AbstractDispatcher<E, T> helper)
       throws ReflectiveOperationException {
-    if (clazz.isAssignableFrom(List.class)) {
-      objects[index] = args;
-    }
-
-    if (clazz.isAssignableFrom(event.getClass())) {
-      objects[index] = event;
-    }
-
-    if (clazz.isAssignableFrom(helper.getClass())) {
-      objects[index] = helper;
-    }
-
     if (AbstractDiscordRequest.class.isAssignableFrom(clazz)) {
       objects[index] = helper.createRequest(event, args);
     }
