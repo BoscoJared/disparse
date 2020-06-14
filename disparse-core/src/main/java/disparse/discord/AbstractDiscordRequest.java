@@ -18,11 +18,11 @@ public class AbstractDiscordRequest<E, T> {
     return this.dispatcher.baseEmbedManager.baseHelpEmbedForGuild(event, this.dispatcher);
   }
 
-  public void sendMessage(String message) {
+  public void reply(String message) {
     this.dispatcher.sendMessage(event, message);
   }
 
-  public void sendEmbed(T builder) {
+  public void reply(T builder) {
     this.dispatcher.sendEmbed(event, builder);
   }
 
