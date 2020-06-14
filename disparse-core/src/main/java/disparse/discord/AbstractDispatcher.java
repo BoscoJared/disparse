@@ -140,7 +140,7 @@ public abstract class AbstractDispatcher<E, T> {
             addField(builder, "SUBCOMMANDS", "---------------------", false);
         }
 
-        addCommandsToEmbed(builder, subcommands, event);
+        addCommandsToEmbed(builder, subcommands);
 
         if (sortedFlags.size() > 0) {
             addField(builder, "FLAGS", "--------", true);
@@ -183,7 +183,7 @@ public abstract class AbstractDispatcher<E, T> {
 
         List<Command> sortedCommands = new ArrayList<>(commands);
 
-        addCommandsToEmbed(builder, sortedCommands, event);
+        addCommandsToEmbed(builder, sortedCommands);
         addField(builder, currentlyViewing, "Use `-p | --page` to specify a page number", false);
 
         sendEmbed(event, builder);
@@ -227,13 +227,12 @@ public abstract class AbstractDispatcher<E, T> {
                         cmd.getCommandName().toLowerCase(), Comparator.naturalOrder()))
                 .collect(Collectors.toList());
 
-        addCommandsToEmbed(builder, sortedCommands, event);
+        addCommandsToEmbed(builder, sortedCommands);
 
         sendEmbed(event, builder);
     }
 
-    public void addCommandsToEmbed(T builder, List<Command> commands, E event) {
-        String guildId = guildFromEvent(event);
+    public void addCommandsToEmbed(T builder, List<Command> commands) {
         for (Command command : commands) {
             addField(builder, "**" + command.getCommandName() + "**", command.getDescription(), false);
         }
