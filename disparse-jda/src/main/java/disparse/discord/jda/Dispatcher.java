@@ -24,19 +24,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
 
   private final PermissionEnumConverter<Permission> enumConverter = new PermissionMapping();
 
-  public Dispatcher() {
-    this("");
+  private Dispatcher() {
+    this("", 5, "");
   }
 
-  public Dispatcher(String prefix) {
-    this(prefix, 5);
-  }
-
-  public Dispatcher(String prefix, int pageLimit) {
-    this(prefix, pageLimit, "");
-  }
-
-  public Dispatcher(String prefix, int pageLimit, String description) {
+  private Dispatcher(String prefix, int pageLimit, String description) {
     super(prefix, pageLimit, description);
   }
 

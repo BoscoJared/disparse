@@ -29,19 +29,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
 
   private SmallD smalld;
 
-  public Dispatcher() {
-    this("", null);
+  private Dispatcher() {
+    this("", null, 5, "");
   }
 
-  public Dispatcher(String prefix, SmallD smalld) {
-    this(prefix, smalld, 5);
-  }
-
-  public Dispatcher(String prefix, SmallD smalld, int pageLimit) {
-    this(prefix, smalld, pageLimit, "");
-  }
-
-  public Dispatcher(String prefix, SmallD smalld, int pageLimit, String description) {
+  private Dispatcher(String prefix, SmallD smalld, int pageLimit, String description) {
     super(prefix, pageLimit, description);
     this.smalld = smalld;
   }
