@@ -10,6 +10,7 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -45,17 +46,16 @@ public class Detector {
 
             Command command =
                     new Command(handler.commandName(), handler.description(), handler.roles(), handler.canBeDisabled(), cooldownDuration, scope, sendCooldownMessage, acceptFrom, handler.aliases(), handler.perms(), commandUsages);
-            for (Class<?> paramClazz : method.getParameterTypes()) {
-                if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
-                    Field[] fields = allImplicitFields(paramClazz);
-                    for (Field field : fields) {
-                        if (field.isAnnotationPresent(Flag.class)) {
-                            CommandFlag flag =
-                                    Utils.createFlagFromAnnotation(
-                                            field, field.getAnnotation(Flag.class));
-                            registrar.register(command, flag);
-                        }
+            extractParsedEntities(registrar, command, method.getParameterTypes(), method);
+            boolean seen = false;
+            for (Constructor<?> ctor : method.getDeclaringClass().getDeclaredConstructors()) {
+                if (ctor.isAnnotationPresent(Populate.class)) {
+                    if (seen) {
+                        logger.error("There can only be one constructor marked as Populate!  Error in class:  {}", ctor.getDeclaringClass().getSimpleName());
+                        break;
                     }
+                    extractParsedEntities(registrar, command, ctor.getParameterTypes(), method);
+                    seen = true;
                 }
             }
             registrar.register(command, method);
@@ -65,6 +65,22 @@ public class Detector {
         injectables.forEach(registrar::register);
 
         return registrar;
+    }
+
+    private static <E, T> void extractParsedEntities(CommandRegistrar<E, T> registrar, Command command, Class<?>[] parameterTypes, Method method) {
+        for (Class<?> paramClazz : parameterTypes) {
+            if (paramClazz.isAnnotationPresent(ParsedEntity.class)) {
+                Field[] fields = allImplicitFields(paramClazz);
+                for (Field field : fields) {
+                    if (field.isAnnotationPresent(Flag.class)) {
+                        CommandFlag flag =
+                                Utils.createFlagFromAnnotation(
+                                        field, field.getAnnotation(Flag.class));
+                        registrar.register(command, flag);
+                    }
+                }
+            }
+        }
     }
 
     public static Field[] allImplicitFields(Class<?> clazz) {

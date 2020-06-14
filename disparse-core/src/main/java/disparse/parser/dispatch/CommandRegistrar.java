@@ -8,10 +8,7 @@ import disparse.parser.*;
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequired;
 import disparse.parser.exceptions.OptionRequiresValue;
-import disparse.parser.reflection.Detector;
-import disparse.parser.reflection.Flag;
-import disparse.parser.reflection.ParsedEntity;
-import disparse.parser.reflection.Utils;
+import disparse.parser.reflection.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -237,90 +234,8 @@ public class CommandRegistrar<E, T> {
             return;
         }
 
-        Object[] objects = new Object[commandHandler.getParameterTypes().length];
+        Object[] objects = this.fillParams(commandHandler.getParameterTypes(), parsedOutput, helper, event, args, foundCommand);
 
-        int i = 0;
-        for (Class<?> clazz : commandHandler.getParameterTypes()) {
-            if (clazz.isAnnotationPresent(ParsedEntity.class)) {
-                Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-                constructor.setAccessible(true);
-                Object newObject = constructor.newInstance();
-
-                for (Field field : Detector.allImplicitFields(clazz)) {
-                    if (field.isAnnotationPresent(Flag.class)) {
-                        Flag flagAnnotation = field.getAnnotation(Flag.class);
-
-                        CommandFlag flag = Utils.createFlagFromAnnotation(field, flagAnnotation);
-                        if (parsedOutput.getOptions().containsKey(flag)) {
-                            Object val = parsedOutput.getOptions().get(flag);
-                            field.setAccessible(true);
-
-                            if (flag.getType().equals(Types.INT)) {
-                                try {
-                                    field.set(newObject, Integer.parseInt((String) val));
-                                } catch (NumberFormatException numberFormatException) {
-                                    helper.flagRequiresInt(event, flag, (String) val);
-                                    return;
-                                }
-                            } else if (flag.getType().equals(Types.ENUM)) {
-                                Map<String, String> choices = flag.getChoices();
-                                String choice = choices.getOrDefault(val, (String) val);
-                                try {
-                                    field.set(newObject, Enum.valueOf((Class<Enum>) field.getType(), choice));
-                                } catch (IllegalArgumentException illegalArgumentException) {
-                                    String name = flagAnnotation.longName();
-                                    if (name.equals("")) {
-                                        name = String.valueOf(flagAnnotation.shortName());
-                                    }
-                                    String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
-                                    helper.incorrectOption(event, (String) val, name, options);
-                                    return;
-                                }
-                            } else if (flag.getType().equals(Types.INT_LIST)) {
-                                List<Integer> ints = new ArrayList<>();
-                                for (String str : (List<String>) val) {
-                                    try {
-                                        ints.add(Integer.parseInt(str));
-                                    } catch (NumberFormatException numberFormatException) {
-                                        helper.flagRequiresInt(event, flag, str);
-                                        return;
-                                    }
-                                }
-                                field.set(newObject, ints);
-                            } else if (flag.getType().equals(Types.ENUM_LIST)) {
-                                List<Enum<?>> enums = new ArrayList<>();
-                                Map<String, String> choices = flag.getChoices();
-                                Class<?> genericTypes = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-                                for (String str : (List<String>) val) {
-                                    String choice = choices.getOrDefault(str, str);
-                                    try {
-                                        enums.add(Enum.valueOf((Class<Enum>) genericTypes, choice));
-                                    } catch (IllegalArgumentException illegalArgumentException) {
-                                        String name = flagAnnotation.longName();
-                                        if (name.equals("")) {
-                                            name = String.valueOf(flagAnnotation.shortName());
-                                        }
-                                        String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
-                                        helper.incorrectOption(event, choice, name, options);
-                                        return;
-                                    }
-                                }
-                                field.set(newObject, enums);
-                            } else {
-                                field.set(newObject, val);
-                            }
-                        } else if (flag.isRequired()) {
-                            throw new OptionRequired("The flag `--" + flag + "` is required for `"
-                                    + foundCommand.getCommandName() + "` to be ran!", foundCommand, flag);
-                        }
-                    }
-                }
-                objects[i] = newObject;
-            } else {
-                this.fillObjectArr(objects, i, clazz, args, event, helper);
-            }
-            i++;
-        }
         commandHandler.setAccessible(true);
         Object handlerObj = null; // null can work for static methods invocation
         Constructor<?>[] ctors = commandHandler.getDeclaringClass().getDeclaredConstructors();
@@ -331,17 +246,13 @@ public class CommandRegistrar<E, T> {
         int bestNonNull = Integer.MAX_VALUE;
 
         for (Constructor<?> ctor : ctors) {
-            Object[] ctorParams = new Object[ctor.getParameterCount()];
-            int idx = 0;
+            Object[] ctorParams = this.fillParams(ctor.getParameterTypes(), parsedOutput, helper, event, args, foundCommand);
 
-            for (Class<?> clazz : ctor.getParameterTypes()) {
-                this.fillObjectArr(ctorParams, idx, clazz, args, event, helper);
-                idx++;
-            }
+            if (ctorParams == null) return;
 
             boolean noneNull = Arrays.stream(ctorParams).noneMatch(Objects::isNull);
 
-            if (noneNull) {
+            if (noneNull || ctor.isAnnotationPresent(Populate.class)) {
                 bestCtor = ctor;
                 bestCtorParams = ctorParams;
                 break;
@@ -421,6 +332,95 @@ public class CommandRegistrar<E, T> {
         }
 
         return CooldownCompositeKey.of(null, null, null);
+    }
+
+    private Object[] fillParams(Class<?>[] parameterTypes, ParsedOutput parsedOutput, AbstractDispatcher<E, T> helper, E event, List<String> args, Command foundCommand) throws ReflectiveOperationException {
+        Object[] params = new Object[parameterTypes.length];
+        int i = 0;
+
+        for (Class<?> clazz : parameterTypes) {
+            if (clazz.isAnnotationPresent(ParsedEntity.class)) {
+                Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+                constructor.setAccessible(true);
+                Object newObject = constructor.newInstance();
+
+                for (Field field : Detector.allImplicitFields(clazz)) {
+                    if (field.isAnnotationPresent(Flag.class)) {
+                        Flag flagAnnotation = field.getAnnotation(Flag.class);
+
+                        CommandFlag flag = Utils.createFlagFromAnnotation(field, flagAnnotation);
+                        if (parsedOutput.getOptions().containsKey(flag)) {
+                            Object val = parsedOutput.getOptions().get(flag);
+                            field.setAccessible(true);
+
+                            if (flag.getType().equals(Types.INT)) {
+                                try {
+                                    field.set(newObject, Integer.parseInt((String) val));
+                                } catch (NumberFormatException numberFormatException) {
+                                    helper.flagRequiresInt(event, flag, (String) val);
+                                    return null;
+                                }
+                            } else if (flag.getType().equals(Types.ENUM)) {
+                                Map<String, String> choices = flag.getChoices();
+                                String choice = choices.getOrDefault(val, (String) val);
+                                try {
+                                    field.set(newObject, Enum.valueOf((Class<Enum>) field.getType(), choice));
+                                } catch (IllegalArgumentException illegalArgumentException) {
+                                    String name = flagAnnotation.longName();
+                                    if (name.equals("")) {
+                                        name = String.valueOf(flagAnnotation.shortName());
+                                    }
+                                    String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
+                                    helper.incorrectOption(event, (String) val, name, options);
+                                    return null;
+                                }
+                            } else if (flag.getType().equals(Types.INT_LIST)) {
+                                List<Integer> ints = new ArrayList<>();
+                                for (String str : (List<String>) val) {
+                                    try {
+                                        ints.add(Integer.parseInt(str));
+                                    } catch (NumberFormatException numberFormatException) {
+                                        helper.flagRequiresInt(event, flag, str);
+                                        return null;
+                                    }
+                                }
+                                field.set(newObject, ints);
+                            } else if (flag.getType().equals(Types.ENUM_LIST)) {
+                                List<Enum<?>> enums = new ArrayList<>();
+                                Map<String, String> choices = flag.getChoices();
+                                Class<?> genericTypes = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                                for (String str : (List<String>) val) {
+                                    String choice = choices.getOrDefault(str, str);
+                                    try {
+                                        enums.add(Enum.valueOf((Class<Enum>) genericTypes, choice));
+                                    } catch (IllegalArgumentException illegalArgumentException) {
+                                        String name = flagAnnotation.longName();
+                                        if (name.equals("")) {
+                                            name = String.valueOf(flagAnnotation.shortName());
+                                        }
+                                        String options = choices.keySet().stream().map(s -> "`" + s + "`").collect(Collectors.joining(", "));
+                                        helper.incorrectOption(event, choice, name, options);
+                                        return null;
+                                    }
+                                }
+                                field.set(newObject, enums);
+                            } else {
+                                field.set(newObject, val);
+                            }
+                        } else if (flag.isRequired()) {
+                            throw new OptionRequired("The flag `--" + flag + "` is required for `"
+                                    + foundCommand.getCommandName() + "` to be ran!", foundCommand, flag);
+                        }
+                    }
+                }
+                params[i] = newObject;
+            } else {
+                this.fillObjectArr(params, i, clazz, args, event, helper);
+            }
+            i++;
+        }
+
+        return params;
     }
 
     private void fillObjectArr(Object[] objects, int index, Class<?> clazz, List<String> args, E event, AbstractDispatcher<E, T> helper)
