@@ -6,7 +6,6 @@ import disparse.discord.PermissionEnumConverter;
 
 public class PermissionMapping implements PermissionEnumConverter<Permission> {
 
-
   @Override
   public Permission into(AbstractPermission permission) {
     switch (permission) {
@@ -118,7 +117,8 @@ public class PermissionMapping implements PermissionEnumConverter<Permission> {
         return AbstractPermission.MESSAGE_WRITE;
       case CHANGE_NICKNAME:
         return AbstractPermission.NICKNAME_CHANGE;
-      case MANAGE_NICKNAMES: NICKNAME_MANAGE:
+      case MANAGE_NICKNAMES:
+        NICKNAME_MANAGE:
         return AbstractPermission.NICKNAME_MANAGE;
       case PRIORITY_SPEAKER:
         return AbstractPermission.PRIORITY_SPEAKER;

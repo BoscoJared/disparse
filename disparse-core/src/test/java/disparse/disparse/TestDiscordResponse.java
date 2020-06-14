@@ -3,7 +3,9 @@ package disparse.disparse;
 import disparse.discord.AbstractDiscordResponse;
 
 public class TestDiscordResponse extends AbstractDiscordResponse<StringBuilder> {
-  public TestDiscordResponse() {super(); }
+  public TestDiscordResponse() {
+    super();
+  }
 
   public TestDiscordResponse(String message) {
     super(message);

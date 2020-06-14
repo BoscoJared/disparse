@@ -2,7 +2,6 @@ package disparse.discord.manager.provided;
 
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.manager.BaseEmbedManager;
-
 import java.util.function.Supplier;
 
 public class SingleBaseEmbedManager<E, T> implements BaseEmbedManager<E, T> {

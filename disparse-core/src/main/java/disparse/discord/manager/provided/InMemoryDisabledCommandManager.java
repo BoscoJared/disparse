@@ -2,7 +2,6 @@ package disparse.discord.manager.provided;
 
 import disparse.discord.manager.DisabledCommandManager;
 import disparse.parser.Command;
-
 import java.util.*;
 
 public class InMemoryDisabledCommandManager implements DisabledCommandManager {

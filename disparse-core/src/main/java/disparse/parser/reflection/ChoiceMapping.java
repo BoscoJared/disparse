@@ -1,7 +1,7 @@
 package disparse.parser.reflection;
 
 public @interface ChoiceMapping {
-    String userChoice();
+  String userChoice();
 
-    String mapTo();
+  String mapTo();
 }

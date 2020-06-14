@@ -2,7 +2,6 @@ package disparse.parser.reflection;
 
 import disparse.discord.AbstractPermission;
 import disparse.parser.dispatch.IncomingScope;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,17 +11,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface CommandHandler {
 
-    String commandName();
+  String commandName();
 
-    String description() default "no description available";
+  String description() default "no description available";
 
-    String[] roles() default {};
+  String[] roles() default {};
 
-    boolean canBeDisabled() default true;
+  boolean canBeDisabled() default true;
 
-    IncomingScope acceptFrom() default IncomingScope.ALL;
+  IncomingScope acceptFrom() default IncomingScope.ALL;
 
-    AbstractPermission[] perms() default {};
+  AbstractPermission[] perms() default {};
 
-    String[] aliases() default {};
+  String[] aliases() default {};
 }

@@ -3,7 +3,6 @@ package disparse.parser;
 import disparse.discord.AbstractPermission;
 import disparse.parser.dispatch.CooldownScope;
 import disparse.parser.dispatch.IncomingScope;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -24,24 +23,47 @@ public class Command {
   private String parentName = null;
 
   public Command(final String name, final String description) {
-    this(name, description, new String[]{}, true, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{}, new AbstractPermission[]{}, List.of());
+    this(
+        name,
+        description,
+        new String[] {},
+        true,
+        Duration.ZERO,
+        CooldownScope.USER,
+        false,
+        IncomingScope.ALL,
+        new String[] {},
+        new AbstractPermission[] {},
+        List.of());
   }
 
   public Command(final String name, final String description, final boolean canBeDisabled) {
-    this(name, description, new String[]{}, canBeDisabled, Duration.ZERO, CooldownScope.USER, false, IncomingScope.ALL, new String[]{}, new AbstractPermission[]{}, List.of());
+    this(
+        name,
+        description,
+        new String[] {},
+        canBeDisabled,
+        Duration.ZERO,
+        CooldownScope.USER,
+        false,
+        IncomingScope.ALL,
+        new String[] {},
+        new AbstractPermission[] {},
+        List.of());
   }
 
-  public Command(final String name,
-                 final String description,
-                 final String[] roles,
-                 final boolean canBeDisabled,
-                 final Duration cooldownDuration,
-                 final CooldownScope scope,
-                 final boolean sendCooldownMessage,
-                 final IncomingScope acceptFrom,
-                 final String[] aliases,
-                 final AbstractPermission[] perms,
-                 final List<CommandUsage> usageExamples) {
+  public Command(
+      final String name,
+      final String description,
+      final String[] roles,
+      final boolean canBeDisabled,
+      final Duration cooldownDuration,
+      final CooldownScope scope,
+      final boolean sendCooldownMessage,
+      final IncomingScope acceptFrom,
+      final String[] aliases,
+      final AbstractPermission[] perms,
+      final List<CommandUsage> usageExamples) {
     this.name = name;
     this.description = description;
     this.roles = roles;
@@ -95,7 +117,9 @@ public class Command {
     return this.perms;
   }
 
-  public List<CommandUsage> getUsageExamples() { return this.usageExamples; }
+  public List<CommandUsage> getUsageExamples() {
+    return this.usageExamples;
+  }
 
   public String getParentName() {
     return this.parentName;

@@ -1,284 +1,281 @@
 package disparse.disparse;
 
-import disparse.discord.AbstractDiscordResponse;
 import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.reflection.*;
 import disparse.utils.help.Help;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DispatchIntegrationTests {
 
-    private static String PREFIX = "!";
-    private static String DESCRIPTION = "test description";
-    private static int PAGE_LIMIT = 6;
+  private static String PREFIX = "!";
+  private static String DESCRIPTION = "test description";
+  private static int PAGE_LIMIT = 6;
 
-    private TestDispatcher dispatcher;
+  private TestDispatcher dispatcher;
 
-    @CommandHandler(commandName = "test")
-    public static void test(AbstractDispatcher<Object, Object> helper, List<String> args) {
-        helper.sendMessage(null, "test");
-        for (String arg: args) {
-            helper.sendMessage(null, arg);
-        }
+  @CommandHandler(commandName = "test")
+  public static void test(AbstractDispatcher<Object, Object> helper, List<String> args) {
+    helper.sendMessage(null, "test");
+    for (String arg : args) {
+      helper.sendMessage(null, arg);
+    }
+  }
+
+  @CommandHandler(commandName = "foo.bar")
+  public static void fooBar(AbstractDispatcher<Object, Object> helper, List<String> args) {
+    helper.sendMessage(null, "test");
+    for (String arg : args) {
+      helper.sendMessage(null, arg);
+    }
+  }
+
+  @ParsedEntity
+  static class FooOpts {
+    @Flag(shortName = 't', longName = "toggle")
+    Boolean toggle = false;
+  }
+
+  @CommandHandler(commandName = "foo")
+  public static void foo(AbstractDispatcher<Object, Object> helper, FooOpts opts) {
+    helper.sendMessage(null, "test");
+    helper.sendMessage(null, opts.toggle.toString());
+  }
+
+  @CommandHandler(commandName = "foo.bar.baz")
+  public static void fooBarBaz(
+      AbstractDispatcher<Object, Object> helper, FooOpts opts, List<String> args) {
+    helper.sendMessage(null, "test");
+    for (String arg : args) {
+      helper.sendMessage(null, arg);
+    }
+    helper.sendMessage(null, opts.toggle.toString());
+  }
+
+  @CommandHandler(commandName = "cooldown")
+  @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, sendCooldownMessage = true)
+  public static void cooldown(AbstractDispatcher<Object, Object> helper) {
+    helper.sendMessage(null, "test");
+  }
+
+  @CommandHandler(commandName = "discordresponse")
+  public static TestDiscordResponse discordResponse() {
+    return TestDiscordResponse.of("sent");
+  }
+
+  @CommandHandler(commandName = "discordresponseembed")
+  public static TestDiscordResponse discordResponseEmbed() {
+    return TestDiscordResponse.of(new StringBuilder().append("sent"));
+  }
+
+  @CommandHandler(commandName = "discordresponsenoop")
+  public static TestDiscordResponse discordResponseNoop() {
+    return TestDiscordResponse.noop();
+  }
+
+  @ParsedEntity
+  static class RequiredOpts {
+    @Flag(shortName = 'r', longName = "required", required = true)
+    String required;
+  }
+
+  @CommandHandler(commandName = "required")
+  public static TestDiscordResponse required(RequiredOpts opts) {
+    return TestDiscordResponse.noop();
+  }
+
+  @ParsedEntity
+  static class AllOpts {
+    @Flag(shortName = 'r', longName = "repeat")
+    List<String> repeatable = new ArrayList<>();
+
+    @Flag(shortName = 'P', longName = "print-args")
+    Boolean printArgs = false;
+  }
+
+  @CommandHandler(commandName = "allopts")
+  public static TestDiscordResponse required(TestDiscordRequest req, AllOpts opts) {
+    if (opts.repeatable.size() > 0) {
+      opts.repeatable.forEach(r -> req.getDispatcher().sendMessage(null, r));
     }
 
-    @CommandHandler(commandName = "foo.bar")
-    public static void fooBar(AbstractDispatcher<Object, Object> helper, List<String> args) {
-        helper.sendMessage(null, "test");
-        for (String arg: args) {
-            helper.sendMessage(null, arg);
-        }
+    if (opts.printArgs) {
+      req.getArgs().forEach(r -> req.getDispatcher().sendMessage(null, r));
     }
 
-    @ParsedEntity
-    static class FooOpts {
-        @Flag(shortName = 't', longName = "toggle")
-        Boolean toggle = false;
-    }
+    return TestDiscordResponse.noop();
+  }
 
-    @CommandHandler(commandName = "foo")
-    public static void foo(AbstractDispatcher<Object, Object> helper, FooOpts opts) {
-        helper.sendMessage(null, "test");
-        helper.sendMessage(null, opts.toggle.toString());
-    }
+  @BeforeEach
+  public void beforeEach() {
+    this.dispatcher =
+        new TestDispatcher.Builder(this.getClass())
+            .prefix(PREFIX)
+            .pageLimit(PAGE_LIMIT)
+            .description(DESCRIPTION)
+            .build();
+  }
 
-    @CommandHandler(commandName = "foo.bar.baz")
-    public static void fooBarBaz(AbstractDispatcher<Object, Object> helper, FooOpts opts, List<String> args) {
-        helper.sendMessage(null, "test");
-        for (String arg: args) {
-            helper.sendMessage(null, arg);
-        }
-        helper.sendMessage(null, opts.toggle.toString());
-    }
+  @Test
+  public void testSingleCommandIsSent() {
+    dispatcher.dispatch("!test");
 
-    @CommandHandler(commandName = "cooldown")
-    @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, sendCooldownMessage = true)
-    public static void cooldown(AbstractDispatcher<Object, Object> helper) {
-        helper.sendMessage(null, "test");
-    }
+    assert (dispatcher.messages.size() == 1);
+    assert (dispatcher.messages.get(0).equals("test"));
+  }
 
-    @CommandHandler(commandName = "discordresponse")
-    public static TestDiscordResponse discordResponse() {
-        return TestDiscordResponse.of("sent");
-    }
+  @Test
+  public void testSingleCommandAndArgumentsAreSent() {
 
-    @CommandHandler(commandName = "discordresponseembed")
-    public static TestDiscordResponse discordResponseEmbed() {
-        return TestDiscordResponse.of(new StringBuilder().append("sent"));
-    }
+    dispatcher.dispatch("!test a b c");
 
-    @CommandHandler(commandName = "discordresponsenoop")
-    public static TestDiscordResponse discordResponseNoop() {
-        return TestDiscordResponse.noop();
-    }
+    List<String> inOrderMessages = List.of("test", "a", "b", "c");
 
-    @ParsedEntity
-    static class RequiredOpts {
-        @Flag(shortName = 'r', longName = "required", required = true)
-        String required;
-    }
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-    @CommandHandler(commandName = "required")
-    public static TestDiscordResponse required(RequiredOpts opts) {
-        return TestDiscordResponse.noop();
-    }
+  @Test
+  public void testSingleSubcommandIsSent() {
+    dispatcher.dispatch("!foo bar");
 
-    @ParsedEntity
-    static class AllOpts {
-        @Flag(shortName = 'r', longName = "repeat")
-        List<String> repeatable = new ArrayList<>();
+    assert (dispatcher.messages.size() == 1);
+    assert (dispatcher.messages.get(0).equals("test"));
+  }
 
-        @Flag(shortName = 'P', longName = "print-args")
-        Boolean printArgs = false;
-    }
+  @Test
+  public void testSingleSubcommandAndArgumentsAreSent() {
+    dispatcher.dispatch("!foo bar a b c");
 
-    @CommandHandler(commandName = "allopts")
-    public static TestDiscordResponse required(TestDiscordRequest req, AllOpts opts) {
-        if (opts.repeatable.size() > 0) {
-            opts.repeatable.forEach(r -> req.getDispatcher().sendMessage(null, r));
-        }
+    List<String> inOrderMessages = List.of("test", "a", "b", "c");
 
-        if (opts.printArgs) {
-            req.getArgs().forEach(r -> req.getDispatcher().sendMessage(null, r));
-        }
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        return TestDiscordResponse.noop();
-    }
+  @Test
+  public void testCommandWithOneBooleanFlagDefaultIsSent() {
+    dispatcher.dispatch("!foo");
 
-    @BeforeEach
-    public void beforeEach() {
-        this.dispatcher = new TestDispatcher.Builder(this.getClass())
-                .prefix(PREFIX)
-                .pageLimit(PAGE_LIMIT)
-                .description(DESCRIPTION)
-                .build();
-    }
+    List<String> inOrderMessages = List.of("test", "false");
 
-    @Test
-    public void testSingleCommandIsSent() {
-        dispatcher.dispatch("!test");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        assert(dispatcher.messages.size() == 1);
-        assert(dispatcher.messages.get(0).equals("test"));
-    }
+  @Test
+  public void testCommandWithOneBooleanShortFlagIsSent() {
+    dispatcher.dispatch("!foo -t");
 
-    @Test
-    public void testSingleCommandAndArgumentsAreSent() {
+    List<String> inOrderMessages = List.of("test", "true");
 
-        dispatcher.dispatch("!test a b c");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of("test", "a", "b", "c");
+  @Test
+  public void testCommandWithOneBooleanLongFlagIsSent() {
+    dispatcher.dispatch("!foo --toggle");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("test", "true");
 
-    @Test
-    public void testSingleSubcommandIsSent() {
-        dispatcher.dispatch("!foo bar");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        assert(dispatcher.messages.size() == 1);
-        assert(dispatcher.messages.get(0).equals("test"));
-    }
+  @Test
+  public void testSubcommandWithBooleanFlagAndArgumentsAreSent() {
+    dispatcher.dispatch("!foo bar baz a b --toggle c");
 
-    @Test
-    public void testSingleSubcommandAndArgumentsAreSent() {
-        dispatcher.dispatch("!foo bar a b c");
+    List<String> inOrderMessages = List.of("test", "a", "b", "c", "true");
 
-        List<String> inOrderMessages = List.of("test", "a", "b", "c");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+  @Test
+  public void testNoCommandFound() {
+    dispatcher.dispatch("!noCommand");
 
-    @Test
-    public void testCommandWithOneBooleanFlagDefaultIsSent() {
-        dispatcher.dispatch("!foo");
+    List<String> inOrderMessages =
+        List.of(
+            "`noCommand` is not a valid command!",
+            "Use !help to get a list of all available commands.");
 
-        List<String> inOrderMessages = List.of("test", "false");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+  @Test
+  public void testCommandWithSimpleUserCooldown() throws Exception {
+    dispatcher.dispatch("!cooldown");
+    dispatcher.dispatch("!cooldown");
 
-    @Test
-    public void testCommandWithOneBooleanShortFlagIsSent() {
-        dispatcher.dispatch("!foo -t");
+    TimeUnit.MILLISECONDS.sleep(50);
 
-        List<String> inOrderMessages = List.of("test", "true");
+    dispatcher.dispatch("!cooldown");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("test", "This command has a per-user cooldown!", "test");
 
-    @Test
-    public void testCommandWithOneBooleanLongFlagIsSent() {
-        dispatcher.dispatch("!foo --toggle");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of("test", "true");
+  @Test
+  public void testCommandReturnDiscordResponseStringVariant() {
+    dispatcher.dispatch("!discordresponse");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("sent");
 
-    @Test
-    public void testSubcommandWithBooleanFlagAndArgumentsAreSent() {
-        dispatcher.dispatch("!foo bar baz a b --toggle c");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of("test", "a", "b", "c", "true");
+  @Test
+  public void testCommandReturnDiscordResponseEmbedVariant() {
+    dispatcher.dispatch("!discordresponseembed");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("sent");
 
-    @Test
-    public void testNoCommandFound() {
-        dispatcher.dispatch("!noCommand");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of("`noCommand` is not a valid command!",
-                "Use !help to get a list of all available commands.");
+  @Test
+  public void testCommandReturnDiscordResponseNoopVariant() {
+    dispatcher.dispatch("!discordresponsenoop");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of();
 
-    @Test
-    public void testCommandWithSimpleUserCooldown() throws Exception {
-        dispatcher.dispatch("!cooldown");
-        dispatcher.dispatch("!cooldown");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        TimeUnit.MILLISECONDS.sleep(50);
+  @Test
+  public void testFlagRequiresOption() {
+    dispatcher.dispatch("!required");
 
-        dispatcher.dispatch("!cooldown");
+    Command requiredCommand = new Command("required", "");
+    CommandFlag requiredFlag = new CommandFlag("required", null, null, true, null, null);
 
-        List<String> inOrderMessages = List.of("test",
-                "This command has a per-user cooldown!",
-                "test");
+    List<String> inOrderMessages = List.of(Help.optionRequired(requiredCommand, requiredFlag));
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-    @Test
-    public void testCommandReturnDiscordResponseStringVariant() {
-        dispatcher.dispatch("!discordresponse");
+  @Test
+  public void testFlagRequiresValue() {
+    dispatcher.dispatch("!required --required");
+    CommandFlag requiredFlag = new CommandFlag("required", null, null, true, null, null);
 
-        List<String> inOrderMessages = List.of("sent");
+    List<String> inOrderMessages = List.of(Help.optionRequiresValue(requiredFlag));
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+  @Test
+  public void testHelpAllCommands() {
+    dispatcher.dispatch("!help");
 
-    @Test
-    public void testCommandReturnDiscordResponseEmbedVariant() {
-        dispatcher.dispatch("!discordresponseembed");
+    String tail = "no description available|false";
 
-        List<String> inOrderMessages = List.of("sent");
-
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
-
-    @Test
-    public void testCommandReturnDiscordResponseNoopVariant() {
-        dispatcher.dispatch("!discordresponsenoop");
-
-        List<String> inOrderMessages = List.of();
-
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
-
-    @Test
-    public void testFlagRequiresOption() {
-        dispatcher.dispatch("!required");
-
-        Command requiredCommand = new Command("required", "");
-        CommandFlag requiredFlag = new CommandFlag("required",
-                null, null, true, null, null);
-
-        List<String> inOrderMessages = List.of(Help.optionRequired(requiredCommand, requiredFlag));
-
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
-
-    @Test
-    public void testFlagRequiresValue() {
-        dispatcher.dispatch("!required --required");
-        CommandFlag requiredFlag = new CommandFlag("required",
-                null, null, true, null, null);
-
-        List<String> inOrderMessages = List.of(Help.optionRequiresValue(requiredFlag));
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
-
-    @Test
-    public void testHelpAllCommands() {
-        dispatcher.dispatch("!help");
-
-        String tail = "no description available|false";
-
-        List<String> inOrderMessages = List.of(
+    List<String> inOrderMessages =
+        List.of(
             String.join("|", "title", dispatcher.getDescription(new Object())),
             "description|All registered commands",
             String.join("|", "**allopts**", tail),
@@ -287,106 +284,101 @@ public class DispatchIntegrationTests {
             String.join("|", "**discordresponseembed**", tail),
             String.join("|", "**discordresponsenoop**", tail),
             String.join("|", "**foo**", tail),
-            String.join("|", "Currently viewing page 1 of 2",
-                    "Use `-p | --page` to specify a page number", "false")
-        );
+            String.join(
+                "|",
+                "Currently viewing page 1 of 2",
+                "Use `-p | --page` to specify a page number",
+                "false"));
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-    }
+  @Test
+  public void testHelpAllCommandsPageTwo() {
+    dispatcher.dispatch("!help --page 2");
 
-    @Test
-    public void testHelpAllCommandsPageTwo() {
-        dispatcher.dispatch("!help --page 2");
+    String tail = "no description available|false";
 
-        String tail = "no description available|false";
+    List<String> inOrderMessages =
+        List.of(
+            String.join("|", "title", dispatcher.getDescription(new Object())),
+            "description|All registered commands",
+            String.join("|", "**foo.bar**", tail),
+            String.join("|", "**foo.bar.baz**", tail),
+            String.join(
+                "|", "**help**", "show all commands or detailed help of one command", "false"),
+            String.join("|", "**required**", tail),
+            String.join("|", "**test**", tail),
+            String.join(
+                "|",
+                "Currently viewing page 2 of 2",
+                "Use `-p | --page` to specify a page number",
+                "false"));
 
-        List<String> inOrderMessages = List.of(
-                String.join("|", "title", dispatcher.getDescription(new Object())),
-                "description|All registered commands",
-                String.join("|", "**foo.bar**", tail),
-                String.join("|", "**foo.bar.baz**", tail),
-                String.join("|", "**help**", "show all commands or detailed help of one command", "false"),
-                String.join("|", "**required**", tail),
-                String.join("|", "**test**", tail),
-                String.join("|", "Currently viewing page 2 of 2",
-                        "Use `-p | --page` to specify a page number", "false")
-        );
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  @Test
+  public void testHelpAllCommandsPageTooHigh() {
+    String pageNum = "15";
+    dispatcher.dispatch("!help --page " + pageNum);
 
-    }
+    List<String> inOrderMessages =
+        List.of(
+            "The specified page number **"
+                + pageNum
+                + "** is not within the range of valid pages.  The valid pages are between **1** and **2**.");
 
-    @Test
-    public void testHelpAllCommandsPageTooHigh() {
-        String pageNum = "15";
-        dispatcher.dispatch("!help --page " + pageNum);
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of(
-                "The specified page number **" + pageNum + "** is not within the range of valid pages.  The valid pages are between **1** and **2**."
-        );
+  @Test
+  public void testHelpAllCommandsPageTooLow() {
+    String pageNum = "-15";
+    dispatcher.dispatch("!help --page " + pageNum);
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages =
+        List.of(
+            "The specified page number **"
+                + pageNum
+                + "** is not within the range of valid pages.  The valid pages are between **1** and **2**.");
 
-    @Test
-    public void testHelpAllCommandsPageTooLow() {
-        String pageNum = "-15";
-        dispatcher.dispatch("!help --page " + pageNum);
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of(
-                "The specified page number **" + pageNum + "** is not within the range of valid pages.  The valid pages are between **1** and **2**."
-        );
+  @Test
+  public void testRepeatableFlag() {
+    dispatcher.dispatch("!allopts --repeat foo --repeat bar --repeat baz");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("foo", "bar", "baz");
 
-    @Test
-    public void testRepeatableFlag() {
-        dispatcher.dispatch("!allopts --repeat foo --repeat bar --repeat baz");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of(
-                "foo",
-                "bar",
-                "baz"
-        );
+  @Test
+  public void testRepeatableFlagRequiresOption() {
+    dispatcher.dispatch("!allopts --repeat foo --repeat");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("The flag `--repeat` was not provided a value!");
 
-    @Test
-    public void testRepeatableFlagRequiresOption() {
-        dispatcher.dispatch("!allopts --repeat foo --repeat");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of(
-                "The flag `--repeat` was not provided a value!"
-        );
+  @Test
+  public void testRepeatableFlagMixedWithShortAndLong() {
+    dispatcher.dispatch("!allopts -r foo --repeat bar -r baz");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("bar", "foo", "baz");
 
-    @Test
-    public void testRepeatableFlagMixedWithShortAndLong() {
-        dispatcher.dispatch("!allopts -r foo --repeat bar -r baz");
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 
-        List<String> inOrderMessages = List.of(
-                "bar",
-                "foo",
-                "baz"
-        );
+  @Test
+  public void testStandaloneHyphenDoesNotCrash() {
+    dispatcher.dispatch("!allopts - foo --print-args");
 
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    List<String> inOrderMessages = List.of("-", "foo");
 
-    @Test
-    public void testStandaloneHyphenDoesNotCrash() {
-        dispatcher.dispatch("!allopts - foo --print-args");
-
-        List<String> inOrderMessages = List.of(
-                "-",
-                "foo"
-        );
-
-        Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
-    }
+    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+  }
 }

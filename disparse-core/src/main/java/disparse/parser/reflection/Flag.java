@@ -9,13 +9,13 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Flag {
 
-    char shortName() default ' ';
+  char shortName() default ' ';
 
-    String longName() default "";
+  String longName() default "";
 
-    boolean required() default false;
+  boolean required() default false;
 
-    String description() default "no description available";
+  String description() default "no description available";
 
-    ChoiceMapping[] choices() default {};
+  ChoiceMapping[] choices() default {};
 }

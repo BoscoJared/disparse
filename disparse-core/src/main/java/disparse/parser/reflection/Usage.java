@@ -7,5 +7,6 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface Usage {
   String usage();
+
   String description();
 }

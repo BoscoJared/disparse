@@ -1,7 +1,6 @@
 package disparse.parser.reflection;
 
 import disparse.parser.dispatch.CooldownScope;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,11 +11,11 @@ import java.time.temporal.ChronoUnit;
 @Target(ElementType.METHOD)
 public @interface Cooldown {
 
-    int amount() default 0;
+  int amount() default 0;
 
-    ChronoUnit unit() default ChronoUnit.SECONDS;
+  ChronoUnit unit() default ChronoUnit.SECONDS;
 
-    CooldownScope scope() default CooldownScope.USER;
+  CooldownScope scope() default CooldownScope.USER;
 
-    boolean sendCooldownMessage() default false;
+  boolean sendCooldownMessage() default false;
 }

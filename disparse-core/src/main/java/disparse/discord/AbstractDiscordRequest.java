@@ -8,9 +8,7 @@ public class AbstractDiscordRequest<E, T> {
   private final E event;
   private final List<String> args;
 
-  public AbstractDiscordRequest(AbstractDispatcher<E, T> dispatcher,
-                                E event,
-                                List<String> args) {
+  public AbstractDiscordRequest(AbstractDispatcher<E, T> dispatcher, E event, List<String> args) {
     this.dispatcher = dispatcher;
     this.event = event;
     this.args = args;

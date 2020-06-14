@@ -6,8 +6,6 @@ import com.google.gson.reflect.TypeToken;
 import disparse.discord.smalld.Event;
 import disparse.discord.smalld.Utils;
 import disparse.discord.smalld.guilds.Guilds;
-import disparse.discord.smalld.guilds.Role;
-
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +19,8 @@ public class PermissionUtils {
     String userId = Utils.getAuthorId(event);
 
     return Guilds.getRolesForGuildMember(event, userId).stream()
-            .map(r -> new PermissionBase(r.getPermissions()))
-            .reduce(new PermissionBase(0L), PermissionBase::plus);
+        .map(r -> new PermissionBase(r.getPermissions()))
+        .reduce(new PermissionBase(0L), PermissionBase::plus);
   }
 
   public static PermissionBase computeOverwrites(PermissionBase permissionBase, Event event) {
@@ -40,13 +38,12 @@ public class PermissionUtils {
     JsonObject channelObj = Utils.getChannel(event, channelId);
     long perms = permissionBase.getValue();
 
-    Type type = new TypeToken<List<Overwrite>>() {
-    }.getType();
+    Type type = new TypeToken<List<Overwrite>>() {}.getType();
 
     List<Overwrite> overwrites = new Gson().fromJson(channelObj.get("permission_overwrites"), type);
 
-    Map<String, Overwrite> overwriteMap = overwrites.stream()
-            .collect(Collectors.toMap(o -> o.id, Function.identity()));
+    Map<String, Overwrite> overwriteMap =
+        overwrites.stream().collect(Collectors.toMap(o -> o.id, Function.identity()));
 
     Overwrite everyoneOverwrite = overwriteMap.remove(guildId);
 
@@ -58,12 +55,12 @@ public class PermissionUtils {
     AtomicLong allow = new AtomicLong();
     AtomicLong deny = new AtomicLong();
 
-    Guilds.getRolesForGuildMember(event, userId)
-            .stream()
-            .map(r -> r.getId())
-            .map(i -> overwriteMap.getOrDefault(i, null))
-            .filter(Objects::nonNull)
-            .forEach(overwrite -> {
+    Guilds.getRolesForGuildMember(event, userId).stream()
+        .map(r -> r.getId())
+        .map(i -> overwriteMap.getOrDefault(i, null))
+        .filter(Objects::nonNull)
+        .forEach(
+            overwrite -> {
               allow.updateAndGet(v -> v | overwrite.allow);
               deny.updateAndGet(v -> v | overwrite.deny);
             });
@@ -104,10 +101,10 @@ public class PermissionUtils {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Overwrite overwrite = (Overwrite) o;
-      return id.equals(overwrite.id) &&
-              type.equals(overwrite.type) &&
-              allow.equals(overwrite.allow) &&
-              deny.equals(overwrite.deny);
+      return id.equals(overwrite.id)
+          && type.equals(overwrite.type)
+          && allow.equals(overwrite.allow)
+          && deny.equals(overwrite.deny);
     }
 
     @Override
