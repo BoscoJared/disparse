@@ -43,20 +43,7 @@ public class CommandRegistrar<E, T> {
     this.commandTable.put(command, method);
 
     for (String alias : command.getAliases()) {
-      Command aliasCommand =
-          new Command(
-              alias,
-              command.getDescription(),
-              command.getRoles(),
-              command.canBeDisabled(),
-              command.getCooldownDuration(),
-              command.getScope(),
-              command.isSendCooldownMessage(),
-              command.getAcceptFrom(),
-              new String[] {},
-              command.getPerms(),
-              command.getUsageExamples());
-      aliasCommand.setParentName(command.getCommandName());
+      Command aliasCommand = this.alias(command, alias);
       register(aliasCommand, method);
     }
   }
@@ -66,20 +53,7 @@ public class CommandRegistrar<E, T> {
     this.commandToFlags.get(command).add(flag);
 
     for (String alias : command.getAliases()) {
-      Command aliasCommand =
-          new Command(
-              alias,
-              command.getDescription(),
-              command.getRoles(),
-              command.canBeDisabled(),
-              command.getCooldownDuration(),
-              command.getScope(),
-              command.isSendCooldownMessage(),
-              command.getAcceptFrom(),
-              new String[] {},
-              command.getPerms(),
-              command.getUsageExamples());
-      aliasCommand.setParentName(command.getCommandName());
+      Command aliasCommand = this.alias(command, alias);
       register(aliasCommand, flag);
     }
   }
@@ -529,6 +503,24 @@ public class CommandRegistrar<E, T> {
     return commands.stream()
         .filter(command -> command.getCommandName().equals(commandName))
         .findFirst();
+  }
+
+  private Command alias(Command command, String alias) {
+    Command aliasCommand =
+        new Command(
+            alias,
+            command.getDescription(),
+            command.getRoles(),
+            command.canBeDisabled(),
+            command.getCooldownDuration(),
+            command.getScope(),
+            command.isSendCooldownMessage(),
+            command.getAcceptFrom(),
+            new String[] {},
+            command.getPerms(),
+            command.getUsageExamples());
+    aliasCommand.setParentName(command.getCommandName());
+    return aliasCommand;
   }
 
   private PrefixContainer findCommandPrefixes(Set<Command> commands, List<String> args) {
