@@ -36,32 +36,14 @@ public class Parser {
     }
   }
 
-  private static Object mergeOptions(Object obj1, Object obj2) {
-    if (obj1 instanceof List) {
-      List list = (List) obj1;
-      if (obj2 instanceof List) {
-        list.addAll((List) obj2);
-      } else {
-        list.add(obj2);
-      }
-      return list;
-    } else {
-      return obj1;
-    }
-  }
-
   public ParsedOutput parse(List<String> args) {
     final Command commandName = this.findCommand(args);
 
     fillShortAndLongOptions(commandName);
 
-    final Map<CommandFlag, Object> longOptions = this.findLongOptions(args);
-    final Map<CommandFlag, Object> shortOptions = this.findShortOptions(args);
+    final Map<CommandFlag, Object> options = this.findOptions(args);
 
-    final Map<CommandFlag, Object> mergedOptions = new HashMap<>(longOptions);
-    shortOptions.forEach((k, v) -> mergedOptions.merge(k, v, Parser::mergeOptions));
-
-    return new ParsedOutput(commandName, args, mergedOptions);
+    return new ParsedOutput(commandName, args, options);
   }
 
   private Command findCommand(List<String> args) {
@@ -98,41 +80,31 @@ public class Parser {
     }
   }
 
-  private Map<CommandFlag, Object> findLongOptions(List<String> args) {
+  private Map<CommandFlag, Object> findOptions(List<String> args) {
     final Map<CommandFlag, Object> optionMap = new HashMap<>();
     final Iterator<String> iter = args.iterator();
-    while (iter.hasNext()) {
-      final String currArg = iter.next();
-      if (currArg.startsWith("--")) {
-        final String currOpt = currArg.replaceFirst("--", "");
-        if (this.longOptionMap.containsKey(currOpt)) {
-          CommandFlag flag = this.longOptionMap.get(currOpt);
-          iter.remove();
-          accept(optionMap, flag, iter);
-        }
-      }
-    }
-    return optionMap;
-  }
 
-  private Map<CommandFlag, Object> findShortOptions(List<String> args) {
-    final Map<CommandFlag, Object> optionMap = new HashMap<>();
-    final Iterator<String> iter = args.iterator();
     while (iter.hasNext()) {
       final String currArg = iter.next();
-      if (currArg.startsWith("-")) {
-        final String currOpt = currArg.replaceFirst("-", "");
+      CommandFlag flag = null;
+
+      if (currArg.startsWith("--")) {
+        final String currOpt = currArg.substring(2);
+        flag = this.longOptionMap.getOrDefault(currOpt, null);
+      } else if (currArg.startsWith("-")) {
+        final String currOpt = currArg.substring(1);
         if (currOpt.isEmpty()) { // this was a standalone "-", perhaps it was just an argument?
           continue;
         }
-        final Character currChar = currOpt.charAt(0);
-        if (this.shortOptionMap.containsKey(currChar)) {
-          CommandFlag flag = this.shortOptionMap.get(currChar);
-          iter.remove();
-          accept(optionMap, flag, iter);
-        }
+        flag = this.shortOptionMap.getOrDefault(currOpt.charAt(0), null);
+      }
+
+      if (flag != null) {
+        iter.remove();
+        accept(optionMap, flag, iter);
       }
     }
+
     return optionMap;
   }
 }
