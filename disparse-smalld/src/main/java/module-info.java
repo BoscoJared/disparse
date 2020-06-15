@@ -1,7 +1,7 @@
 module disparse.smalld {
   requires com.google.gson;
   requires disparse.core;
-  requires slf4j.api;
+  requires org.slf4j;
   requires smalld;
 
   exports disparse.discord.smalld;

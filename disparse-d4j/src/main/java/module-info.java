@@ -6,7 +6,7 @@ module disparse.d4j {
   requires discord4j.rest;
   requires disparse.core;
   requires reactor.core;
-  requires slf4j.api;
+  requires org.slf4j;
 
   exports disparse.discord.d4j;
 }
