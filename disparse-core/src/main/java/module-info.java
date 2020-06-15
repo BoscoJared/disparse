@@ -1,5 +1,5 @@
 module disparse.core {
-  requires slf4j.api;
+  requires org.slf4j;
   requires reflections;
 
   exports disparse.discord;
