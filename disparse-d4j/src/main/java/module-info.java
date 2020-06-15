@@ -7,4 +7,6 @@ module disparse.d4j {
   requires disparse.core;
   requires reactor.core;
   requires slf4j.api;
+
+  exports disparse.discord.d4j;
 }
