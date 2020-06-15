@@ -6,7 +6,7 @@
   <groupId>com.github.BoscoJared</groupId>
   <artifactId>disparse</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0</version>
+    <version>0.1.4</version>
     <modules>
       <module>disparse-core</module>
       <module>disparse-jda</module>
