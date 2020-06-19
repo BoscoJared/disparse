@@ -1,9 +1,10 @@
-package disparse.disparse;
+package disparse.discord;
 
-import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.reflection.*;
+import disparse.test.Dispatch;
+import disparse.test.IO;
 import disparse.utils.help.Help;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -375,10 +376,13 @@ public class DispatchIntegrationTests {
 
   @Test
   public void testStandaloneHyphenDoesNotCrash() {
-    dispatcher.dispatch("!allopts - foo --print-args");
+    TestDispatcher custom = Dispatch.create(this.getClass())
+            .require(DispatchIntegrationTests.class)
+            .build();
 
-    List<String> inOrderMessages = List.of("-", "foo");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    IO.given("!allopts - foo --print-args")
+            .expect("-\n" +
+                    "foo")
+            .execute(custom);
   }
 }
