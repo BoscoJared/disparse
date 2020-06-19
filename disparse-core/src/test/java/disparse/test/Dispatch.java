@@ -12,23 +12,22 @@ import org.reflections.util.ConfigurationBuilder;
 public class Dispatch {
   private final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
   private final List<URL> urls = new ArrayList<>();
-  private final Class<?> caller;
 
-  public Dispatch(final Class<?> caller) {
-    this.caller = caller;
+  public static Dispatch require(Class<?> clazz) {
+    return new Dispatch().and(clazz);
   }
 
-  public static Dispatch create(Class<?> caller) {
-    return new Dispatch(caller);
-  }
-
-  public Dispatch require(Class<?> clazz) {
+  public Dispatch and(Class<?> clazz) {
     this.urls.add(ClasspathHelper.forClass(clazz));
     return this;
   }
 
   public TestDispatcher build() {
-    return new TestDispatcher.Builder(this.caller)
+    return this.build(new TestDispatcher.Builder(this.getClass()));
+  }
+
+  public TestDispatcher build(TestDispatcher.Builder builder) {
+    return builder
         .withReflections(
             new Reflections(
                 this.configurationBuilder

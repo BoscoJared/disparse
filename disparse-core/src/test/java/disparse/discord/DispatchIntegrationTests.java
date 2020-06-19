@@ -1,10 +1,14 @@
 package disparse.discord;
 
+import static disparse.test.Dispatch.require;
+import static disparse.test.IO.given;
+
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
-import disparse.parser.reflection.*;
-import disparse.test.Dispatch;
-import disparse.test.IO;
+import disparse.parser.reflection.CommandHandler;
+import disparse.parser.reflection.Cooldown;
+import disparse.parser.reflection.Flag;
+import disparse.parser.reflection.ParsedEntity;
 import disparse.utils.help.Help;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -16,11 +20,11 @@ import org.junit.jupiter.api.Test;
 
 public class DispatchIntegrationTests {
 
-  private static String PREFIX = "!";
-  private static String DESCRIPTION = "test description";
-  private static int PAGE_LIMIT = 6;
+  private static final String PREFIX = "!";
+  private static final String DESCRIPTION = "test description";
+  private static final int PAGE_LIMIT = 6;
 
-  private TestDispatcher dispatcher;
+  private TestDispatcher globalDispatcher;
 
   @CommandHandler(commandName = "test")
   public static void test(TestDiscordRequest req) {
@@ -36,12 +40,6 @@ public class DispatchIntegrationTests {
     for (String arg : req.getArgs()) {
       req.getDispatcher().sendMessage(null, arg);
     }
-  }
-
-  @ParsedEntity
-  static class FooOpts {
-    @Flag(shortName = 't', longName = "toggle")
-    Boolean toggle = false;
   }
 
   @CommandHandler(commandName = "foo")
@@ -80,24 +78,9 @@ public class DispatchIntegrationTests {
     return TestDiscordResponse.noop();
   }
 
-  @ParsedEntity
-  static class RequiredOpts {
-    @Flag(shortName = 'r', longName = "required", required = true)
-    String required;
-  }
-
   @CommandHandler(commandName = "required")
   public static TestDiscordResponse required(RequiredOpts opts) {
     return TestDiscordResponse.noop();
-  }
-
-  @ParsedEntity
-  static class AllOpts {
-    @Flag(shortName = 'r', longName = "repeat")
-    List<String> repeatable = new ArrayList<>();
-
-    @Flag(shortName = 'P', longName = "print-args")
-    Boolean printArgs = false;
   }
 
   @CommandHandler(commandName = "allopts")
@@ -115,7 +98,7 @@ public class DispatchIntegrationTests {
 
   @BeforeEach
   public void beforeEach() {
-    this.dispatcher =
+    this.globalDispatcher =
         new TestDispatcher.Builder(this.getClass())
             .prefix(PREFIX)
             .pageLimit(PAGE_LIMIT)
@@ -125,158 +108,124 @@ public class DispatchIntegrationTests {
 
   @Test
   public void testSingleCommandIsSent() {
-    dispatcher.dispatch("!test");
-
-    assert (dispatcher.messages.size() == 1);
-    assert (dispatcher.messages.get(0).equals("test"));
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!test").expect("test").execute(dispatcher);
   }
 
   @Test
   public void testSingleCommandAndArgumentsAreSent() {
-
-    dispatcher.dispatch("!test a b c");
-
-    List<String> inOrderMessages = List.of("test", "a", "b", "c");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!test a b c").expect("test", "a", "b", "c").execute(dispatcher);
   }
 
   @Test
   public void testSingleSubcommandIsSent() {
-    dispatcher.dispatch("!foo bar");
-
-    assert (dispatcher.messages.size() == 1);
-    assert (dispatcher.messages.get(0).equals("test"));
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!foo bar").expect("test").execute(dispatcher);
   }
 
   @Test
   public void testSingleSubcommandAndArgumentsAreSent() {
-    dispatcher.dispatch("!foo bar a b c");
-
-    List<String> inOrderMessages = List.of("test", "a", "b", "c");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!foo bar a b c").expect("test", "a", "b", "c").execute(dispatcher);
   }
 
   @Test
   public void testCommandWithOneBooleanFlagDefaultIsSent() {
-    dispatcher.dispatch("!foo");
-
-    List<String> inOrderMessages = List.of("test", "false");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!foo").expect("test", "false").execute(dispatcher);
   }
 
   @Test
   public void testCommandWithOneBooleanShortFlagIsSent() {
-    dispatcher.dispatch("!foo -t");
-
-    List<String> inOrderMessages = List.of("test", "true");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!foo -t").expect("test", "true").execute(dispatcher);
   }
 
   @Test
   public void testCommandWithOneBooleanLongFlagIsSent() {
-    dispatcher.dispatch("!foo --toggle");
-
-    List<String> inOrderMessages = List.of("test", "true");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!foo --toggle").expect("test", "true").execute(dispatcher);
   }
 
   @Test
   public void testSubcommandWithBooleanFlagAndArgumentsAreSent() {
-    dispatcher.dispatch("!foo bar baz a b --toggle c");
-
-    List<String> inOrderMessages = List.of("test", "a", "b", "c", "true");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!foo bar baz a b --toggle c").expect("test", "a", "b", "c", "true").execute(dispatcher);
   }
 
   @Test
   public void testNoCommandFound() {
-    dispatcher.dispatch("!noCommand");
-
-    List<String> inOrderMessages =
-        List.of(
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!noCommand")
+        .expect(
             "`noCommand` is not a valid command!",
-            "Use !help to get a list of all available commands.");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+            "Use !help to get a list of all available commands.")
+        .execute(dispatcher);
   }
 
   @Test
   public void testCommandWithSimpleUserCooldown() throws Exception {
-    dispatcher.dispatch("!cooldown");
-    dispatcher.dispatch("!cooldown");
+    globalDispatcher.dispatch("!cooldown");
+    globalDispatcher.dispatch("!cooldown");
 
     TimeUnit.MILLISECONDS.sleep(50);
 
-    dispatcher.dispatch("!cooldown");
+    globalDispatcher.dispatch("!cooldown");
 
     List<String> inOrderMessages = List.of("test", "This command has a per-user cooldown!", "test");
 
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    Assertions.assertLinesMatch(inOrderMessages, globalDispatcher.messages);
   }
 
   @Test
   public void testCommandReturnDiscordResponseStringVariant() {
-    dispatcher.dispatch("!discordresponse");
-
-    List<String> inOrderMessages = List.of("sent");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!discordresponse").expect("sent").execute(dispatcher);
   }
 
   @Test
   public void testCommandReturnDiscordResponseEmbedVariant() {
-    dispatcher.dispatch("!discordresponseembed");
-
-    List<String> inOrderMessages = List.of("sent");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!discordresponseembed").expect("sent").execute(dispatcher);
   }
 
   @Test
   public void testCommandReturnDiscordResponseNoopVariant() {
-    dispatcher.dispatch("!discordresponsenoop");
-
-    List<String> inOrderMessages = List.of();
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!discordresponsenoop").expect().execute(dispatcher);
   }
 
   @Test
   public void testFlagRequiresOption() {
-    dispatcher.dispatch("!required");
-
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
     Command requiredCommand = new Command("required", "");
     CommandFlag requiredFlag = new CommandFlag("required", null, null, true, null, null);
 
-    List<String> inOrderMessages = List.of(Help.optionRequired(requiredCommand, requiredFlag));
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    given("!required")
+        .expect(Help.optionRequired(requiredCommand, requiredFlag))
+        .execute(dispatcher);
   }
 
   @Test
   public void testFlagRequiresValue() {
-    dispatcher.dispatch("!required --required");
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
     CommandFlag requiredFlag = new CommandFlag("required", null, null, true, null, null);
 
-    List<String> inOrderMessages = List.of(Help.optionRequiresValue(requiredFlag));
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    given("!required --required")
+        .expect(Help.optionRequiresValue(requiredFlag))
+        .execute(dispatcher);
   }
 
   @Test
   public void testHelpAllCommands() {
-    dispatcher.dispatch("!help");
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
 
     String tail = "no description available|false";
 
-    List<String> inOrderMessages =
-        List.of(
-            String.join("|", "title", dispatcher.getDescription(new Object())),
+    given("!help")
+        .expect(
+            String.join("|", "title", "All Commands"),
             "description|All registered commands",
             String.join("|", "**allopts**", tail),
             String.join("|", "**cooldown**", tail),
@@ -288,20 +237,17 @@ public class DispatchIntegrationTests {
                 "|",
                 "Currently viewing page 1 of 2",
                 "Use `-p | --page` to specify a page number",
-                "false"));
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+                "false"))
+        .execute(dispatcher);
   }
 
   @Test
   public void testHelpAllCommandsPageTwo() {
-    dispatcher.dispatch("!help --page 2");
-
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
     String tail = "no description available|false";
-
-    List<String> inOrderMessages =
-        List.of(
-            String.join("|", "title", dispatcher.getDescription(new Object())),
+    given("!help --page 2")
+        .expect(
+            String.join("|", "title", "All Commands"),
             "description|All registered commands",
             String.join("|", "**foo.bar**", tail),
             String.join("|", "**foo.bar.baz**", tail),
@@ -313,71 +259,80 @@ public class DispatchIntegrationTests {
                 "|",
                 "Currently viewing page 2 of 2",
                 "Use `-p | --page` to specify a page number",
-                "false"));
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+                "false"))
+        .execute(dispatcher);
   }
 
   @Test
   public void testHelpAllCommandsPageTooHigh() {
     String pageNum = "15";
-    dispatcher.dispatch("!help --page " + pageNum);
-
-    List<String> inOrderMessages =
-        List.of(
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!help --page " + pageNum)
+        .expect(
             "The specified page number **"
                 + pageNum
-                + "** is not within the range of valid pages.  The valid pages are between **1** and **2**.");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+                + "** is not within the range of valid pages.  The valid pages are between **1** and **2**.")
+        .execute(dispatcher);
   }
 
   @Test
   public void testHelpAllCommandsPageTooLow() {
     String pageNum = "-15";
-    dispatcher.dispatch("!help --page " + pageNum);
-
-    List<String> inOrderMessages =
-        List.of(
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!help --page " + pageNum)
+        .expect(
             "The specified page number **"
                 + pageNum
-                + "** is not within the range of valid pages.  The valid pages are between **1** and **2**.");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+                + "** is not within the range of valid pages.  The valid pages are between **1** and **2**.")
+        .execute(dispatcher);
   }
 
   @Test
   public void testRepeatableFlag() {
-    dispatcher.dispatch("!allopts --repeat foo --repeat bar --repeat baz");
-
-    List<String> inOrderMessages = List.of("foo", "bar", "baz");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!allopts --repeat foo --repeat bar --repeat baz")
+        .expect("foo", "bar", "baz")
+        .execute(dispatcher);
   }
 
   @Test
   public void testRepeatableFlagRequiresOption() {
-    dispatcher.dispatch("!allopts --repeat foo --repeat");
-
-    List<String> inOrderMessages = List.of("The flag `--repeat` was not provided a value!");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!allopts --repeat foo --repeat")
+        .expect("The flag `--repeat` was not provided a value!")
+        .execute(dispatcher);
   }
 
   @Test
   public void testRepeatableFlagMixedWithShortAndLong() {
-    dispatcher.dispatch("!allopts -r foo --repeat bar -r baz");
-
-    List<String> inOrderMessages = List.of("foo", "bar", "baz");
-
-    Assertions.assertLinesMatch(inOrderMessages, dispatcher.messages);
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!allopts -r foo --repeat bar -r baz").expect("foo", "bar", "baz").execute(dispatcher);
   }
 
   @Test
   public void testStandaloneHyphenDoesNotCrash() {
-    TestDispatcher custom =
-        Dispatch.create(this.getClass()).require(DispatchIntegrationTests.class).build();
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!allopts - foo --print-args").expect("-", "foo").execute(dispatcher);
+  }
 
-    IO.given("!allopts - foo --print-args").expect("-\n" + "foo").execute(custom);
+  @ParsedEntity
+  static class FooOpts {
+    @Flag(shortName = 't', longName = "toggle")
+    Boolean toggle = false;
+  }
+
+  @ParsedEntity
+  static class RequiredOpts {
+    @Flag(shortName = 'r', longName = "required", required = true)
+    String required;
+  }
+
+  @ParsedEntity
+  static class AllOpts {
+    @Flag(shortName = 'r', longName = "repeat")
+    List<String> repeatable = new ArrayList<>();
+
+    @Flag(shortName = 'P', longName = "print-args")
+    Boolean printArgs = false;
   }
 }

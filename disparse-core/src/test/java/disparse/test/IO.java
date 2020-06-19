@@ -1,11 +1,13 @@
 package disparse.test;
 
 import disparse.discord.TestDispatcher;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 
 public class IO {
   private String input;
-  private String expect;
+  private String[] lines;
 
   private IO(final String input) {
     this.input = input;
@@ -15,21 +17,21 @@ public class IO {
     return new IO(input);
   }
 
-  public IO expect(String expect) {
-    this.expect = expect;
+  public IO expect(String... lines) {
+    this.lines = lines;
     return this;
   }
 
   public void execute(TestDispatcher dispatcher) {
-    new IORunner(input, expect, dispatcher).run();
+    new IORunner(input, Arrays.asList(lines), dispatcher).run();
   }
 
   static class IORunner {
     private final String given;
-    private final String expect;
+    private final List<String> expect;
     private final TestDispatcher dispatcher;
 
-    IORunner(final String given, final String expect, final TestDispatcher dispatcher) {
+    IORunner(final String given, final List<String> expect, final TestDispatcher dispatcher) {
       this.given = given;
       this.expect = expect;
       this.dispatcher = dispatcher;
@@ -37,8 +39,7 @@ public class IO {
 
     void run() {
       dispatcher.dispatch(given);
-      String out = String.join("\n", dispatcher.getMessages());
-      Assertions.assertEquals(expect, out);
+      Assertions.assertEquals(expect, dispatcher.getMessages());
     }
   }
 }
