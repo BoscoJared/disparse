@@ -23,18 +23,18 @@ public class DispatchIntegrationTests {
   private TestDispatcher dispatcher;
 
   @CommandHandler(commandName = "test")
-  public static void test(AbstractDispatcher<Object, Object> helper, List<String> args) {
-    helper.sendMessage(null, "test");
-    for (String arg : args) {
-      helper.sendMessage(null, arg);
+  public static void test(TestDiscordRequest req) {
+    req.getDispatcher().sendMessage(null, "test");
+    for (String arg : req.getArgs()) {
+      req.getDispatcher().sendMessage(null, arg);
     }
   }
 
   @CommandHandler(commandName = "foo.bar")
-  public static void fooBar(AbstractDispatcher<Object, Object> helper, List<String> args) {
-    helper.sendMessage(null, "test");
-    for (String arg : args) {
-      helper.sendMessage(null, arg);
+  public static void fooBar(TestDiscordRequest req) {
+    req.getDispatcher().sendMessage(null, "test");
+    for (String arg : req.getArgs()) {
+      req.getDispatcher().sendMessage(null, arg);
     }
   }
 
@@ -45,25 +45,24 @@ public class DispatchIntegrationTests {
   }
 
   @CommandHandler(commandName = "foo")
-  public static void foo(AbstractDispatcher<Object, Object> helper, FooOpts opts) {
-    helper.sendMessage(null, "test");
-    helper.sendMessage(null, opts.toggle.toString());
+  public static void foo(TestDiscordRequest req, FooOpts opts) {
+    req.getDispatcher().sendMessage(null, "test");
+    req.getDispatcher().sendMessage(null, opts.toggle.toString());
   }
 
   @CommandHandler(commandName = "foo.bar.baz")
-  public static void fooBarBaz(
-      AbstractDispatcher<Object, Object> helper, FooOpts opts, List<String> args) {
-    helper.sendMessage(null, "test");
-    for (String arg : args) {
-      helper.sendMessage(null, arg);
+  public static void fooBarBaz(TestDiscordRequest req, FooOpts opts) {
+    req.getDispatcher().sendMessage(null, "test");
+    for (String arg : req.getArgs()) {
+      req.getDispatcher().sendMessage(null, arg);
     }
-    helper.sendMessage(null, opts.toggle.toString());
+    req.getDispatcher().sendMessage(null, opts.toggle.toString());
   }
 
   @CommandHandler(commandName = "cooldown")
   @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, sendCooldownMessage = true)
-  public static void cooldown(AbstractDispatcher<Object, Object> helper) {
-    helper.sendMessage(null, "test");
+  public static void cooldown(TestDiscordRequest req) {
+    req.getDispatcher().sendMessage(null, "test");
   }
 
   @CommandHandler(commandName = "discordresponse")
@@ -376,13 +375,9 @@ public class DispatchIntegrationTests {
 
   @Test
   public void testStandaloneHyphenDoesNotCrash() {
-    TestDispatcher custom = Dispatch.create(this.getClass())
-            .require(DispatchIntegrationTests.class)
-            .build();
+    TestDispatcher custom =
+        Dispatch.create(this.getClass()).require(DispatchIntegrationTests.class).build();
 
-    IO.given("!allopts - foo --print-args")
-            .expect("-\n" +
-                    "foo")
-            .execute(custom);
+    IO.given("!allopts - foo --print-args").expect("-\n" + "foo").execute(custom);
   }
 }

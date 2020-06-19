@@ -29,9 +29,7 @@ public class IO {
     private final String expect;
     private final TestDispatcher dispatcher;
 
-    IORunner(final String given,
-                    final String expect,
-                    final TestDispatcher dispatcher) {
+    IORunner(final String given, final String expect, final TestDispatcher dispatcher) {
       this.given = given;
       this.expect = expect;
       this.dispatcher = dispatcher;
@@ -42,7 +40,5 @@ public class IO {
       String out = String.join("\n", dispatcher.getMessages());
       Assertions.assertEquals(expect, out);
     }
-
-
   }
 }

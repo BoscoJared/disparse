@@ -111,7 +111,9 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
     return new TestDiscordRequest(this, event, args);
   }
 
-  public List<String> getMessages() { return this.messages; }
+  public List<String> getMessages() {
+    return this.messages;
+  }
 
   public static class Builder extends BaseBuilder<Object, StringBuilder, TestDispatcher, Builder> {
 
