@@ -1,7 +1,7 @@
 package disparse.discord;
 
 import static disparse.test.Dispatch.require;
-import static disparse.test.IO.given;
+import static disparse.test.io.IO.given;
 
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
@@ -13,8 +13,6 @@ import disparse.utils.help.Help;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -165,17 +163,14 @@ public class DispatchIntegrationTests {
   }
 
   @Test
-  public void testCommandWithSimpleUserCooldown() throws Exception {
-    globalDispatcher.dispatch("!cooldown");
-    globalDispatcher.dispatch("!cooldown");
-
-    TimeUnit.MILLISECONDS.sleep(50);
-
-    globalDispatcher.dispatch("!cooldown");
-
-    List<String> inOrderMessages = List.of("test", "This command has a per-user cooldown!", "test");
-
-    Assertions.assertLinesMatch(inOrderMessages, globalDispatcher.messages);
+  public void testCommandWithSimpleUserCooldown() {
+    TestDispatcher dispatcher = require(DispatchIntegrationTests.class).build();
+    given("!cooldown")
+        .thenGiven("!cooldown")
+        .thenWait(50, ChronoUnit.MILLIS)
+        .thenGiven("!cooldown")
+        .expect("test", "This command has a per-user cooldown!", "test")
+        .execute(dispatcher);
   }
 
   @Test
