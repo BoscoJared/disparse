@@ -1,7 +1,5 @@
-package disparse.disparse;
+package disparse.discord;
 
-import disparse.discord.AbstractDiscordRequest;
-import disparse.discord.AbstractDispatcher;
 import disparse.parser.Command;
 import disparse.utils.Shlex;
 import java.util.ArrayList;
@@ -111,6 +109,10 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
   public AbstractDiscordRequest<Object, StringBuilder> createRequest(
       Object event, List<String> args) {
     return new TestDiscordRequest(this, event, args);
+  }
+
+  public List<String> getMessages() {
+    return this.messages;
   }
 
   public static class Builder extends BaseBuilder<Object, StringBuilder, TestDispatcher, Builder> {

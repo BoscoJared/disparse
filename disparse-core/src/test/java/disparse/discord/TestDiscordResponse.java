@@ -1,6 +1,4 @@
-package disparse.disparse;
-
-import disparse.discord.AbstractDiscordResponse;
+package disparse.discord;
 
 public class TestDiscordResponse extends AbstractDiscordResponse<StringBuilder> {
   public TestDiscordResponse() {
