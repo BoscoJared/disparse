@@ -35,11 +35,19 @@ Add your repository for Jitpack
 Add Disparse as a dependency
 
 ```xml
-<dependency>
-    <groupId>com.github.BoscoJared.disparse</groupId>
-    <artifactId>$MODULE</artifactId>
-    <version>$LATEST</version>
-</dependency>
+<dependencies>
+    <dependency>
+        <groupId>com.github.BoscoJared.disparse</groupId>
+        <artifactId>disparse-core</artifactId>
+        <version>$LATEST</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.github.BoscoJared.disparse</groupId>
+        <artifactId>$MODULE</artifactId>
+        <version>$LATEST</version>
+    </dependency>
+</dependencies>
 ```
 
 ### Gradle
