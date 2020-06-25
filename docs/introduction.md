@@ -44,18 +44,18 @@ public static void heartbeat() {
 
 Assuming a prefix of `!`, this command would be invoked with `!heartbeat`.
 
-Unfortunately, a command that cannot respond to the user is quite boring.  To allow us to respond to a command invocation, we are able to accept an event in our handler.  The specific type we accept depends on which library you are choosing to use. 
+Unfortunately, a command that cannot respond to the user is quite boring.  To allow us to respond to a command invocation, we are able to accept a DiscordRequest in our handler.  The specific type we accept depends on which library you are choosing to use. 
 
-- JDA -> `net.dv8tion.jda.api.events.message.MessageReceivedEvent`
-- D4J -> `discord4j.core.event.domain.message.MessageCreateEvent`
-- SmallD -> `disparse.discord.smalld.Event`
+- JDA -> `disparse.jda.DiscordRequest`
+- D4J -> `disparse.d4j.DiscordRequest`
+- SmallD -> `disparse.smalld.DiscordRequest`
 
 The rest of the introduction will assume JDA, so the command handler will now look like:
 
 ```java
 @CommandHandler(commandName = "heartbeat")
-public static void heartbeat(MessageReceivedEvent event) {
-    event.getChannel().sendMessage("Got a heartbeat!").queue();
+public static void heartbeat(DiscordRequest request) {
+    request.reply("Got a heartbeat!");
 }
 ```
 
@@ -65,12 +65,12 @@ Now, `!heartbeat` will respond to the channel where the command was sent with `G
 
 Arguments are anything passed to a command that is not associated with a command flag, or the command name itself.  In our heartbeat example, the commandName is `heartbeat` and we have defined no flags to be used; Therefore, any extra information passed along with the command would be considered as an argument.
 
-To have access to these positional arguments, your command handler simply needs to accept a `List<String>` parameter.  The Strings will be in the List in the same order that the user put them in during the command.
+To have access to these positional arguments, your command handler simply needs to accept the `DiscordRequest` parameter.  The Strings will be in the List in the same order that the user put them in during the command.  To access the list, use `DiscordRequest#getArgs`
 
 ```java
 @CommandHandler(commandName = "heartbeat")
-public static void heartbeat(List<String> args) {
-    args.forEach(System.out::println);
+public static void heartbeat(DiscordRequest request) {
+    request.getArgs().forEach(System.out::println);
 }
 ```
 
@@ -103,9 +103,9 @@ public class EchoCommand {
     }
     
     @CommandHandler(commandName = "echo")
-    public static void echo(EchoRequest req, MessageReceivedEvent event) {
+    public static void echo(EchoRequest req, DiscordRequest request) {
         for (int i = 0; i < req.number; i++) {
-            event.getChannel().sendMessage("echo" + req.content).queue();
+            request.reply("echo" + req.content);
         }
     }
 }
@@ -116,10 +116,15 @@ This command now accepts two flags `--number` and `--content` where content is a
 #### Flag Types
 
 There are currently five flag types:
+
  - Integer: Can hold integer values such as `!test --age 5`.
+ 
  - Boolean: A boolean flag that if present is true.  This flag does not accept a value -> `!test --update`
+ 
  - String - Holds a String.  If content has spaces, it must be placed in double quotes -> `!test --content "my content"`.  If your content has double quotes in it, you can use single quotes to contain it instead -> `!test --content '{"my": "content"}'`.
+ 
  - List: Can be used for repeatable flags.  The List can also be of the types `Integer`, `Enum`, `String` e.g. `!test -n 5 -n 6 -n 7 -n 8` would give a List of `[5, 6, 7, 8]`.
+ 
  - Enum: Any custom Enum value can be used.  The user can pick the enum for the flag based on the full name of the option, or it can be mapped to a more user-friendly string.
  
 ```java
@@ -151,14 +156,14 @@ public class FlagExample {
     enum Choice { YES, NO, MAYBE }
        
     @CommandHandler(commandName = "test")
-    public static void execute(FlagRequest req, MessageReceivedEvent e) {
-        e.getChannel().sendMessage("Your age is: " + req.age).queue();
+    public static void execute(FlagRequest req, DiscordRequest request) {
+        request.reply("Your age is: " + req.age).queue();
         if (Boolean.TRUE.equals(req.upperCase)) {
             req.content = req.content.toUpperCase();
         }
-        e.getChannel().sendMessage("Your content is: " + req.content).queue();
-        e.getChannel().sendMessage("Your numbers are: " + req.numbers).queue();
-        e.getChannel().sendMessage("Your choice was:  " + req.choice).queue();
+        request.reply("Your content is: " + req.content).queue();
+        request.reply("Your numbers are: " + req.numbers).queue();
+        request.reply("Your choice was:  " + req.choice).queue();
     }
 }
 ```
@@ -175,18 +180,18 @@ A special case exists for the `"owner"` role. If a command is supplied with the 
 
 ```java
 @CommandHandler(commandName = "ban", description = "Bans mentioned users", roles = "admin")
-public static void execute(MessageReceivedEvent e) {
-    e.getMessage().getMentionedMembers().forEach(member -> member.ban(7));
+public static void execute(DiscordRequest request) {
+    request.getEvent().getMessage().getMentionedMembers().forEach(member -> member.ban(7));
 }
 ```
 
 ```java
 @CommandHandler(commandName = "warn", description = "Warn mentioned users", roles = {"admin", "mod"})
-public static void execute(MessageReceivedEvent e) {
-    MessageChannel channel = e.getChannel();
-    e.getMessage().getMentionedMembers().forEach(
+public static void execute(DiscordRequest request) {
+    MessageChannel channel = request.getEvent().getChannel();
+    request.getEvent().getMessage().getMentionedMembers().forEach(
             member -> channel.sendMessage(
-                    e.getMember().getEffectiveName() + "You've been warned!"));
+                    request.getEvent().getMember().getEffectiveName() + "You've been warned!"));
 }
 ```
 
@@ -196,11 +201,11 @@ Permissions are more general than role names.  This is a great way to limit comm
 
 ```java
 @CommandHandler(commandName = "ban", description = "Ban mentioned users", perms = AbstractPemission.BAN_MEMBERS)
-public static void execute(MessageReceivedEvent e) {
-    MessageChannel channel = e.getChannel();
-    e.getMessage().getMentionedMembers().forEach(
+public static void execute(DiscordRequest request) {
+    MessageChannel channel = request.getEvent().getChannel();
+    request.getEvent().getMessage().getMentionedMembers().forEach(
             member -> channel.sendMessage(
-                    e.getMember().getEffectiveName() + "You've been warned!"));
+                    request.getEvent().getMember().getEffectiveName() + "You've been warned!"));
 }
 ```
 
@@ -208,7 +213,7 @@ Now any user must possess the BAN_MEMBERS permission to be able to call and exec
 
 ### Help commands
 
-Help commands are automatically generated by disparse. The help commands reserve two flags, `-h/--help` and `-p/--page`. Don't use these in your own commands. The help command also reserves the `help` command name. The help command will only display commands & subcommands that the calling user has access to.
+Help commands are automatically generated by disparse. The help commands reserve one flag, `-h/--help`. Don't use these in your own commands. The help command also reserves the `help` command name. The help command will only display commands & subcommands that the calling user has access to.
 
  - `!help` will show a list of all commands along with their description.
  - `!command -h` or `!command --help` or `!help command` will show a list of flags for that command and their descriptions. 
@@ -230,12 +235,12 @@ static class AboutRequest {
 }
 
 @CommandHandler(commandName = "about", description = "Shows info about the server")
-public static void about(MessageReceivedEvent e) {
-    e.getChannel().sendMessage(retrieveAboutData());
+public static void about(DiscordRequest request) {
+    request.reply(retrieveAboutData());
 }
 
 @CommandHandler(commandName = "about.admin", description = "Edits the content of the about message.", roles = "moderator")
-public static void edit(AboutRequest req, MessageReceivedEvent e) {
+public static void edit(AboutRequest req) {
     editAboutMessage(req.content);
 }
 ```
@@ -246,6 +251,8 @@ Injectables are a way of using external resources in your commands. Often bots w
 
 In this example, we inject a database context and use it to log the user's warning into the database.
 
+**Note**:  As of 0.1.6, there is no caching of injectable objects, and no way to scope an injectable to different sessions.  This means if creating your object is expensive, it would be important to cache it in some way yourself, perhaps with something like Google's Guava's `Suppliers#memoize`.
+
 ```java
 @Injectable
 public static DBContext createDBContext() {
@@ -253,7 +260,20 @@ public static DBContext createDBContext() {
 }
 
 @CommandHandler(name = "warn")
-public static void warn(DBContext ctx, MessageReceivedEvent e) {
-    ctx.logWarningInDatabase(e.getMessage().getMentionedMembers());
+public static void warn(DBContext ctx, DiscordRequest request) {
+    ctx.logWarningInDatabase(request.getEvent().getMessage().getMentionedUsers());
 }
 ```
+
+If creating a DBContext was expensive, and Guava was included as a dependency in the project, this could become:
+
+```java
+Supplier<DBContext> dbContextSupplier = Suppliers.memoize(() -> new DBContext());
+
+@Injectable
+public static DBContext createDBContext() {
+    return dbContextSupplier.get();
+}
+```
+
+Of course, there are many strategies available to do something like this, but for examples sake this should be sufficient.
