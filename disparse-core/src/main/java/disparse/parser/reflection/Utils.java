@@ -26,7 +26,7 @@ public class Utils {
     Map<String, String> choices = Map.of();
 
     Types type;
-    if (field.getType().isAssignableFrom(Integer.class)) {
+    if (field.getType().isAssignableFrom(Integer.class) || field.getType() == Integer.TYPE) {
       type = Types.INT;
     } else if (field.getType().isAssignableFrom(String.class)) {
       type = Types.STR;
