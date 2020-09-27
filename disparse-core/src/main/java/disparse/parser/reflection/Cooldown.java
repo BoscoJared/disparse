@@ -1,5 +1,6 @@
 package disparse.parser.reflection;
 
+import disparse.parser.dispatch.CooldownMessage;
 import disparse.parser.dispatch.CooldownScope;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,5 +18,5 @@ public @interface Cooldown {
 
   CooldownScope scope() default CooldownScope.USER;
 
-  boolean sendCooldownMessage() default false;
+  CooldownMessage cooldownMessage() default CooldownMessage.DISABLED;
 }
