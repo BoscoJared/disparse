@@ -1,6 +1,7 @@
 package disparse.parser;
 
 import disparse.discord.AbstractPermission;
+import disparse.parser.dispatch.CooldownMessage;
 import disparse.parser.dispatch.CooldownScope;
 import disparse.parser.dispatch.IncomingScope;
 import java.time.Duration;
@@ -15,7 +16,7 @@ public class Command {
   private final boolean canBeDisabled;
   private final Duration cooldownDuration;
   private final CooldownScope scope;
-  private final boolean sendCooldownMessage;
+  private final CooldownMessage cooldownMessage;
   private final IncomingScope acceptFrom;
   private final String[] aliases;
   private final AbstractPermission[] perms;
@@ -30,7 +31,7 @@ public class Command {
         true,
         Duration.ZERO,
         CooldownScope.USER,
-        false,
+        CooldownMessage.DISABLED,
         IncomingScope.ALL,
         new String[] {},
         new AbstractPermission[] {},
@@ -45,7 +46,7 @@ public class Command {
         canBeDisabled,
         Duration.ZERO,
         CooldownScope.USER,
-        false,
+        CooldownMessage.DISABLED,
         IncomingScope.ALL,
         new String[] {},
         new AbstractPermission[] {},
@@ -59,7 +60,7 @@ public class Command {
       final boolean canBeDisabled,
       final Duration cooldownDuration,
       final CooldownScope scope,
-      final boolean sendCooldownMessage,
+      final CooldownMessage cooldownMessage,
       final IncomingScope acceptFrom,
       final String[] aliases,
       final AbstractPermission[] perms,
@@ -70,7 +71,7 @@ public class Command {
     this.canBeDisabled = canBeDisabled;
     this.cooldownDuration = cooldownDuration;
     this.scope = scope;
-    this.sendCooldownMessage = sendCooldownMessage;
+    this.cooldownMessage = cooldownMessage;
     this.acceptFrom = acceptFrom;
     this.aliases = aliases;
     this.perms = perms;
@@ -101,8 +102,8 @@ public class Command {
     return scope;
   }
 
-  public boolean isSendCooldownMessage() {
-    return sendCooldownMessage;
+  public CooldownMessage getCooldownMessage() {
+    return cooldownMessage;
   }
 
   public IncomingScope getAcceptFrom() {

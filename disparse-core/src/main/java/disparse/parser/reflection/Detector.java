@@ -4,6 +4,7 @@ import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.CommandUsage;
 import disparse.parser.dispatch.CommandRegistrar;
+import disparse.parser.dispatch.CooldownMessage;
 import disparse.parser.dispatch.CooldownScope;
 import disparse.parser.dispatch.IncomingScope;
 import java.lang.reflect.Constructor;
@@ -31,13 +32,13 @@ public class Detector {
       CommandHandler handler = method.getAnnotation(CommandHandler.class);
       Duration cooldownDuration = Duration.ZERO;
       CooldownScope scope = CooldownScope.USER;
-      boolean sendCooldownMessage = false;
+      CooldownMessage sendCooldownMessage = CooldownMessage.DISABLED;
       IncomingScope acceptFrom = handler.acceptFrom();
       if (method.isAnnotationPresent(Cooldown.class)) {
         Cooldown cooldown = method.getAnnotation(Cooldown.class);
         cooldownDuration = Duration.of(cooldown.amount(), cooldown.unit());
         scope = cooldown.scope();
-        sendCooldownMessage = cooldown.sendCooldownMessage();
+        sendCooldownMessage = cooldown.cooldownMessage();
       }
       List<CommandUsage> commandUsages =
           Arrays.stream(method.getAnnotationsByType(Usage.class))
