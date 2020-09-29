@@ -303,12 +303,13 @@ public class CommandRegistrar<E, T> {
       String cooldownMessage = scope.getCooldownMessage();
       Duration left = cooldownManager.timeLeft(cooldownCompositeKey, cooldownDuration);
 
-      if (!left.isZero()) {
-        if (command.isSendCooldownMessage()) {
-          helper.sendMessage(event, cooldownMessage);
-        }
-        return true;
+      if (!left.isZero() && command.getCooldownStrategy().equals(CooldownStrategy.ENABLED)) {
+        helper.sendMessage(event, cooldownMessage);
+      } else if (!left.isZero()
+          && command.getCooldownStrategy().equals(CooldownStrategy.REACTION)) {
+        helper.reactToMessage(event);
       }
+      return true;
     }
 
     return false;
@@ -514,7 +515,7 @@ public class CommandRegistrar<E, T> {
             command.canBeDisabled(),
             command.getCooldownDuration(),
             command.getScope(),
-            command.isSendCooldownMessage(),
+            command.getCooldownStrategy(),
             command.getAcceptFrom(),
             new String[] {},
             command.getPerms(),

@@ -168,4 +168,15 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
       return this;
     }
   }
+
+  @Override
+  public void reactToMessage(MessageReceivedEvent event) {
+    event
+        .getChannel()
+        .addReactionById(
+            event.getChannel().getLatestMessageId(),
+            // :clock3: reaction to this message
+            "\uD83D\uDD52")
+        .queue();
+  }
 }

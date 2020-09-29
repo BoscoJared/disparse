@@ -115,6 +115,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
     return this.messages;
   }
 
+  @Override
+  public void reactToMessage(Object event) {
+    messages.add("reaction");
+  }
+
   public static class Builder extends BaseBuilder<Object, StringBuilder, TestDispatcher, Builder> {
 
     public Builder(Class<?> clazz) {

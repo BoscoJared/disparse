@@ -96,4 +96,16 @@ public class Utils {
   public static JsonObject getChannel(Event event, String channelId) {
     return new Gson().fromJson(event.getSmalld().get("/channels/" + channelId), JsonObject.class);
   }
+
+  public static void reactToMessage(Event event) {
+    SmallD smalld = event.getSmalld();
+    JsonObject json = event.getJson();
+    String channelId = getChannelId(json);
+    String msgId = json.get("d").getAsJsonObject().get("last_message_id").getAsString();
+    JsonObject output = new JsonObject();
+    // :clock3: reaction to this message
+    output.addProperty("reactions", "%F0%9F%95%92");
+    smalld.put(
+        "/channels/" + channelId + "/messages/" + msgId + "/reactions/" + "", output.toString());
+  }
 }

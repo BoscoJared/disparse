@@ -360,6 +360,8 @@ public abstract class AbstractDispatcher<E, T> {
             .setScanners(new MethodAnnotationsScanner()));
   }
 
+  public abstract void reactToMessage(E event);
+
   protected abstract static class BaseBuilder<
       E, T, A extends AbstractDispatcher<E, T>, B extends BaseBuilder> {
     protected A actualClass;

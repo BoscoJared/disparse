@@ -8,6 +8,7 @@ import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Permission;
 import disparse.discord.AbstractDiscordRequest;
@@ -196,5 +197,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
     protected Builder getActualBuilder() {
       return this;
     }
+  }
+
+  @Override
+  public void reactToMessage(MessageCreateEvent event) {
+    // :clock3: reaction to this message
+    event.getMessage().addReaction(ReactionEmoji.unicode("\u1F552")).block();
   }
 }
