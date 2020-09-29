@@ -131,4 +131,8 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
       return this;
     }
   }
+
+  @Override
+  public void reactToMessage(Object event) { this.messages.add(""); }
+
 }

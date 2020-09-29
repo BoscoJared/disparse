@@ -201,4 +201,8 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
       return super.build();
     }
   }
+
+  @Override
+  public void reactToMessage(Event event) { Utils.reactToMessage(event); }
+
 }
