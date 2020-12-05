@@ -339,6 +339,8 @@ public abstract class AbstractDispatcher<E, T> {
 
   public abstract AbstractDiscordRequest<E, T> createRequest(E event, List<String> args);
 
+  public abstract void sendReact(E event, String value);
+
   public void sendMessages(E event, Collection<String> messages) {
     for (String message : messages) {
       sendMessage(event, message);

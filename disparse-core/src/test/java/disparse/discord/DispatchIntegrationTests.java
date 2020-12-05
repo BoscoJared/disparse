@@ -5,10 +5,7 @@ import static disparse.test.io.IO.given;
 
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
-import disparse.parser.reflection.CommandHandler;
-import disparse.parser.reflection.Cooldown;
-import disparse.parser.reflection.Flag;
-import disparse.parser.reflection.ParsedEntity;
+import disparse.parser.reflection.*;
 import disparse.utils.help.Help;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -56,7 +53,7 @@ public class DispatchIntegrationTests {
   }
 
   @CommandHandler(commandName = "cooldown")
-  @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, sendCooldownMessage = true)
+  @Cooldown(amount = 50, unit = ChronoUnit.MILLIS, messageStrategy = MessageStrategy.MESSAGE)
   public static void cooldown(TestDiscordRequest req) {
     req.getDispatcher().sendMessage(null, "test");
   }

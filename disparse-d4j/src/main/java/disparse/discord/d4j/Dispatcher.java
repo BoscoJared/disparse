@@ -8,6 +8,7 @@ import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.PrivateChannel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Permission;
 import disparse.discord.AbstractDiscordRequest;
@@ -117,6 +118,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
   public AbstractDiscordRequest<MessageCreateEvent, EmbedCreateSpec> createRequest(
       MessageCreateEvent event, List<String> args) {
     return new DiscordRequest(this, event, args);
+  }
+
+  @Override
+  public void sendReact(MessageCreateEvent event, String value) {
+    event.getMessage().addReaction(ReactionEmoji.unicode(value)).block();
   }
 
   @Override

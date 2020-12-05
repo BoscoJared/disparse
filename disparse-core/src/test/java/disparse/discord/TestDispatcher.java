@@ -111,6 +111,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
     return new TestDiscordRequest(this, event, args);
   }
 
+  @Override
+  public void sendReact(Object event, String value) {
+    this.messages.add(value);
+  }
+
   public List<String> getMessages() {
     return this.messages;
   }

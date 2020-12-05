@@ -31,13 +31,13 @@ public class Detector {
       CommandHandler handler = method.getAnnotation(CommandHandler.class);
       Duration cooldownDuration = Duration.ZERO;
       CooldownScope scope = CooldownScope.USER;
-      boolean sendCooldownMessage = false;
+      MessageStrategy messageStrategy = MessageStrategy.SILENT;
       IncomingScope acceptFrom = handler.acceptFrom();
       if (method.isAnnotationPresent(Cooldown.class)) {
         Cooldown cooldown = method.getAnnotation(Cooldown.class);
         cooldownDuration = Duration.of(cooldown.amount(), cooldown.unit());
         scope = cooldown.scope();
-        sendCooldownMessage = cooldown.sendCooldownMessage();
+        messageStrategy = cooldown.messageStrategy();
       }
       List<CommandUsage> commandUsages =
           Arrays.stream(method.getAnnotationsByType(Usage.class))
@@ -54,7 +54,7 @@ public class Detector {
               handler.canBeDisabled(),
               cooldownDuration,
               scope,
-              sendCooldownMessage,
+              messageStrategy,
               acceptFrom,
               handler.aliases(),
               handler.perms(),

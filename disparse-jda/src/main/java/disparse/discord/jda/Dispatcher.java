@@ -120,6 +120,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
   }
 
   @Override
+  public void sendReact(MessageReceivedEvent event, String value) {
+    event.getMessage().addReaction(value).queue();
+  }
+
+  @Override
   public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;

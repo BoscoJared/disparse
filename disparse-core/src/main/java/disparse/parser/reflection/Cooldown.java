@@ -17,5 +17,5 @@ public @interface Cooldown {
 
   CooldownScope scope() default CooldownScope.USER;
 
-  boolean sendCooldownMessage() default false;
+  MessageStrategy messageStrategy() default MessageStrategy.SILENT;
 }
