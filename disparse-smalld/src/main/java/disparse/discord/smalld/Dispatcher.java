@@ -174,6 +174,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
     return new DiscordRequest(this, event, args);
   }
 
+  @Override
+  public void sendReact(Event event, String value) {
+    Utils.sendReact(event, value);
+  }
+
   public static class Builder extends BaseBuilder<Event, JsonElement, Dispatcher, Builder> {
     public Builder(Class<?> clazz) {
       super(clazz);

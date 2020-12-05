@@ -304,8 +304,13 @@ public class CommandRegistrar<E, T> {
       Duration left = cooldownManager.timeLeft(cooldownCompositeKey, cooldownDuration);
 
       if (!left.isZero()) {
-        if (command.isSendCooldownMessage()) {
-          helper.sendMessage(event, cooldownMessage);
+        switch (command.getMessageStrategy()) {
+          case MESSAGE:
+            helper.sendMessage(event, cooldownMessage);
+            break;
+          case REACT:
+            helper.sendReact(event, "\uD83D\uDD52");
+            break;
         }
         return true;
       }
@@ -518,7 +523,7 @@ public class CommandRegistrar<E, T> {
             command.canBeDisabled(),
             command.getCooldownDuration(),
             command.getScope(),
-            command.isSendCooldownMessage(),
+            command.getMessageStrategy(),
             command.getAcceptFrom(),
             new String[] {},
             command.getPerms(),

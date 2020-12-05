@@ -18,6 +18,15 @@ public class Utils {
     smalld.post("/channels/" + channelId + "/messages", output.toString());
   }
 
+  public static void sendReact(Event event, String value) {
+    SmallD smalld = event.getSmalld();
+    JsonObject json = event.getJson();
+    String channelId = getChannelId(json);
+    String messageId = getMessageId(json);
+
+    smalld.put("/channels/" + channelId + "/messages/" + messageId + "/reactions/:clock3:/@me", "");
+  }
+
   public static void sendEmbed(Event event, JsonObject embed) {
     SmallD smalld = event.getSmalld();
     JsonObject json = event.getJson();
@@ -31,6 +40,10 @@ public class Utils {
 
   public static String getChannelId(JsonObject json) {
     return json.get("d").getAsJsonObject().get("channel_id").getAsString();
+  }
+
+  public static String getMessageId(JsonObject json) {
+    return json.get("d").getAsJsonObject().get("id").getAsString();
   }
 
   public static boolean isTextChannel(Event event) {
