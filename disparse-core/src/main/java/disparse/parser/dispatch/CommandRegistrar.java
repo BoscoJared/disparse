@@ -499,6 +499,10 @@ public class CommandRegistrar<E, T> {
     return this.commandTable.keySet();
   }
 
+  public Map<Command, Set<CommandFlag>> getCommandToFlags() {
+    return this.commandToFlags;
+  }
+
   private Optional<Command> findCommand(Set<Command> commands, String commandName) {
     return commands.stream()
         .filter(command -> command.getCommandName().equals(commandName))

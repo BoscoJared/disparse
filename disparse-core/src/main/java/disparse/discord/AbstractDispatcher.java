@@ -10,6 +10,7 @@ import disparse.utils.Shlex;
 import disparse.utils.help.Help;
 import disparse.utils.help.PageNumberOutOfBounds;
 import disparse.utils.help.PaginatedEntities;
+import disparse.utils.readme.ReadmeGeneration;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +39,8 @@ public abstract class AbstractDispatcher<E, T> {
   protected Reflections reflections;
   protected CommandRegistrar<E, T> registrar;
   protected boolean respondToBots;
+  protected String autogeneratePath;
+  protected String autogenerateFilename;
 
   protected List<BiFunction<E, String, Boolean>> registeredMiddleware = new ArrayList<>();
 
@@ -52,6 +55,8 @@ public abstract class AbstractDispatcher<E, T> {
     this.reflections = this.defaultReflection(this.getClass());
     this.registrar = null;
     this.respondToBots = false;
+    this.autogeneratePath = null;
+    this.autogenerateFilename = null;
   }
 
   public void dispatch(E event) {
@@ -294,6 +299,14 @@ public abstract class AbstractDispatcher<E, T> {
     return this.disabledCommandManager.commandAllowedInGuild(guildFromEvent(event), command);
   }
 
+  public void autogenerateReadme() {
+    ReadmeGeneration.writeReadme(
+        this.autogeneratePath,
+        this.autogenerateFilename,
+        this.registrar.getAllCommands(),
+        this.registrar.getCommandToFlags());
+  }
+
   public abstract boolean commandRolesNotMet(E event, Command command);
 
   public abstract boolean commandIntentsNotMet(E event, Command command);
@@ -364,6 +377,8 @@ public abstract class AbstractDispatcher<E, T> {
       E, T, A extends AbstractDispatcher<E, T>, B extends BaseBuilder> {
     protected A actualClass;
     protected B actualClassBuilder;
+
+    protected boolean autogenerate = false;
 
     protected abstract A getActual();
 
@@ -450,8 +465,26 @@ public abstract class AbstractDispatcher<E, T> {
       return actualClassBuilder;
     }
 
+    public B autogenerateReadme() {
+      return autogenerateReadmeWithPath(".");
+    }
+
+    public B autogenerateReadmeWithPath(String path) {
+      return autogenerateReadmeWithNameAndPath(path, "README.md");
+    }
+
+    public B autogenerateReadmeWithNameAndPath(String path, String filename) {
+      actualClass.autogeneratePath = path;
+      actualClass.autogenerateFilename = filename;
+      actualClassBuilder.autogenerate = true;
+      return actualClassBuilder;
+    }
+
     public A build() {
       actualClass.registrar = Detector.detect(actualClass.reflections);
+      if (actualClassBuilder.autogenerate) {
+        actualClass.autogenerateReadme();
+      }
       return actualClass;
     }
   }
