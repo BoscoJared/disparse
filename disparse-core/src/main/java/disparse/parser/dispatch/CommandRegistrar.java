@@ -4,6 +4,7 @@ import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDiscordResponse;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.manager.CooldownManager;
+import disparse.model.Commands;
 import disparse.parser.*;
 import disparse.parser.exceptions.NoCommandNameFound;
 import disparse.parser.exceptions.OptionRequired;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 public class CommandRegistrar<E, T> {
 
   private static final Logger logger = LoggerFactory.getLogger(CommandRegistrar.class);
+  private final Commands commands = new Commands();
   private final CommandFlag helpFlag =
       new CommandFlag(
           "help", 'h', Types.BOOL, false, "show usage of a particular command", Map.of());
@@ -32,29 +34,23 @@ public class CommandRegistrar<E, T> {
   private final List<Method> injectables = new ArrayList<>();
   private final Map<Command, CommandContainer> disabledCommands = new HashMap<>();
 
-  public CommandRegistrar() {
-    this.commandToFlags.put(helpCommand, Set.of(helpPageFlag));
-    this.commandTable.put(helpCommand, null);
-  }
+  public CommandRegistrar() {}
 
   public void register(Command command, Method method) {
-    this.commandToFlags.putIfAbsent(command, new HashSet<>());
-    this.commandToFlags.get(command).add(helpFlag);
-    this.commandTable.put(command, method);
+    this.commands.registerCommandToMethod(command, method);
 
     for (String alias : command.getAliases()) {
       Command aliasCommand = this.alias(command, alias);
-      register(aliasCommand, method);
+      this.commands.registerCommandToMethod(aliasCommand, method);
     }
   }
 
   public void register(Command command, CommandFlag flag) {
-    this.commandToFlags.putIfAbsent(command, new HashSet<>());
-    this.commandToFlags.get(command).add(flag);
+    this.commands.registerFlagToCommand(command, flag);
 
     for (String alias : command.getAliases()) {
       Command aliasCommand = this.alias(command, alias);
-      register(aliasCommand, flag);
+      this.commands.registerFlagToCommand(aliasCommand, flag);
     }
   }
 
@@ -69,11 +65,11 @@ public class CommandRegistrar<E, T> {
 
     String commandName = parsedOutput.getCommand().getCommandName();
     Command command =
-        this.commandTable.keySet().stream()
+        this.commands.allCommands().stream()
             .filter(c -> c.getCommandName().equals(commandName))
             .findFirst()
             .orElse(null);
-    if (!commandTable.containsKey(command)) return;
+    if (!this.commands.commandExists(command)) return;
     if (helper.commandRolesNotMet(event, command) || helper.commandIntentsNotMet(event, command)) {
       helper.roleNotMet(event, command);
       return;
@@ -120,7 +116,7 @@ public class CommandRegistrar<E, T> {
     String parentName = command.getParentName();
     if (parentName != null) {
       command =
-          this.commandTable.keySet().stream()
+          this.commands.allCommands().stream()
               .filter(c -> c.getCommandName().equals(parentName))
               .findFirst()
               .orElse(null);
@@ -145,7 +141,7 @@ public class CommandRegistrar<E, T> {
     if (parsedOutput.getArguments().size() < 1) {
       int pageLimit =
           Integer.parseInt((String) parsedOutput.getOptions().getOrDefault(helpPageFlag, "1"));
-      helper.allCommands(event, commandTable.keySet(), pageLimit);
+      helper.allCommands(event, this.commands.allCommands(), pageLimit);
       return;
     }
 
@@ -154,7 +150,7 @@ public class CommandRegistrar<E, T> {
     String name = args.get(0);
     name = String.join(".", name.split(" "));
 
-    for (Command c : commandTable.keySet()) {
+    for (Command c : this.commands.allCommands()) {
       if (c.getCommandName().equals(name)) {
         foundCommand = c;
       }
@@ -172,7 +168,7 @@ public class CommandRegistrar<E, T> {
 
     if (parentName != null) {
       foundCommand =
-          this.commandTable.keySet().stream()
+          this.commands.allCommands().stream()
               .filter(c -> c.getCommandName().equals(parentName))
               .findFirst()
               .orElse(foundCommand);
@@ -182,7 +178,7 @@ public class CommandRegistrar<E, T> {
 
   private Command prefixHelp(
       List<String> args, AbstractDispatcher<E, T> helper, E event, String prefix) {
-    PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
+    PrefixContainer prefixContainer = findCommandPrefixes(this.commands.allCommands(), args);
     List<Command> prefixes = prefixContainer.getPrefixes();
     String foundPrefix = prefixContainer.getFoundPrefix();
     if (prefixes.size() == 0) {
@@ -198,7 +194,7 @@ public class CommandRegistrar<E, T> {
   private void emitHelp(
       List<String> args, AbstractDispatcher<E, T> helper, E event, Command command) {
     List<String> translatedArgs = new ArrayList<>();
-    Parser parser = new Parser(this.commandToFlags);
+    Parser parser = new Parser(this.commands.getCommandToFlags());
     translatedArgs.add("help");
     translatedArgs.addAll(args);
     ParsedOutput parsedOutput = parser.parse(translatedArgs);
@@ -206,7 +202,12 @@ public class CommandRegistrar<E, T> {
     // words
     int pageLimit =
         Integer.parseInt((String) parsedOutput.getOptions().getOrDefault(helpPageFlag, "1"));
-    helper.help(event, command, commandToFlags.get(command), commandTable.keySet(), pageLimit);
+    helper.help(
+        event,
+        command,
+        this.commands.getFlagsForCommand(command),
+        this.commands.allCommands(),
+        pageLimit);
   }
 
   private void emitCommand(
@@ -216,7 +217,7 @@ public class CommandRegistrar<E, T> {
       ParsedOutput parsedOutput,
       Command foundCommand)
       throws ReflectiveOperationException, OptionRequired {
-    Method commandHandler = commandTable.get(foundCommand);
+    Method commandHandler = this.commands.getMethodForCommand(foundCommand).orElseThrow();
 
     if (isOnCooldown(foundCommand, helper, event)) {
       return;
@@ -469,7 +470,7 @@ public class CommandRegistrar<E, T> {
   }
 
   private ParsedOutput parse(List<String> args, AbstractDispatcher<E, T> helper, E event) {
-    Parser parser = new Parser(this.commandToFlags);
+    Parser parser = new Parser(this.commands.getCommandToFlags());
 
     try {
       return parser.parse(args);
@@ -483,7 +484,7 @@ public class CommandRegistrar<E, T> {
   }
 
   private void noCommandNameFound(List<String> args, AbstractDispatcher<E, T> helper, E event) {
-    PrefixContainer prefixContainer = findCommandPrefixes(commandTable.keySet(), args);
+    PrefixContainer prefixContainer = findCommandPrefixes(this.commands.allCommands(), args);
     List<Command> prefixMatchedCommands = prefixContainer.getPrefixes();
     String foundPrefix = prefixContainer.getFoundPrefix();
 
@@ -494,18 +495,22 @@ public class CommandRegistrar<E, T> {
       // one prefix matched means we can directly help for this command
       Command matchedCommand = prefixMatchedCommands.get(0);
       helper.help(
-          event, matchedCommand, commandToFlags.get(matchedCommand), commandTable.keySet(), 1);
+          event,
+          matchedCommand,
+          this.commands.getFlagsForCommand(matchedCommand),
+          this.commands.allCommands(),
+          1);
     } else {
       helper.helpSubcommands(event, foundPrefix, prefixMatchedCommands);
     }
   }
 
   public Collection<Command> getAllCommands() {
-    return this.commandTable.keySet();
+    return this.commands.allCommands();
   }
 
   public Map<Command, Set<CommandFlag>> getCommandToFlags() {
-    return this.commandToFlags;
+    return this.commands.getCommandToFlags();
   }
 
   private Optional<Command> findCommand(Set<Command> commands, String commandName) {
