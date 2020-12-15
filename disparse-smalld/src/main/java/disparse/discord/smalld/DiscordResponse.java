@@ -17,8 +17,8 @@ public class DiscordResponse extends AbstractDiscordResponse<JsonElement> {
     super(builder);
   }
 
-  public static DiscordResponse of(String message) {
-    return new DiscordResponse(message);
+  public static DiscordResponse of(String fmt, Object... args) {
+    return new DiscordResponse(String.format(fmt, args));
   }
 
   public static DiscordResponse of(JsonElement builder) {
