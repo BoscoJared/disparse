@@ -40,6 +40,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
   }
 
   @Override
+  public void setBuilderFooter(StringBuilder builder, String footer) {
+    builder.append("footer|").append(footer).append("\n");
+  }
+
+  @Override
   public void addField(StringBuilder builder, String name, String value, boolean inline) {
     builder.append(String.join("|", name, value, String.valueOf(inline))).append("\n");
   }

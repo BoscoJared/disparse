@@ -191,13 +191,4 @@ public class Help {
 
     return flagName;
   }
-
-  public static String getDescriptionUsage(Command command) {
-    return String.format(
-        "Usage of command:  %s.  [+] may be repeated.  * is required.", command.getCommandName());
-  }
-
-  public static String getTitle(Command command) {
-    return String.format("%s:  %s", command.getCommandName(), command.getDescription());
-  }
 }

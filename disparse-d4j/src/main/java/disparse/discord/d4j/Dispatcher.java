@@ -61,6 +61,11 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
   }
 
   @Override
+  public void setBuilderFooter(EmbedCreateSpec builder, String footer) {
+    builder.setFooter(footer, null);
+  }
+
+  @Override
   public boolean commandRolesNotMet(MessageCreateEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;

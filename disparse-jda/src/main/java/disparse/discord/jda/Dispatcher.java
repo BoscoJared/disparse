@@ -69,6 +69,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
   }
 
   @Override
+  public void setBuilderFooter(EmbedBuilder builder, String footer) {
+    builder.setFooter(footer);
+  }
+
+  @Override
   public void addField(EmbedBuilder builder, String name, String value, boolean inline) {
     builder.addField(name, value, inline);
   }
