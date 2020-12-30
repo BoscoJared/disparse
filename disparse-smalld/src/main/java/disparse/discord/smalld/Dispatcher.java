@@ -2,11 +2,11 @@ package disparse.discord.smalld;
 
 import static disparse.discord.smalld.Utils.*;
 
+import com.github.princesslana.jsonf.JsonF;
 import com.github.princesslana.smalld.SmallD;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import disparse.discord.AbstractDiscordRequest;
 import disparse.discord.AbstractDispatcher;
 import disparse.discord.PermissionEnumConverter;
@@ -43,7 +43,7 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
   }
 
   public void onMessageReceived(String message) {
-    JsonObject json = JsonParser.parseString(message).getAsJsonObject();
+    JsonF json = JsonF.parse(message);
     Event event = new Event(this.smalld, json);
 
     if (!isMessageCreate(json)) return;

@@ -30,7 +30,7 @@ public class Guilds {
   }
 
   public static String getGuildId(Event event) {
-    return event.getJson().get("d").getAsJsonObject().get("guild_id").getAsString();
+    return event.getJson().get("d", "guild_id").asString().orElseThrow(IllegalStateException::new);
   }
 
   public static Set<Role> getRolesForGuildMember(Event event, String userId) {
