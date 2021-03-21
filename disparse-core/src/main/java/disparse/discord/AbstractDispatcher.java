@@ -92,6 +92,8 @@ public abstract class AbstractDispatcher<E, T> {
     if (!this.disabledCommandManager.commandAllowedInGuild(this.guildFromEvent(event), command))
       return;
 
+    if (!this.runMiddleware(event, command.getCommandName())) return;
+
     T builder = this.baseEmbedManager.baseHelpEmbedForGuild(event, this);
     setBuilderTitle(builder, Help.getTitle(command));
     setBuilderDescription(builder, Help.getDescriptionUsage(command));
@@ -181,6 +183,7 @@ public abstract class AbstractDispatcher<E, T> {
         commands.stream()
             .filter(c -> this.disabledCommandManager.commandAllowedInGuild(guildId, c))
             .filter(c -> !this.commandRolesNotMet(event, c) && !this.commandIntentsNotMet(event, c))
+            .filter(c -> this.runMiddleware(event, c.getCommandName()))
             .collect(Collectors.toList());
 
     T builder = this.baseEmbedManager.baseHelpEmbedForGuild(event, this);
