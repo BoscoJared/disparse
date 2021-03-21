@@ -5,8 +5,8 @@ import java.util.Objects;
 
 public class CommandFlag {
 
-  private final String longName;
-  private final Character shortName;
+  private final String longName; // This should be Optional
+  private final Character shortName; // This should be Optional
   private final boolean isRequired;
   private final Types type;
   private final String description;
@@ -66,7 +66,7 @@ public class CommandFlag {
       return false;
     }
     CommandFlag flag = (CommandFlag) o;
-    return longName.equals(flag.longName) && Objects.equals(shortName, flag.shortName);
+    return Objects.equals(longName, flag.longName) && Objects.equals(shortName, flag.shortName);
   }
 
   @Override

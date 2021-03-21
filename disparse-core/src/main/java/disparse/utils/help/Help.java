@@ -3,10 +3,7 @@ package disparse.utils.help;
 import disparse.parser.Command;
 import disparse.parser.CommandFlag;
 import disparse.parser.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -78,9 +75,22 @@ public class Help {
   }
 
   public static String optionRequired(Command command, CommandFlag flag) {
-    return "The flag `--"
-        + flag
-        + "` is required for `"
+
+    Optional<String> longDisplay =
+        Optional.ofNullable(flag.getLongName()).map(s -> "`--" + s + "`");
+
+    Optional<String> shortDisplay =
+        Optional.ofNullable(flag.getShortName()).map(s -> "`-" + s + "`");
+
+    String flagDisplay =
+        longDisplay
+            .or(() -> shortDisplay)
+            .orElseThrow(
+                () -> new RuntimeException("Flag had neither short nor long flag registered!"));
+
+    return "The flag "
+        + flagDisplay
+        + " is required for `"
         + command.getCommandName()
         + "` to be ran!";
   }
