@@ -95,8 +95,8 @@ public abstract class AbstractDispatcher<E, T> {
     if (!this.runMiddleware(event, command.getCommandName())) return;
 
     T builder = this.baseEmbedManager.baseHelpEmbedForGuild(event, this);
-    setBuilderTitle(builder, Help.getTitle(command));
-    setBuilderDescription(builder, Help.getDescriptionUsage(command));
+    setBuilderTitle(builder, command.getCommandName());
+    setBuilderDescription(builder, command.getDescription());
 
     if (command.getAliases().length > 0) {
       String[] aliases = command.getAliases();
@@ -172,7 +172,7 @@ public abstract class AbstractDispatcher<E, T> {
       addField(builder, flagName, flag.getDescription(), false);
     }
 
-    addField(builder, currentlyViewing, "Use `-p | --page` to specify a page number", false);
+    setBuilderFooter(builder, currentlyViewing + "\nUse `-p | --page` to specify a page number");
     sendEmbed(event, builder);
   }
 
@@ -319,6 +319,8 @@ public abstract class AbstractDispatcher<E, T> {
   public abstract void setBuilderTitle(T builder, String title);
 
   public abstract void setBuilderDescription(T builder, String description);
+
+  public abstract void setBuilderFooter(T builder, String footer);
 
   public abstract void addField(T builder, String name, String value, boolean inline);
 

@@ -104,6 +104,14 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
   }
 
   @Override
+  public void setBuilderFooter(JsonElement builder, String footer) {
+    JsonObject json = new JsonObject();
+    json.addProperty("text", footer);
+
+    builder.getAsJsonObject().add("footer", json);
+  }
+
+  @Override
   public void roleNotMet(Event event, Command command) {
     sendMessage(event, Help.roleNotMet(command));
   }
