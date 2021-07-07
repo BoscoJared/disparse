@@ -1,13 +1,13 @@
 package disparse.discord.smalld;
 
+import com.github.princesslana.jsonf.JsonF;
 import com.github.princesslana.smalld.SmallD;
-import com.google.gson.JsonObject;
 
 public class Event {
-  private SmallD smalld;
-  private JsonObject json;
+  private final SmallD smalld;
+  private final JsonF json;
 
-  public Event(SmallD smalld, JsonObject json) {
+  public Event(SmallD smalld, JsonF json) {
     this.smalld = smalld;
     this.json = json;
   }
@@ -16,7 +16,7 @@ public class Event {
     return smalld;
   }
 
-  public JsonObject getJson() {
+  public JsonF getJson() {
     return json;
   }
 }

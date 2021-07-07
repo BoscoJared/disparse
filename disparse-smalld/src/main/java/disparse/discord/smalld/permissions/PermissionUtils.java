@@ -1,13 +1,9 @@
 package disparse.discord.smalld.permissions;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import com.github.princesslana.jsonf.JsonF;
 import disparse.discord.smalld.Event;
 import disparse.discord.smalld.Utils;
 import disparse.discord.smalld.guilds.Guilds;
-import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,15 +31,13 @@ public class PermissionUtils {
     String channelId = Utils.getChannelId(event.getJson());
     String guildId = Guilds.getGuildId(event);
     String userId = Utils.getAuthorId(event);
-    JsonObject channelObj = Utils.getChannel(event, channelId);
+    JsonF channelObj = Utils.getChannel(event, channelId);
     long perms = permissionBase.getValue();
 
-    Type type = new TypeToken<List<Overwrite>>() {}.getType();
-
-    List<Overwrite> overwrites = new Gson().fromJson(channelObj.get("permission_overwrites"), type);
-
     Map<String, Overwrite> overwriteMap =
-        overwrites.stream().collect(Collectors.toMap(o -> o.id, Function.identity()));
+        channelObj.get("permission_overwrites").stream()
+            .map(Overwrite::fromJson)
+            .collect(Collectors.toMap(o -> o.id, Function.identity()));
 
     Overwrite everyoneOverwrite = overwriteMap.remove(guildId);
 
@@ -83,18 +77,13 @@ public class PermissionUtils {
     return computeOverwrites(base, event);
   }
 
-  public static class Overwrite {
+  private static class Overwrite {
     private String id;
     private String type;
-    private Integer allow;
-    private Integer deny;
+    private Long allow;
+    private Long deny;
 
-    public Overwrite(String id, String type, Integer allow, Integer deny) {
-      this.id = id;
-      this.type = type;
-      this.allow = allow;
-      this.deny = deny;
-    }
+    private Overwrite() {}
 
     @Override
     public boolean equals(Object o) {
@@ -110,6 +99,15 @@ public class PermissionUtils {
     @Override
     public int hashCode() {
       return Objects.hash(id, type, allow, deny);
+    }
+
+    public static Overwrite fromJson(JsonF json) {
+      Overwrite o = new Overwrite();
+      o.id = json.get("id").asString().orElseThrow(IllegalStateException::new);
+      o.type = json.get("type").asString().orElseThrow(IllegalStateException::new);
+      o.allow = json.get("allow").asLong().orElseThrow(IllegalStateException::new);
+      o.deny = json.get("deny").asLong().orElseThrow(IllegalStateException::new);
+      return o;
     }
   }
 }
