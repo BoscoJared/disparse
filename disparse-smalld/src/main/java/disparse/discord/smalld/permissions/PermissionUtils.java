@@ -86,10 +86,10 @@ public class PermissionUtils {
   public static class Overwrite {
     private String id;
     private String type;
-    private Integer allow;
-    private Integer deny;
+    private Long allow;
+    private Long deny;
 
-    public Overwrite(String id, String type, Integer allow, Integer deny) {
+    public Overwrite(String id, String type, Long allow, Long deny) {
       this.id = id;
       this.type = type;
       this.allow = allow;
