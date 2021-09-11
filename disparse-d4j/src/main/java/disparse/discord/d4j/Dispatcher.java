@@ -51,6 +51,12 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
   }
 
   @Override
+  public void sendDirectMessageToUser(MessageCreateEvent event, String message) {
+    if (event.getMessage().getAuthor().isEmpty()) return;
+    event.getMessage().getAuthor().get().getPrivateChannel().block().createMessage(message).block();
+  }
+
+  @Override
   public void setBuilderTitle(EmbedCreateSpec builder, String title) {
     builder.setTitle(title);
   }

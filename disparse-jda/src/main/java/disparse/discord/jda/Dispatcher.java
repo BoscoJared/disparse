@@ -125,6 +125,11 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
   }
 
   @Override
+  public void sendDirectMessageToUser(MessageReceivedEvent event, String message) {
+    event.getAuthor().openPrivateChannel().flatMap(channel -> channel.sendMessage(message)).queue();
+  }
+
+  @Override
   public boolean commandRolesNotMet(MessageReceivedEvent event, Command command) {
     if (command.getRoles().length == 0) {
       return false;

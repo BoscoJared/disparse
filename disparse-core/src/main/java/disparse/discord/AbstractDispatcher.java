@@ -344,6 +344,8 @@ public abstract class AbstractDispatcher<E, T> {
 
   public abstract void sendReact(E event, String value);
 
+  public abstract void sendDirectMessageToUser(E event, String message);
+
   public void sendMessages(E event, Collection<String> messages) {
     for (String message : messages) {
       sendMessage(event, message);

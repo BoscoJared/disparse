@@ -18,6 +18,22 @@ public class Utils {
     smalld.post("/channels/" + channelId + "/messages", output.toString());
   }
 
+  public static void sendDirectMessageToUser(Event event, String message) {
+    SmallD smalld = event.getSmalld();
+    JsonObject json = event.getJson();
+    JsonObject author = getAuthor(json);
+    String channelId = getChannelId(author);
+
+    if (isAuthorBot(author)) {
+      return;
+    }
+
+    JsonObject output = new JsonObject();
+    output.addProperty("message", message);
+
+    smalld.post("/channels/" + channelId + "/messages", output.toString());
+  }
+
   public static void sendReact(Event event, String value) {
     SmallD smalld = event.getSmalld();
     JsonObject json = event.getJson();

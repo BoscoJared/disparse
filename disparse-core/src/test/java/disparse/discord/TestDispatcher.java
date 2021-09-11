@@ -116,6 +116,11 @@ public class TestDispatcher extends AbstractDispatcher<Object, StringBuilder> {
     this.messages.add(value);
   }
 
+  @Override
+  public void sendDirectMessageToUser(Object event, String message) {
+    this.messages.add(message);
+  }
+
   public List<String> getMessages() {
     return this.messages;
   }
