@@ -56,6 +56,11 @@ public class Dispatcher extends AbstractDispatcher<Event, JsonElement> {
   }
 
   @Override
+  public void sendDirectMessageToUser(Event event, String message) {
+    Utils.sendDirectMessageToUser(event, message);
+  }
+
+  @Override
   public void sendEmbed(Event event, JsonElement element) {
     Utils.sendEmbed(event, element.getAsJsonObject());
   }
