@@ -52,7 +52,7 @@ public class Dispatcher extends AbstractDispatcher<MessageCreateEvent, EmbedCrea
 
   @Override
   public void sendDirectMessageToUser(MessageCreateEvent event, String message) {
-    if (event.getMessage().getAuthor().isEmpty()) return;
+    if (event.getMessage().getAuthor().get().isBot()) return;
     event.getMessage().getAuthor().get().getPrivateChannel().block().createMessage(message).block();
   }
 

@@ -126,6 +126,7 @@ public class Dispatcher extends AbstractDispatcher<MessageReceivedEvent, EmbedBu
 
   @Override
   public void sendDirectMessageToUser(MessageReceivedEvent event, String message) {
+    if (event.getAuthor().isBot()) return;
     event.getAuthor().openPrivateChannel().flatMap(channel -> channel.sendMessage(message)).queue();
   }
 
